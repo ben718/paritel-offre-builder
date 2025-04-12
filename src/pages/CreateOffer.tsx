@@ -71,6 +71,8 @@ type OfferProduct = {
   quantity: number;
   price: string;
   notes?: string;
+  hideQuantity?: boolean;
+  hidePrice?: boolean;
 };
 
 type Offer = {
@@ -359,10 +361,13 @@ const CreateOffer = () => {
         
         let totalAmount = 0;
         offer.products.forEach(product => {
-          const priceValue = parseFloat(product.price.replace(/[^\d.-]/g, '')) || 0;
-          const totalPrice = priceValue * product.quantity;
-          totalAmount += totalPrice;
+          if (!product.hidePrice) {
+            const priceValue = parseFloat(product.price.replace(/[^\d.-]/g, '')) || 0;
+            const totalPrice = priceValue * (!product.hideQuantity ? product.quantity : 1);
+            totalAmount += totalPrice;
+          }
           
+          const priceValue = parseFloat(product.price.replace(/[^\d.-]/g, '')) || 0;
           productsHTML += `
             <tr>
               <td style="padding: 8px; border: 1px solid #ddd;">
@@ -370,8 +375,12 @@ const CreateOffer = () => {
                 <span style="color: #666; font-size: 12px;">${product.category}</span>
                 ${product.notes ? `<br><span style="font-style: italic; font-size: 12px;">${product.notes}</span>` : ''}
               </td>
-              <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">${product.quantity}</td>
-              <td style="padding: 8px; text-align: right; border: 1px solid #ddd;">${priceValue.toFixed(2)}€</td>
+              <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">
+                ${product.hideQuantity ? '-' : product.quantity}
+              </td>
+              <td style="padding: 8px; text-align: right; border: 1px solid #ddd;">
+                ${product.hidePrice ? 'Sur devis' : `${priceValue.toFixed(2)}€`}
+              </td>
             </tr>
           `;
         });
@@ -831,33 +840,115 @@ const CreateOffer = () => {
                         </div>
                         
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-3">
-                          <div>
-                            <CustomLabel htmlFor={`quantity-${product.id}`}>Quantité (optionnel)</CustomLabel>
-                            <div className="flex items-center mt-1">
+                          {product.hideQuantity !== true && (
+                            <div>
+                              <div className="flex justify-between items-center">
+                                <CustomLabel htmlFor={`quantity-${product.id}`}>Quantité (optionnel)</CustomLabel>
+                                <button 
+                                  type="button"
+                                  className="text-gray-400 hover:text-red-500"
+                                  onClick={() => {
+                                    const updatedProducts = offer.products.map(p => 
+                                      p.id === product.id ? { ...p, hideQuantity: true, quantity: 1 } : p
+                                    );
+                                    setOffer({ ...offer, products: updatedProducts });
+                                  }}
+                                >
+                                  <X className="h-4 w-4" />
+                                </button>
+                              </div>
+                              <div className="flex items-center mt-1">
+                                <button 
+                                  type="button"
+                                  className="w-8 h-8 flex items-center justify-center border rounded-l-md"
+                                  onClick={() => updateProductQuantity(product.id, Math.max(0, product.quantity - 1))}
+                                >
+                                  -
+                                </button>
+                                <input
+                                  id={`quantity-${product.id}`}
+                                  type="number"
+                                  min="0"
+                                  value={product.quantity}
+                                  onChange={(e) => updateProductQuantity(product.id, parseInt(e.target.value) || 0)}
+                                  className="w-12 h-8 text-center border-y"
+                                />
+                                <button 
+                                  type="button"
+                                  className="w-8 h-8 flex items-center justify-center border rounded-r-md"
+                                  onClick={() => updateProductQuantity(product.id, (product.quantity || 0) + 1)}
+                                >
+                                  +
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                          {product.hideQuantity === true && (
+                            <div>
                               <button 
                                 type="button"
-                                className="w-8 h-8 flex items-center justify-center border rounded-l-md"
-                                onClick={() => updateProductQuantity(product.id, Math.max(0, product.quantity - 1))}
+                                className="flex items-center text-sm text-paritel-primary hover:underline"
+                                onClick={() => {
+                                  const updatedProducts = offer.products.map(p => 
+                                    p.id === product.id ? { ...p, hideQuantity: false } : p
+                                  );
+                                  setOffer({ ...offer, products: updatedProducts });
+                                }}
                               >
-                                -
-                              </button>
-                              <input
-                                id={`quantity-${product.id}`}
-                                type="number"
-                                min="0"
-                                value={product.quantity}
-                                onChange={(e) => updateProductQuantity(product.id, parseInt(e.target.value) || 0)}
-                                className="w-12 h-8 text-center border-y"
-                              />
-                              <button 
-                                type="button"
-                                className="w-8 h-8 flex items-center justify-center border rounded-r-md"
-                                onClick={() => updateProductQuantity(product.id, (product.quantity || 0) + 1)}
-                              >
-                                +
+                                <Plus className="h-3 w-3 mr-1" />
+                                Ajouter la quantité
                               </button>
                             </div>
-                          </div>
+                          )}
+                          
+                          {product.hidePrice !== true && (
+                            <div>
+                              <div className="flex justify-between items-center">
+                                <CustomLabel htmlFor={`price-${product.id}`}>Prix (optionnel)</CustomLabel>
+                                <button 
+                                  type="button"
+                                  className="text-gray-400 hover:text-red-500"
+                                  onClick={() => {
+                                    const updatedProducts = offer.products.map(p => 
+                                      p.id === product.id ? { ...p, hidePrice: true } : p
+                                    );
+                                    setOffer({ ...offer, products: updatedProducts });
+                                  }}
+                                >
+                                  <X className="h-4 w-4" />
+                                </button>
+                              </div>
+                              <Input
+                                id={`price-${product.id}`}
+                                placeholder="€"
+                                value={product.price}
+                                onChange={(e) => {
+                                  const updatedProducts = offer.products.map(p => 
+                                    p.id === product.id ? { ...p, price: e.target.value } : p
+                                  );
+                                  setOffer({ ...offer, products: updatedProducts });
+                                }}
+                                className="mt-1"
+                              />
+                            </div>
+                          )}
+                          {product.hidePrice === true && (
+                            <div>
+                              <button 
+                                type="button"
+                                className="flex items-center text-sm text-paritel-primary hover:underline"
+                                onClick={() => {
+                                  const updatedProducts = offer.products.map(p => 
+                                    p.id === product.id ? { ...p, hidePrice: false } : p
+                                  );
+                                  setOffer({ ...offer, products: updatedProducts });
+                                }}
+                              >
+                                <Plus className="h-3 w-3 mr-1" />
+                                Ajouter le prix
+                              </button>
+                            </div>
+                          )}
                         </div>
                         
                         <div>
@@ -944,8 +1035,9 @@ const CreateOffer = () => {
                                 )}
                               </div>
                               <div className="text-right">
-                                <p className="font-medium">Qté: {product.quantity}</p>
-                                <p className="text-sm">{productDetails?.pricing}</p>
+                                {!product.hideQuantity && <p className="font-medium">Qté: {product.quantity}</p>}
+                                {!product.hidePrice && <p className="text-sm">{productDetails?.pricing}</p>}
+                                {(product.hideQuantity && product.hidePrice) && <p className="text-sm italic">Prix non spécifié</p>}
                               </div>
                             </div>
                           );
