@@ -31,6 +31,7 @@ export type ProductCardProps = {
 type ProductCardComponentProps = ProductCardProps & {
   onEdit?: (id: number) => void;
   onDelete?: (id: number) => void;
+  onViewDetails?: (id: number) => void;
 };
 
 export const ProductCard = ({
@@ -45,7 +46,8 @@ export const ProductCard = ({
   image,
   specs,
   onEdit,
-  onDelete
+  onDelete,
+  onViewDetails
 }: ProductCardComponentProps) => {
   return (
     <Card className="overflow-hidden h-full flex flex-col">
@@ -140,12 +142,21 @@ export const ProductCard = ({
               </AlertDialog>
             </div>
           ) : (
-            <Button variant="outline" size="sm">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={onViewDetails ? () => onViewDetails(id) : undefined}
+            >
               <Eye className="h-4 w-4 mr-2" />
               Détails
             </Button>
           )}
-          <Button variant="default" size="sm" className="bg-paritel-primary">
+          <Button 
+            variant="default" 
+            size="sm" 
+            className="bg-paritel-primary"
+            onClick={() => window.alert(`Produit "${name}" ajouté à votre offre.`)}
+          >
             Ajouter
           </Button>
         </div>

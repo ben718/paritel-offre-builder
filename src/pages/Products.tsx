@@ -9,6 +9,8 @@ import { GlobalOfferingCircle } from "@/components/products/GlobalOfferingCircle
 import { CategoryFilters, CategoryTabsList } from "@/components/products/CategoryFilters";
 import { products as initialProducts } from "@/data/productData";
 import ProductForm from "@/components/products/ProductForm";
+import ProductDetails from "@/components/products/ProductDetails";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { 
   Dialog, 
   DialogContent, 
@@ -25,7 +27,10 @@ const Products = () => {
   const [selectedSubcategory, setSelectedSubcategory] = useState("all");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Partial<ProductCardProps> | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<ProductCardProps | null>(null);
+  const isMobile = useIsMobile();
   
   const handleCategoryChange = (value: string) => {
     setSelectedCategory(value);
@@ -93,11 +98,26 @@ const Products = () => {
     setProducts(products.filter(product => product.id !== id));
   };
   
+  const handleViewProductDetails = (id: number) => {
+    const product = products.find(p => p.id === id);
+    if (product) {
+      setSelectedProduct(product);
+      setIsDetailsDialogOpen(true);
+    }
+  };
+  
+  const handleAddToOffer = () => {
+    if (selectedProduct) {
+      window.alert(`Produit "${selectedProduct.name}" ajouté à votre offre.`);
+    }
+  };
+  
   // Add callbacks to products for CRUD operations
   const productsWithCallbacks = filteredProducts.map(product => ({
     ...product,
     onEdit: handleEditProduct,
-    onDelete: handleDeleteProduct
+    onDelete: handleDeleteProduct,
+    onViewDetails: handleViewProductDetails
   }));
   
   return (
@@ -147,6 +167,18 @@ const Products = () => {
                     setEditingProduct(null);
                     setIsEditDialogOpen(false);
                   }} 
+                />
+              )}
+            </DialogContent>
+          </Dialog>
+          
+          <Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen}>
+            <DialogContent className={`${isMobile ? 'max-w-full p-4' : 'sm:max-w-[800px]'} max-h-[90vh] overflow-y-auto`}>
+              {selectedProduct && (
+                <ProductDetails 
+                  product={selectedProduct} 
+                  onBack={() => setIsDetailsDialogOpen(false)}
+                  onAddToOffer={handleAddToOffer}
                 />
               )}
             </DialogContent>

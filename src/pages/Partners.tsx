@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useIsMobile } from "@/hooks/use-mobile";
+import PartnerDetails from "@/components/partners/PartnerDetails";
 import { 
   Building, 
   Globe, 
@@ -71,6 +73,7 @@ type PartnerCardProps = {
   featured?: boolean;
   onEdit: (id: number) => void;
   onDelete: (id: number) => void;
+  onViewDetails?: (id: number) => void;
 };
 
 const PartnerCard = ({
@@ -84,7 +87,8 @@ const PartnerCard = ({
   products,
   featured,
   onEdit,
-  onDelete
+  onDelete,
+  onViewDetails
 }: PartnerCardProps) => {
   return (
     <Card className={cn(
@@ -186,7 +190,12 @@ const PartnerCard = ({
               </AlertDialogContent>
             </AlertDialog>
           </div>
-          <Button variant="default" size="sm" className="bg-paritel-primary">
+          <Button 
+            variant="default" 
+            size="sm" 
+            className="bg-paritel-primary"
+            onClick={onViewDetails ? () => onViewDetails(id) : undefined}
+          >
             <Eye className="h-4 w-4 mr-2" />
             Détails
           </Button>
@@ -390,6 +399,10 @@ const PartnerForm = ({
 };
 
 const Partners = () => {
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
+  const [selectedPartner, setSelectedPartner] = useState<PartnerCardProps | null>(null);
+  const isMobile = useIsMobile();
+  
   const [partners, setPartners] = useState<PartnerCardProps[]>([
     {
       id: 1,
@@ -538,6 +551,20 @@ const Partners = () => {
     setPartners(partners.filter(partner => partner.id !== id));
   };
   
+  const handleViewPartnerDetails = (id: number) => {
+    const partner = partners.find(p => p.id === id);
+    if (partner) {
+      setSelectedPartner(partner);
+      setIsDetailsDialogOpen(true);
+    }
+  };
+  
+  // Add view details callback to partners
+  const partnersWithViewDetails = partnersWithCallbacks.map(partner => ({
+    ...partner,
+    onViewDetails: handleViewPartnerDetails
+  }));
+  
   return (
     <MainLayout>
       <div className="space-y-6">
@@ -602,14 +629,14 @@ const Partners = () => {
           </TabsList>
           <TabsContent value="all" className="mt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {partnersWithCallbacks.map((partner) => (
+              {partnersWithViewDetails.map((partner) => (
                 <PartnerCard key={partner.id} {...partner} />
               ))}
             </div>
           </TabsContent>
           <TabsContent value="fournisseur" className="mt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {partnersWithCallbacks
+              {partnersWithViewDetails
                 .filter((p) => p.type === "Fournisseur")
                 .map((partner) => (
                   <PartnerCard key={partner.id} {...partner} />
@@ -618,7 +645,7 @@ const Partners = () => {
           </TabsContent>
           <TabsContent value="revendeur" className="mt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {partnersWithCallbacks
+              {partnersWithViewDetails
                 .filter((p) => p.type === "Revendeur")
                 .map((partner) => (
                   <PartnerCard key={partner.id} {...partner} />
@@ -627,7 +654,7 @@ const Partners = () => {
           </TabsContent>
           <TabsContent value="technologique" className="mt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {partnersWithCallbacks
+              {partnersWithViewDetails
                 .filter((p) => p.type === "Technologique")
                 .map((partner) => (
                   <PartnerCard key={partner.id} {...partner} />
@@ -636,7 +663,7 @@ const Partners = () => {
           </TabsContent>
           <TabsContent value="strategique" className="mt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {partnersWithCallbacks
+              {partnersWithViewDetails
                 .filter((p) => p.type === "Stratégique")
                 .map((partner) => (
                   <PartnerCard key={partner.id} {...partner} />
@@ -645,7 +672,7 @@ const Partners = () => {
           </TabsContent>
           <TabsContent value="premium" className="mt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {partnersWithCallbacks
+              {partnersWithViewDetails
                 .filter((p) => p.featured)
                 .map((partner) => (
                   <PartnerCard key={partner.id} {...partner} />
@@ -653,6 +680,17 @@ const Partners = () => {
             </div>
           </TabsContent>
         </Tabs>
+        
+        <Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen}>
+          <DialogContent className={`${isMobile ? 'max-w-full p-4' : 'sm:max-w-[800px]'} max-h-[90vh] overflow-y-auto`}>
+            {selectedPartner && (
+              <PartnerDetails 
+                partner={selectedPartner} 
+                onBack={() => setIsDetailsDialogOpen(false)}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </MainLayout>
   );
