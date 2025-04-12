@@ -55,7 +55,7 @@ const ProductForm = ({ product, onSubmit, onCancel }: ProductFormProps) => {
   };
 
   const handlePartnerChange = (value: string) => {
-    setFormData({ ...formData, partner: value });
+    setFormData({ ...formData, partner: value === "no-partner" ? "" : value });
   };
 
   const handleAddTag = () => {
@@ -246,14 +246,14 @@ const ProductForm = ({ product, onSubmit, onCancel }: ProductFormProps) => {
         <div className="space-y-2">
           <Label htmlFor="partner">Partenaire</Label>
           <Select 
-            value={formData.partner || ""}
+            value={formData.partner || "no-partner"}
             onValueChange={handlePartnerChange}
           >
             <SelectTrigger>
               <SelectValue placeholder="Sélectionner un partenaire" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Aucun partenaire</SelectItem>
+              <SelectItem value="no-partner">Aucun partenaire</SelectItem>
               {partners.map(partner => (
                 <SelectItem key={partner} value={partner}>
                   {partner}
