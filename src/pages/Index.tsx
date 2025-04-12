@@ -7,16 +7,16 @@ const Index = () => {
   return (
     <div className="min-h-screen flex flex-col bg-white">
       {/* Top Navigation */}
-      <div className="bg-[#001330] text-white">
+      <div className="bg-paritel-dark text-white">
         <div className="container mx-auto flex justify-between items-center py-2 px-4">
           <div className="flex space-x-2">
-            <div className="bg-[#0EA5E9] text-white px-4 py-1 rounded-full">Professionnel</div>
+            <div className="bg-paritel-primary text-white px-4 py-1 rounded-full">Professionnel</div>
             <div className="text-white px-4 py-1 rounded-full">Entreprise</div>
           </div>
           <div className="hidden md:flex space-x-6">
-            <Link to="#" className="text-white hover:text-[#0EA5E9]">Groupe</Link>
-            <Link to="#" className="text-white hover:text-[#0EA5E9]">Recrutement</Link>
-            <Link to="#" className="text-white hover:text-[#0EA5E9]">Blog</Link>
+            <Link to="#" className="text-white hover:text-paritel-secondary">Groupe</Link>
+            <Link to="#" className="text-white hover:text-paritel-secondary">Recrutement</Link>
+            <Link to="#" className="text-white hover:text-paritel-secondary">Blog</Link>
           </div>
           <div className="flex space-x-4">
             <HelpCircle className="w-5 h-5" />
@@ -38,13 +38,13 @@ const Index = () => {
           />
         </div>
         <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-8">
-          <Link to="#" className="text-[#2A4B8D] hover:text-[#0EA5E9] font-medium">Internet</Link>
-          <Link to="#" className="text-[#2A4B8D] hover:text-[#0EA5E9] font-medium">Communication</Link>
-          <Link to="#" className="text-[#2A4B8D] hover:text-[#0EA5E9] font-medium">Réseaux & Sécurité</Link>
-          <Button variant="outline" className="border-[#0EA5E9] text-[#0EA5E9] hover:bg-[#0EA5E9] hover:text-white">
+          <Link to="#" className="text-paritel-dark hover:text-paritel-primary font-medium">Internet</Link>
+          <Link to="#" className="text-paritel-dark hover:text-paritel-primary font-medium">Communication</Link>
+          <Link to="#" className="text-paritel-dark hover:text-paritel-primary font-medium">Réseaux & Sécurité</Link>
+          <Button variant="outline" className="border-paritel-primary text-paritel-primary hover:bg-paritel-primary hover:text-white">
             Prendre RDV
           </Button>
-          <Button className="bg-[#0EA5E9] hover:bg-[#0284c7] text-white">
+          <Button className="bg-paritel-primary hover:bg-paritel-secondary text-white">
             <Phone className="h-4 w-4 mr-2" />
             01 85 53 39 76
           </Button>
@@ -52,16 +52,16 @@ const Index = () => {
       </div>
 
       {/* Main Content */}
-      <div className="bg-[#EFF6FF] py-16">
+      <div className="bg-paritel-light py-16">
         <div className="container mx-auto px-4">
-          <h1 className="text-3xl md:text-4xl text-[#001330] font-bold text-center mb-16">
+          <h1 className="text-3xl md:text-4xl text-paritel-dark font-bold text-center mb-16">
             Avec les connexions xDSL de Paritel, choisissez le débit adapté à vos usages
           </h1>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* ADSL Card */}
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
-              <div className="bg-[#0EA5E9] py-6 px-4 text-center">
+              <div className="bg-paritel-primary py-6 px-4 text-center">
                 <h2 className="text-white text-3xl font-bold mb-2">Power Access</h2>
                 <h3 className="text-white text-3xl font-bold">ADSL</h3>
               </div>
@@ -71,7 +71,7 @@ const Index = () => {
                 </p>
                 <ul className="space-y-4">
                   <li className="flex items-start">
-                    <Check className="text-[#0EA5E9] mt-1 mr-2 h-5 w-5 flex-shrink-0" />
+                    <Check className="text-paritel-primary mt-1 mr-2 h-5 w-5 flex-shrink-0" />
                     <div>
                       <span className="font-bold">Internet</span> jusqu'à <span className="font-bold">1 Mbps</span> montant (émission) et <span className="font-bold">20 Mbps</span> descendant (réception)<sup>(1)</sup>
                     </div>
@@ -101,12 +101,17 @@ const Index = () => {
                     </div>
                   </li>
                 </ul>
+                <div className="mt-8 text-center">
+                  <Button className="bg-paritel-primary hover:bg-paritel-secondary text-white w-full">
+                    Demander un devis
+                  </Button>
+                </div>
               </div>
             </div>
 
             {/* SDSL Card */}
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
-              <div className="bg-[#0EA5E9] py-6 px-4 text-center">
+              <div className="bg-paritel-primary py-6 px-4 text-center">
                 <h2 className="text-white text-3xl font-bold mb-2">Power Access</h2>
                 <h3 className="text-white text-3xl font-bold">SDSL</h3>
               </div>
@@ -146,12 +151,17 @@ const Index = () => {
                     </div>
                   </li>
                 </ul>
+                <div className="mt-8 text-center">
+                  <Button className="bg-[#1EAEDB] hover:bg-[#33C3F0] text-white w-full">
+                    Demander un devis
+                  </Button>
+                </div>
               </div>
             </div>
 
             {/* VDSL Card */}
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
-              <div className="bg-[#0EA5E9] py-6 px-4 text-center">
+              <div className="bg-paritel-primary py-6 px-4 text-center">
                 <h2 className="text-white text-3xl font-bold mb-2">Power Access</h2>
                 <h3 className="text-white text-3xl font-bold">VDSL</h3>
               </div>
@@ -191,9 +201,23 @@ const Index = () => {
                     </div>
                   </li>
                 </ul>
+                <div className="mt-8 text-center">
+                  <Button className="bg-[#1EAEDB] hover:bg-[#33C3F0] text-white w-full">
+                    Demander un devis
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
+        </div>
+      </div>
+      
+      {/* Footer Message */}
+      <div className="bg-paritel-light py-10">
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-2xl md:text-3xl text-paritel-dark font-bold mb-4">
+            Passez à la vitesse supérieure : de l'ADSL au Très Haut Débit
+          </h2>
         </div>
       </div>
     </div>
