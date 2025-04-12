@@ -145,16 +145,6 @@ const Products = () => {
     }
   };
   
-  // Add callbacks to products for CRUD operations and selection
-  const productsWithCallbacks = filteredProducts.map(product => ({
-    ...product,
-    onEdit: handleEditProduct,
-    onDelete: handleDeleteProduct,
-    onViewDetails: handleViewProductDetails,
-    isSelected: selectedProductIds.includes(product.id),
-    onSelectionChange: handleProductSelection
-  }));
-  
   return (
     <MainLayout>
       <div className="space-y-6">
@@ -284,13 +274,26 @@ const Products = () => {
           
           <TabsContent value="all" className="mt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {productsWithCallbacks.map((product) => (
-                selectionMode ? (
-                  <SelectableProductCard key={product.id} {...product} />
-                ) : (
-                  <ProductCard key={product.id} {...product} />
-                )
-              ))}
+              {selectionMode ? (
+                filteredProducts.map((product) => (
+                  <SelectableProductCard 
+                    key={product.id}
+                    product={product}
+                    selected={selectedProductIds.includes(product.id)}
+                    onSelect={() => handleProductSelection(product.id, !selectedProductIds.includes(product.id))}
+                  />
+                ))
+              ) : (
+                filteredProducts.map((product) => (
+                  <ProductCard 
+                    key={product.id}
+                    {...product}
+                    onEdit={handleEditProduct}
+                    onDelete={handleDeleteProduct}
+                    onViewDetails={handleViewProductDetails}
+                  />
+                ))
+              )}
             </div>
           </TabsContent>
           
@@ -300,13 +303,26 @@ const Products = () => {
             "monétique", "surveillance"].map(category => (
             <TabsContent value={category} key={category} className="mt-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {productsWithCallbacks.map((product) => (
-                  selectionMode ? (
-                    <SelectableProductCard key={product.id} {...product} />
-                  ) : (
-                    <ProductCard key={product.id} {...product} />
-                  )
-                ))}
+                {selectionMode ? (
+                  filteredProducts.map((product) => (
+                    <SelectableProductCard 
+                      key={product.id}
+                      product={product}
+                      selected={selectedProductIds.includes(product.id)}
+                      onSelect={() => handleProductSelection(product.id, !selectedProductIds.includes(product.id))}
+                    />
+                  ))
+                ) : (
+                  filteredProducts.map((product) => (
+                    <ProductCard 
+                      key={product.id}
+                      {...product}
+                      onEdit={handleEditProduct}
+                      onDelete={handleDeleteProduct}
+                      onViewDetails={handleViewProductDetails}
+                    />
+                  ))
+                )}
               </div>
             </TabsContent>
           ))}

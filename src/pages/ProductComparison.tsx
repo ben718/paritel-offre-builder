@@ -25,18 +25,7 @@ import {
 } from "lucide-react";
 import { SelectableProductCard } from "@/components/products/SelectableProductCard";
 import { products as productData } from "@/data/productData";
-
-interface ComparisonProduct {
-  id: string;
-  name: string;
-  category: string;
-  brand: string;
-  price: number;
-  rating: number;
-  specifications: Record<string, string | boolean>;
-  features: string[];
-  image?: string;
-}
+import { ComparisonProduct, transformProductToComparisonProduct } from "@/components/products/ExtendedProductType";
 
 const ProductComparison = () => {
   const [selectedProducts, setSelectedProducts] = useState<ComparisonProduct[]>([]);
@@ -46,10 +35,10 @@ const ProductComparison = () => {
   
   // Initialize with products from data
   useEffect(() => {
-    // Generate spec categories from all products
+    // Generate spec categories from all selected products
     const allSpecs = new Set<string>();
     
-    productData.forEach(product => {
+    selectedProducts.forEach(product => {
       if (product.specifications) {
         Object.keys(product.specifications).forEach(key => {
           allSpecs.add(key);
@@ -58,7 +47,7 @@ const ProductComparison = () => {
     });
     
     setSpecCategories(Array.from(allSpecs));
-  }, []);
+  }, [selectedProducts]);
   
   // Handle adding product to comparison
   const handleAddProduct = (product: ComparisonProduct) => {
@@ -82,12 +71,12 @@ const ProductComparison = () => {
   const filteredProducts = productData.filter(product => 
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     product.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.brand.toLowerCase().includes(searchTerm.toLowerCase())
+    (product.subcategory && product.subcategory.toLowerCase().includes(searchTerm.toLowerCase()))
   );
   
   // Determine if a product is already selected
-  const isProductSelected = (productId: string) => {
-    return selectedProducts.some(p => p.id === productId);
+  const isProductSelected = (productId: number) => {
+    return selectedProducts.some(p => p.id === productId.toString());
   };
 
   // Render specification value
@@ -170,7 +159,7 @@ const ProductComparison = () => {
                     key={product.id}
                     product={product}
                     selected={isProductSelected(product.id)}
-                    onSelect={() => handleAddProduct(product)}
+                    onSelect={() => handleAddProduct(transformProductToComparisonProduct(product))}
                     disabled={isProductSelected(product.id) || selectedProducts.length >= 4}
                   />
                 ))}

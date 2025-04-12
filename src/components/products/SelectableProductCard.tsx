@@ -3,53 +3,43 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Eye, Edit, Trash2 } from "lucide-react";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+import { Eye } from "lucide-react";
 import { ProductCardProps } from "./ProductCard";
 
-type SelectableProductCardProps = ProductCardProps & {
-  onEdit?: (id: number) => void;
-  onDelete?: (id: number) => void;
-  onViewDetails?: (id: number) => void;
-  isSelected: boolean;
-  onSelectionChange: (id: number, isSelected: boolean) => void;
+type SelectableProductCardProps = {
+  product: ProductCardProps;
+  selected: boolean;
+  onSelect: () => void;
+  disabled?: boolean;
 };
 
 export const SelectableProductCard = ({
-  id,
-  name,
-  description,
-  category,
-  subcategory,
-  partner,
-  tags,
-  pricing,
-  image,
-  specs,
-  onEdit,
-  onDelete,
-  onViewDetails,
-  isSelected,
-  onSelectionChange
+  product,
+  selected,
+  onSelect,
+  disabled = false
 }: SelectableProductCardProps) => {
+  const {
+    name,
+    description,
+    category,
+    subcategory,
+    partner,
+    tags,
+    pricing,
+    image,
+    specs
+  } = product;
+
   return (
-    <Card className="overflow-hidden h-full flex flex-col relative">
+    <Card className={`overflow-hidden h-full flex flex-col relative ${disabled ? 'opacity-60' : ''}`}>
       <div className="absolute top-2 right-2 z-10">
         <Checkbox 
-          checked={isSelected}
-          onCheckedChange={(checked) => onSelectionChange(id, !!checked)}
+          checked={selected}
+          onCheckedChange={() => !disabled && onSelect()}
           className="h-5 w-5 bg-white border-gray-300 rounded"
           aria-label={`Sélectionner ${name}`}
+          disabled={disabled}
         />
       </div>
       <div className="relative h-40 sm:h-48 bg-paritel-lightgray">
@@ -108,65 +98,15 @@ export const SelectableProductCard = ({
           </div>
         )}
         
-        <div className="flex justify-between mt-auto pt-2 sm:pt-3">
-          {onEdit && onDelete ? (
-            <div className="flex space-x-1 sm:space-x-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => onEdit(id)}
-                className="px-2 sm:px-3 h-8 text-xs sm:text-sm"
-              >
-                <Edit className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-1" />
-                <span className="hidden sm:inline">Modifier</span>
-              </Button>
-              
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="text-red-600 border-red-200 hover:bg-red-50 px-2 sm:px-3 h-8 text-xs sm:text-sm"
-                  >
-                    <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-1" />
-                    <span className="hidden sm:inline">Supprimer</span>
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent className="max-w-[90vw] sm:max-w-lg">
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Êtes-vous sûr de vouloir supprimer ce produit ?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Cette action est irréversible. Le produit '{name}' sera définitivement supprimé.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Annuler</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => onDelete(id)} className="bg-red-600">
-                      Supprimer
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </div>
-          ) : (
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={onViewDetails ? () => onViewDetails(id) : undefined}
-              className="px-2 sm:px-3 h-8 text-xs sm:text-sm"
-            >
-              <Eye className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-1" />
-              <span className="hidden sm:inline">Détails</span>
-            </Button>
-          )}
+        <div className="flex justify-end mt-auto pt-2 sm:pt-3">
           <Button 
             variant="default" 
             size="sm" 
             className="bg-paritel-primary px-2 sm:px-3 h-8 text-xs sm:text-sm"
-            onClick={onViewDetails ? () => onViewDetails(id) : undefined}
+            onClick={onSelect}
+            disabled={disabled}
           >
-            <span className="inline sm:hidden">Voir</span>
-            <span className="hidden sm:inline">Détails</span>
+            {selected ? 'Sélectionné' : 'Sélectionner'}
           </Button>
         </div>
       </CardContent>
