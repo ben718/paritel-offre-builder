@@ -61,7 +61,33 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+                paritel: {
+                    primary: '#2A4B8D',
+                    secondary: '#3B82F6',
+                    accent: '#0EA5E9',
+                    light: '#EFF6FF',
+                    dark: '#172554',
+                    success: '#10B981',
+                    warning: '#F59E0B',
+                    danger: '#EF4444',
+                    gray: '#64748B',
+                    lightgray: '#F1F5F9'
+                },
+                telecom: {
+                    telephony: '#0369A1',
+                    network: '#0c4a6e',
+                    cybersecurity: '#7c2d12',
+                    wifi: '#0284c7',
+                    mobility: '#4338ca'
+                },
+                industry: {
+                    hotel: '#0f766e',
+                    health: '#be123c',
+                    business: '#1e40af',
+                    education: '#365314',
+                    public: '#78350f'
+                }
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
