@@ -46,58 +46,6 @@ export const GlobalOfferingCircle = () => {
       )
     },
     {
-      name: "Téléphonie Avancée",
-      icon: <Headphones className="h-6 w-6 text-white" />,
-      color: "#33C3F0",
-      content: (
-        <div className="bg-[#102043] p-4 rounded-md text-white">
-          <h3 className="text-xl font-bold mb-3 text-[#33C3F0]">Téléphonie Avancée</h3>
-          <ul className="space-y-2">
-            <li>- POPC (Poste Opérateur)</li>
-            <li>- Intégration CRM</li>
-            <li>- Analyse de Traffic</li>
-            <li>- Système Appel Malade</li>
-            <li>- ACD, SVI</li>
-            <li>- Call Recorder</li>
-          </ul>
-        </div>
-      )
-    },
-    {
-      name: "Internet Très Haut Débit",
-      icon: <Globe className="h-6 w-6 text-white" />,
-      color: "#1EAEDB",
-      content: (
-        <div className="bg-[#102043] p-4 rounded-md text-white">
-          <h3 className="text-xl font-bold mb-3 text-[#1EAEDB]">Internet Très Haut Débit</h3>
-          <ul className="space-y-2">
-            <li>- Fibre optique (FTTO, FTTH)</li>
-            <li>- Fibre Noire</li>
-            <li>- Cuivre (SDSL/ADSL/VDSL)</li>
-            <li>- 4G/5G</li>
-            <li>- Satellite</li>
-            <li>- Routeurs et Switches</li>
-          </ul>
-        </div>
-      )
-    },
-    {
-      name: "Wi-Fi Indoor/Outdoor",
-      icon: <Wifi className="h-6 w-6 text-white" />,
-      color: "#33C3F0",
-      content: (
-        <div className="bg-[#102043] p-4 rounded-md text-white">
-          <h3 className="text-xl font-bold mb-3 text-[#33C3F0]">Wi-Fi Indoor/Outdoor</h3>
-          <ul className="space-y-2">
-            <li>- Wifi Privé</li>
-            <li>- Wifi Public</li>
-            <li>- Solutions Indoor et Outdoor</li>
-            <li>- Conformité RGPD</li>
-          </ul>
-        </div>
-      )
-    },
-    {
       name: "Cybersécurité",
       icon: <Lock className="h-6 w-6 text-white" />,
       color: "#1EAEDB",
@@ -132,7 +80,7 @@ export const GlobalOfferingCircle = () => {
       )
     },
     {
-      name: "Sécurisation Poste",
+      name: "Sécurisation du poste de travail",
       icon: <MonitorSmartphone className="h-6 w-6 text-white" />,
       color: "#1EAEDB",
       content: (
@@ -148,12 +96,12 @@ export const GlobalOfferingCircle = () => {
       )
     },
     {
-      name: "Solutions Collaboratives",
+      name: "Solutions collaboratives",
       icon: <Tv className="h-6 w-6 text-white" />,
       color: "#33C3F0",
       content: (
         <div className="bg-[#102043] p-4 rounded-md text-white">
-          <h3 className="text-xl font-bold mb-3 text-[#33C3F0]">Solutions Collaboratives</h3>
+          <h3 className="text-xl font-bold mb-3 text-[#33C3F0]">Solutions collaboratives</h3>
           <ul className="space-y-2">
             <li>- Messagerie instantanée sécurisée</li>
             <li>- Vidéoconférence haute définition</li>
@@ -164,7 +112,23 @@ export const GlobalOfferingCircle = () => {
       )
     },
     {
-      name: "TVCast",
+      name: "Wi-Fi public & privé indoor outdoor",
+      icon: <Wifi className="h-6 w-6 text-white" />,
+      color: "#33C3F0",
+      content: (
+        <div className="bg-[#102043] p-4 rounded-md text-white">
+          <h3 className="text-xl font-bold mb-3 text-[#33C3F0]">Wi-Fi public & privé indoor outdoor</h3>
+          <ul className="space-y-2">
+            <li>- Wifi Privé</li>
+            <li>- Wifi Public</li>
+            <li>- Solutions Indoor et Outdoor</li>
+            <li>- Conformité RGPD</li>
+          </ul>
+        </div>
+      )
+    },
+    {
+      name: "TVCast Téléviseur connecté",
       icon: <Tv className="h-6 w-6 text-white" />,
       color: "#1EAEDB",
       content: (
@@ -179,12 +143,12 @@ export const GlobalOfferingCircle = () => {
       )
     },
     {
-      name: "Mobilité",
+      name: "Mobiles",
       icon: <Smartphone className="h-6 w-6 text-white" />,
       color: "#33C3F0",
       content: (
         <div className="bg-[#102043] p-4 rounded-md text-white">
-          <h3 className="text-xl font-bold mb-3 text-[#33C3F0]">Mobilité</h3>
+          <h3 className="text-xl font-bold mb-3 text-[#33C3F0]">Mobiles</h3>
           <ul className="space-y-2">
             <li>- Forfaits mobiles</li>
             <li>- Destination d'Appels</li>
@@ -226,16 +190,19 @@ export const GlobalOfferingCircle = () => {
       )
     },
     {
-      name: "Verticaux métiers",
-      icon: <Briefcase className="h-6 w-6 text-white" />,
+      name: "Internet Très Haut Débit",
+      icon: <Globe className="h-6 w-6 text-white" />,
       color: "#1EAEDB",
       content: (
         <div className="bg-[#102043] p-4 rounded-md text-white">
-          <h3 className="text-xl font-bold mb-3 text-[#1EAEDB]">Verticaux métiers</h3>
+          <h3 className="text-xl font-bold mb-3 text-[#1EAEDB]">Internet Très Haut Débit</h3>
           <ul className="space-y-2">
-            <li>- Solutions pour l'Hôtellerie</li>
-            <li>- Solutions pour la Santé</li>
-            <li>- Solutions pour l'Education</li>
+            <li>- Fibre optique (FTTO, FTTH)</li>
+            <li>- Fibre Noire</li>
+            <li>- Cuivre (SDSL/ADSL/VDSL)</li>
+            <li>- 4G/5G</li>
+            <li>- Satellite</li>
+            <li>- Routeurs et Switches</li>
           </ul>
         </div>
       )

@@ -31,9 +31,8 @@ const Products = () => {
     const matchesCategory = 
       selectedCategory === "all" ||
       (selectedCategory === "telephony" && product.category === "Téléphonie d'entreprise") ||
-      (selectedCategory === "advanced-telephony" && product.category === "Téléphonie Avancée") ||
       (selectedCategory === "internet-network" && product.category === "Internet Très Haut Débit") ||
-      (selectedCategory === "wifi" && product.category === "Wifi Indoor/Outdoor") ||
+      (selectedCategory === "wifi" && product.category === "Wi-Fi public & privé indoor outdoor") ||
       (selectedCategory === "cybersecurity" && product.category === "Cybersécurité") ||
       (selectedCategory === "infogérance" && product.category === "Infogérance") ||
       (selectedCategory === "poste-travail" && product.category === "Sécurisation du poste de travail") ||
@@ -41,8 +40,7 @@ const Products = () => {
       (selectedCategory === "tvcast" && product.category === "TVCast Téléviseur connecté") ||
       (selectedCategory === "mobility" && product.category === "Mobiles") ||
       (selectedCategory === "monétique" && product.category === "Monétique") ||
-      (selectedCategory === "surveillance" && product.category === "Surveillance") ||
-      (selectedCategory === "verticals" && product.category === "Verticaux métiers");
+      (selectedCategory === "surveillance" && product.category === "Surveillance");
     
     const matchesSubcategory = 
       selectedSubcategory === "all" ||
@@ -111,9 +109,9 @@ const Products = () => {
           </TabsContent>
           
           {/* Unique tab content for each category to avoid duplicate code */}
-          {["telephony", "advanced-telephony", "internet-network", "wifi", "cybersecurity", 
+          {["telephony", "internet-network", "wifi", "cybersecurity", 
             "infogérance", "poste-travail", "collaborative", "tvcast", "mobility", 
-            "monétique", "surveillance", "verticals"].map(category => (
+            "monétique", "surveillance"].map(category => (
             <TabsContent value={category} key={category} className="mt-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredProducts.map((product) => (

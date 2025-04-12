@@ -147,18 +147,16 @@ export const CategoryTabsList = () => {
     <TabsList className="flex flex-wrap">
       <TabsTrigger value="all">Tous les produits</TabsTrigger>
       <TabsTrigger value="telephony">Téléphonie d'entreprise</TabsTrigger>
-      <TabsTrigger value="advanced-telephony">Téléphonie Avancée</TabsTrigger>
       <TabsTrigger value="internet-network">Internet Très Haut Débit</TabsTrigger>
-      <TabsTrigger value="wifi">Wi-Fi Indoor/Outdoor</TabsTrigger>
       <TabsTrigger value="cybersecurity">Cybersécurité</TabsTrigger>
       <TabsTrigger value="infogérance">Infogérance</TabsTrigger>
-      <TabsTrigger value="poste-travail">Sécurisation Poste</TabsTrigger>
-      <TabsTrigger value="collaborative">Solutions Collaboratives</TabsTrigger>
+      <TabsTrigger value="poste-travail">Sécurisation du poste de travail</TabsTrigger>
+      <TabsTrigger value="collaborative">Solutions collaboratives</TabsTrigger>
+      <TabsTrigger value="wifi">Wi-Fi public & privé</TabsTrigger>
       <TabsTrigger value="tvcast">TVCast</TabsTrigger>
-      <TabsTrigger value="mobility">Mobilité</TabsTrigger>
+      <TabsTrigger value="mobility">Mobiles</TabsTrigger>
       <TabsTrigger value="monétique">Monétique</TabsTrigger>
       <TabsTrigger value="surveillance">Surveillance</TabsTrigger>
-      <TabsTrigger value="verticals">Verticaux métiers</TabsTrigger>
     </TabsList>
   );
 };
