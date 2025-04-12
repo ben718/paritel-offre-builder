@@ -71,21 +71,154 @@ const MyOffers = () => {
   }, []);
 
   const downloadOffer = (offer: Offer) => {
-    // In a real application, this would generate a PDF
-    const element = document.createElement("a");
-    const file = new Blob(
-      [JSON.stringify(offer, null, 2)], 
-      {type: 'application/pdf'}
-    );
-    element.href = URL.createObjectURL(file);
-    element.download = `Offre_${offer.customer.companyName || 'Client'}_${new Date().toLocaleDateString()}.pdf`;
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
-    
-    toast({
-      title: "Offre téléchargée",
-      description: "Votre offre a été téléchargée avec succès",
+    import('html2pdf.js').then(html2pdf => {
+      // Create a PDF-friendly container
+      const pdfContainer = document.createElement('div');
+      pdfContainer.className = 'pdf-container';
+      pdfContainer.style.width = '210mm'; // A4 width
+      pdfContainer.style.padding = '15mm';
+      pdfContainer.style.fontFamily = 'Arial, sans-serif';
+      
+      // Add company info header
+      const header = document.createElement('div');
+      header.style.borderBottom = '1px solid #ddd';
+      header.style.paddingBottom = '10mm';
+      header.style.marginBottom = '10mm';
+      header.style.display = 'flex';
+      header.style.justifyContent = 'space-between';
+      
+      const companyInfo = document.createElement('div');
+      companyInfo.innerHTML = `
+        <h1 style="color: #6048b8; font-size: 24px; margin-bottom: 5px;">Offre commerciale</h1>
+        <h2 style="font-size: 18px; margin-top: 0; color: #444;">Paritel Solutions</h2>
+        <p style="color: #666; margin: 2px 0;">12 rue Henri Becquerel<br>77500 Chelles</p>
+        <p style="color: #666; margin: 2px 0;">Tel: 01.64.11.41.50</p>
+      `;
+      
+      const offerInfo = document.createElement('div');
+      offerInfo.style.textAlign = 'right';
+      offerInfo.innerHTML = `
+        <p style="margin: 2px 0;">Référence: OFF-${Date.now().toString().slice(-6)}</p>
+        <p style="margin: 2px 0;">Date: ${new Date().toLocaleDateString('fr-FR')}</p>
+        <p style="margin: 2px 0; font-weight: bold;">${offer.status === 'draft' ? 'BROUILLON' : 'PROPOSITION FINALE'}</p>
+      `;
+      
+      header.appendChild(companyInfo);
+      header.appendChild(offerInfo);
+      pdfContainer.appendChild(header);
+      
+      // Client info section
+      const clientSection = document.createElement('div');
+      clientSection.style.marginBottom = '10mm';
+      clientSection.style.padding = '5mm';
+      clientSection.style.backgroundColor = '#f9f9f9';
+      clientSection.style.borderRadius = '4px';
+      
+      clientSection.innerHTML = `
+        <h3 style="margin-top: 0; color: #6048b8;">Informations client</h3>
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="width: 50%; padding: 4px;"><strong>Société:</strong> ${offer.customer.companyName || "Non spécifié"}</td>
+            <td style="width: 50%; padding: 4px;"><strong>Contact:</strong> ${offer.customer.contactName || "Non spécifié"}</td>
+          </tr>
+          <tr>
+            <td style="padding: 4px;"><strong>Secteur:</strong> ${offer.customer.industry || "Non spécifié"}</td>
+          </tr>
+        </table>
+      `;
+      
+      pdfContainer.appendChild(clientSection);
+      
+      // Products section
+      if (offer.products.length > 0) {
+        const productsSection = document.createElement('div');
+        productsSection.style.marginBottom = '10mm';
+        
+        let productsHTML = `
+          <h3 style="color: #6048b8;">Produits et services</h3>
+          <table style="width: 100%; border-collapse: collapse; margin-top: 5mm;">
+            <thead>
+              <tr style="background-color: #6048b8; color: white;">
+                <th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Désignation</th>
+                <th style="padding: 8px; text-align: center; border: 1px solid #ddd;">Quantité</th>
+                <th style="padding: 8px; text-align: right; border: 1px solid #ddd;">Prix</th>
+              </tr>
+            </thead>
+            <tbody>
+        `;
+        
+        let totalAmount = 0;
+        offer.products.forEach(product => {
+          const priceValue = parseFloat(product.price.replace(/[^\d.-]/g, '')) || 0;
+          const totalPrice = priceValue * product.quantity;
+          totalAmount += totalPrice;
+          
+          productsHTML += `
+            <tr>
+              <td style="padding: 8px; border: 1px solid #ddd;">
+                <strong>${product.name}</strong><br>
+                <span style="color: #666; font-size: 12px;">${product.category}</span>
+              </td>
+              <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">${product.quantity}</td>
+              <td style="padding: 8px; text-align: right; border: 1px solid #ddd;">${priceValue.toFixed(2)}€</td>
+            </tr>
+          `;
+        });
+        
+        productsHTML += `
+            </tbody>
+            <tfoot>
+              <tr style="background-color: #f2f2f2;">
+                <td colspan="2" style="padding: 8px; text-align: right; border: 1px solid #ddd;"><strong>Total HT:</strong></td>
+                <td style="padding: 8px; text-align: right; border: 1px solid #ddd;"><strong>${totalAmount.toFixed(2)}€</strong></td>
+              </tr>
+              <tr>
+                <td colspan="2" style="padding: 8px; text-align: right; border: 1px solid #ddd;">TVA (20%):</td>
+                <td style="padding: 8px; text-align: right; border: 1px solid #ddd;">${(totalAmount * 0.2).toFixed(2)}€</td>
+              </tr>
+              <tr style="background-color: #f2f2f2;">
+                <td colspan="2" style="padding: 8px; text-align: right; border: 1px solid #ddd;"><strong>Total TTC:</strong></td>
+                <td style="padding: 8px; text-align: right; border: 1px solid #ddd;"><strong>${(totalAmount * 1.2).toFixed(2)}€</strong></td>
+              </tr>
+            </tfoot>
+          </table>
+        `;
+        
+        productsSection.innerHTML = productsHTML;
+        pdfContainer.appendChild(productsSection);
+      }
+      
+      // Footer section
+      const footerSection = document.createElement('div');
+      footerSection.style.marginTop = '15mm';
+      footerSection.style.borderTop = '1px solid #ddd';
+      footerSection.style.paddingTop = '5mm';
+      footerSection.style.fontSize = '10px';
+      footerSection.style.color = '#666';
+      footerSection.style.textAlign = 'center';
+      
+      footerSection.innerHTML = `
+        <p>Paritel Solutions - SIRET: 123 456 789 00012 - TVA: FR12 123456789</p>
+        <p>Conditions de vente: Paiement à 30 jours fin de mois. Validité de l'offre: 30 jours.</p>
+      `;
+      
+      pdfContainer.appendChild(footerSection);
+      
+      // Generate PDF
+      const pdfOptions = {
+        margin: 0,
+        filename: `Offre_${offer.customer.companyName || 'Client'}_${new Date().toLocaleDateString('fr-FR')}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+      
+      html2pdf.default(pdfContainer, pdfOptions).then(() => {
+        toast({
+          title: "Offre téléchargée",
+          description: "Votre offre a été téléchargée au format PDF",
+        });
+      });
     });
   };
 
