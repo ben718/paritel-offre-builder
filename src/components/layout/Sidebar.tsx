@@ -81,8 +81,8 @@ const Sidebar = () => {
         <div className="text-xs font-semibold uppercase text-gray-500 mb-2">ADMINISTRATION</div>
         <nav className="space-y-1">
           <NavItem to="/reporting" icon={PieChart} label="Reporting" />
-          <NavItem to="/users" icon={Users} label="Utilisateurs" />
-          <NavItem to="/settings" icon={Settings} label="Paramètres" />
+                    <NavItem to="/users" icon={Users} label="Utilisateurs" />
+                    <NavItem to="/settings" icon={Settings} label="Paramètres" />
         </nav>
       </div>
 

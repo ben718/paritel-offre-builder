@@ -11,6 +11,10 @@ import CreateOffer from "./pages/CreateOffer";
 import NotFound from "./pages/NotFound";
 import Administration from "./pages/Administration";
 import Profile from "./pages/Profile";
+import Settings from "./pages/Settings";
+import Users from "./pages/Users";
+import Reporting from "./pages/Reporting";
+import MyOffers from "./pages/MyOffers";
 
 const queryClient = new QueryClient();
 
@@ -26,8 +30,12 @@ const App = () => (
           <Route path="/solutions" element={<Solutions />} />
           <Route path="/partners" element={<Partners />} />
           <Route path="/create-offer" element={<CreateOffer />} />
+          <Route path="/my-offers" element={<MyOffers />} />
           <Route path="/administration" element={<Administration />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/users" element={<Users />} />
+          <Route path="/reporting" element={<Reporting />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
