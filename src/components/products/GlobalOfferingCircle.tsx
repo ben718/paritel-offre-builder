@@ -1,7 +1,20 @@
 
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
-import { Phone, Wifi, Lock, Database, MonitorSmartphone, Tv, CreditCard, Camera, Smartphone } from "lucide-react";
+import { 
+  Phone, 
+  Wifi, 
+  Lock, 
+  Database, 
+  MonitorSmartphone, 
+  Tv, 
+  CreditCard, 
+  Camera, 
+  Smartphone, 
+  Headphones, 
+  Globe, 
+  Briefcase 
+} from "lucide-react";
 
 type CategoryInfo = {
   name: string;
@@ -22,25 +35,64 @@ export const GlobalOfferingCircle = () => {
         <div className="bg-[#102043] p-4 rounded-md text-white">
           <h3 className="text-xl font-bold mb-3 text-[#1EAEDB]">Téléphonie d'entreprise</h3>
           <ul className="space-y-2">
+            <li>- UCaaS</li>
             <li>- PBX On Premise</li>
             <li>- Cloud PBX</li>
             <li>- Trunk SIP</li>
             <li>- Number Hosting</li>
+            <li>- Téléphones IP Fixes et WiFi</li>
+          </ul>
+        </div>
+      )
+    },
+    {
+      name: "Téléphonie Avancée",
+      icon: <Headphones className="h-6 w-6 text-white" />,
+      color: "#33C3F0",
+      content: (
+        <div className="bg-[#102043] p-4 rounded-md text-white">
+          <h3 className="text-xl font-bold mb-3 text-[#33C3F0]">Téléphonie Avancée</h3>
+          <ul className="space-y-2">
+            <li>- POPC (Poste Opérateur)</li>
+            <li>- Intégration CRM</li>
+            <li>- Analyse de Traffic</li>
+            <li>- Système Appel Malade</li>
+            <li>- ACD, SVI</li>
+            <li>- Call Recorder</li>
           </ul>
         </div>
       )
     },
     {
       name: "Internet Très Haut Débit",
-      icon: <MonitorSmartphone className="h-6 w-6 text-white" />,
+      icon: <Globe className="h-6 w-6 text-white" />,
+      color: "#1EAEDB",
+      content: (
+        <div className="bg-[#102043] p-4 rounded-md text-white">
+          <h3 className="text-xl font-bold mb-3 text-[#1EAEDB]">Internet Très Haut Débit</h3>
+          <ul className="space-y-2">
+            <li>- Fibre optique (FTTO, FTTH)</li>
+            <li>- Fibre Noire</li>
+            <li>- Cuivre (SDSL/ADSL/VDSL)</li>
+            <li>- 4G/5G</li>
+            <li>- Satellite</li>
+            <li>- Routeurs et Switches</li>
+          </ul>
+        </div>
+      )
+    },
+    {
+      name: "Wi-Fi Indoor/Outdoor",
+      icon: <Wifi className="h-6 w-6 text-white" />,
       color: "#33C3F0",
       content: (
         <div className="bg-[#102043] p-4 rounded-md text-white">
-          <h3 className="text-xl font-bold mb-3 text-[#33C3F0]">Internet Très Haut Débit</h3>
+          <h3 className="text-xl font-bold mb-3 text-[#33C3F0]">Wi-Fi Indoor/Outdoor</h3>
           <ul className="space-y-2">
-            <li>- Fibre optique (Actif/Passif) (Dédiée/Mutualisée)</li>
-            <li>- Cuivre (xDSL)</li>
-            <li>- 4G/5G</li>
+            <li>- Wifi Privé</li>
+            <li>- Wifi Public</li>
+            <li>- Solutions Indoor et Outdoor</li>
+            <li>- Conformité RGPD</li>
           </ul>
         </div>
       )
@@ -55,9 +107,10 @@ export const GlobalOfferingCircle = () => {
           <ul className="space-y-2">
             <li>- VPN</li>
             <li>- Firewall</li>
-            <li>- Remote access</li>
+            <li>- Remote Access</li>
             <li>- Fortitoken</li>
             <li>- SOCAAS</li>
+            <li>- Bitdefender</li>
           </ul>
         </div>
       )
@@ -70,15 +123,16 @@ export const GlobalOfferingCircle = () => {
         <div className="bg-[#102043] p-4 rounded-md text-white">
           <h3 className="text-xl font-bold mb-3 text-[#33C3F0]">Infogérance</h3>
           <ul className="space-y-2">
-            <li>- 3 copies, 2 supports différents, 1 sauvegarde hors site</li>
             <li>- Sauvegarde PC et serveurs</li>
+            <li>- 3 copies, 2 supports différents, 1 sauvegarde hors site</li>
             <li>- Sauvegarde chiffrée full ou incrémentielle</li>
+            <li>- BEEMO</li>
           </ul>
         </div>
       )
     },
     {
-      name: "Sécurisation du poste de travail",
+      name: "Sécurisation Poste",
       icon: <MonitorSmartphone className="h-6 w-6 text-white" />,
       color: "#1EAEDB",
       content: (
@@ -94,58 +148,48 @@ export const GlobalOfferingCircle = () => {
       )
     },
     {
-      name: "Solutions collaboratives",
+      name: "Solutions Collaboratives",
       icon: <Tv className="h-6 w-6 text-white" />,
       color: "#33C3F0",
       content: (
         <div className="bg-[#102043] p-4 rounded-md text-white">
-          <h3 className="text-xl font-bold mb-3 text-[#33C3F0]">Solutions collaboratives</h3>
+          <h3 className="text-xl font-bold mb-3 text-[#33C3F0]">Solutions Collaboratives</h3>
           <ul className="space-y-2">
             <li>- Messagerie instantanée sécurisée</li>
             <li>- Vidéoconférence haute définition</li>
             <li>- Appels vocaux et vidéo sur tous vos terminaux</li>
-            <li>- Téléphonie et standard téléphonique IP</li>
+            <li>- Standard téléphonique IP</li>
           </ul>
         </div>
       )
     },
     {
-      name: "Wi-Fi public & privé indoor outdoor",
-      icon: <Wifi className="h-6 w-6 text-white" />,
+      name: "TVCast",
+      icon: <Tv className="h-6 w-6 text-white" />,
       color: "#1EAEDB",
       content: (
         <div className="bg-[#102043] p-4 rounded-md text-white">
-          <h3 className="text-xl font-bold mb-3 text-[#1EAEDB]">Wi-Fi public & privé indoor outdoor</h3>
+          <h3 className="text-xl font-bold mb-3 text-[#1EAEDB]">TVCast Téléviseur connecté</h3>
           <ul className="space-y-2">
-            <li>- Wifi Privé</li>
-            <li>- Wifi Public (respect des obligations contractuelles / RGPD)</li>
+            <li>- Player MX</li>
+            <li>- Contrôle de téléviseur</li>
+            <li>- Accès aux services de streaming</li>
           </ul>
         </div>
       )
     },
     {
-      name: "TVCast Téléviseur connecté",
-      icon: <Tv className="h-6 w-6 text-white" />,
+      name: "Mobilité",
+      icon: <Smartphone className="h-6 w-6 text-white" />,
       color: "#33C3F0",
       content: (
         <div className="bg-[#102043] p-4 rounded-md text-white">
-          <h3 className="text-xl font-bold mb-3 text-[#33C3F0]">TVCast Téléviseur connecté</h3>
-          <p>Permettre à vos clients de contrôler leur téléviseur, chaine, programme, ainsi que d'accéder à des services de streaming.</p>
-        </div>
-      )
-    },
-    {
-      name: "Mobiles",
-      icon: <Smartphone className="h-6 w-6 text-white" />,
-      color: "#1EAEDB",
-      content: (
-        <div className="bg-[#102043] p-4 rounded-md text-white">
-          <h3 className="text-xl font-bold mb-3 text-[#1EAEDB]">Mobiles</h3>
+          <h3 className="text-xl font-bold mb-3 text-[#33C3F0]">Mobilité</h3>
           <ul className="space-y-2">
-            <li>- Tout type de forfait mobile</li>
+            <li>- Forfaits mobiles</li>
             <li>- Destination d'Appels</li>
             <li>- Enveloppe DATA</li>
-            <li>- Sur Mesure</li>
+            <li>- Solutions Sur Mesure</li>
           </ul>
         </div>
       )
@@ -153,14 +197,14 @@ export const GlobalOfferingCircle = () => {
     {
       name: "Monétique",
       icon: <CreditCard className="h-6 w-6 text-white" />,
-      color: "#33C3F0",
+      color: "#1EAEDB",
       content: (
         <div className="bg-[#102043] p-4 rounded-md text-white">
-          <h3 className="text-xl font-bold mb-3 text-[#33C3F0]">Monétique</h3>
+          <h3 className="text-xl font-bold mb-3 text-[#1EAEDB]">Monétique</h3>
           <ul className="space-y-2">
-            <li>- Préparation du terminal de paiement électronique filaire ou sans fil</li>
-            <li>- Nombre de transactions illimitées</li>
-            <li>- Licence Carte Bleue, Visa, Mastercard, Cbss, Conecs</li>
+            <li>- Terminal PAX A920 PRO</li>
+            <li>- Transactions illimitées</li>
+            <li>- Multi-cartes bancaires (Carte Bleue, Visa, Mastercard, etc.)</li>
           </ul>
         </div>
       )
@@ -168,14 +212,30 @@ export const GlobalOfferingCircle = () => {
     {
       name: "Surveillance",
       icon: <Camera className="h-6 w-6 text-white" />,
+      color: "#33C3F0",
+      content: (
+        <div className="bg-[#102043] p-4 rounded-md text-white">
+          <h3 className="text-xl font-bold mb-3 text-[#33C3F0]">Surveillance</h3>
+          <ul className="space-y-2">
+            <li>- Vidéosurveillance</li>
+            <li>- NVR TP-LINK VIGI</li>
+            <li>- Caméras TP-LINK VIGI</li>
+            <li>- Alarme et télésurveillance</li>
+          </ul>
+        </div>
+      )
+    },
+    {
+      name: "Verticaux métiers",
+      icon: <Briefcase className="h-6 w-6 text-white" />,
       color: "#1EAEDB",
       content: (
         <div className="bg-[#102043] p-4 rounded-md text-white">
-          <h3 className="text-xl font-bold mb-3 text-[#1EAEDB]">Surveillance</h3>
+          <h3 className="text-xl font-bold mb-3 text-[#1EAEDB]">Verticaux métiers</h3>
           <ul className="space-y-2">
-            <li>- Une installation sur-mesure : système de surveillance, détecteur, alarme et caméras</li>
-            <li>- Un centre de contrôle à votre service</li>
-            <li>- Détection immédiate et précise d'infractions</li>
+            <li>- Solutions pour l'Hôtellerie</li>
+            <li>- Solutions pour la Santé</li>
+            <li>- Solutions pour l'Education</li>
           </ul>
         </div>
       )
