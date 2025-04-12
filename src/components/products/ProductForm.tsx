@@ -54,6 +54,10 @@ const ProductForm = ({ product, onSubmit, onCancel }: ProductFormProps) => {
     setFormData({ ...formData, subcategory: value });
   };
 
+  const handlePartnerChange = (value: string) => {
+    setFormData({ ...formData, partner: value });
+  };
+
   const handleAddTag = () => {
     if (tagInput.trim()) {
       setFormData({
@@ -150,6 +154,25 @@ const ProductForm = ({ product, onSubmit, onCancel }: ProductFormProps) => {
       "Caméras"
     ]
   };
+
+  // List of partners for dropdown
+  const partners = [
+    "Cisco Systems",
+    "Microsoft",
+    "Orange Business Services",
+    "ASUS",
+    "Dell Technologies",
+    "ITS Group",
+    "Fortinet",
+    "TP-Link",
+    "Bitdefender",
+    "BEEMO",
+    "Cambium Networks",
+    "Yealink",
+    "Grandstream",
+    "Unify",
+    "StarLink"
+  ];
   
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -221,14 +244,23 @@ const ProductForm = ({ product, onSubmit, onCancel }: ProductFormProps) => {
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="partner">Partenaire (optionnel)</Label>
-          <Input
-            id="partner"
-            name="partner"
+          <Label htmlFor="partner">Partenaire</Label>
+          <Select 
             value={formData.partner || ""}
-            onChange={handleChange}
-            placeholder="Ex: Fortinet, TP-Link, etc."
-          />
+            onValueChange={handlePartnerChange}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Sélectionner un partenaire" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">Aucun partenaire</SelectItem>
+              {partners.map(partner => (
+                <SelectItem key={partner} value={partner}>
+                  {partner}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         
         <div className="space-y-2">

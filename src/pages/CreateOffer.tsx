@@ -379,9 +379,20 @@ const CreateOffer = () => {
                     <Save className="mr-2 h-4 w-4" />
                     Enregistrer
                   </Button>
-                  <Button className="w-40 bg-paritel-primary">
+                  <Button 
+                    className="w-40 bg-paritel-primary"
+                    onClick={() => {
+                      const downloadLink = document.createElement('a');
+                      downloadLink.href = '/lovable-uploads/e09f787c-762d-4a5d-88c4-1dbfbe9e0c13.png'; // Placeholder for actual PDF
+                      downloadLink.download = 'Offre_sur_mesure_Paritel.pdf';
+                      document.body.appendChild(downloadLink);
+                      downloadLink.click();
+                      document.body.removeChild(downloadLink);
+                      alert("Offre téléchargée avec succès!");
+                    }}
+                  >
                     <Download className="mr-2 h-4 w-4" />
-                    Générer PDF
+                    Télécharger PDF
                   </Button>
                 </div>
               </div>

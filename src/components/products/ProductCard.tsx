@@ -155,9 +155,9 @@ export const ProductCard = ({
             variant="default" 
             size="sm" 
             className="bg-paritel-primary"
-            onClick={() => window.alert(`Produit "${name}" ajouté à votre offre.`)}
+            onClick={onViewDetails ? () => onViewDetails(id) : undefined}
           >
-            Ajouter
+            Détails
           </Button>
         </div>
       </CardContent>

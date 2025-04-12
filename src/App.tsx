@@ -9,6 +9,8 @@ import Solutions from "./pages/Solutions";
 import Partners from "./pages/Partners";
 import CreateOffer from "./pages/CreateOffer";
 import NotFound from "./pages/NotFound";
+import Administration from "./pages/Administration";
+import Profile from "./pages/Profile";
 
 const queryClient = new QueryClient();
 
@@ -24,7 +26,8 @@ const App = () => (
           <Route path="/solutions" element={<Solutions />} />
           <Route path="/partners" element={<Partners />} />
           <Route path="/create-offer" element={<CreateOffer />} />
-          {/* Add more routes as needed */}
+          <Route path="/administration" element={<Administration />} />
+          <Route path="/profile" element={<Profile />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
