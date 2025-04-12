@@ -2,6 +2,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Eye, Edit, Trash2 } from "lucide-react";
 import {
   AlertDialog,
@@ -14,29 +15,17 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { ProductCardProps } from "./ProductCard";
 
-export type ProductCardProps = {
-  id: number;
-  name: string;
-  description: string;
-  category: string;
-  subcategory?: string;
-  partner?: string;
-  tags: string[];
-  pricing?: string;
-  image: string;
-  specs?: string[];
-};
-
-type ProductCardComponentProps = ProductCardProps & {
+type SelectableProductCardProps = ProductCardProps & {
   onEdit?: (id: number) => void;
   onDelete?: (id: number) => void;
   onViewDetails?: (id: number) => void;
-  isSelected?: boolean;
-  onSelectionChange?: (id: number, isSelected: boolean) => void;
+  isSelected: boolean;
+  onSelectionChange: (id: number, isSelected: boolean) => void;
 };
 
-export const ProductCard = ({
+export const SelectableProductCard = ({
   id,
   name,
   description,
@@ -49,10 +38,20 @@ export const ProductCard = ({
   specs,
   onEdit,
   onDelete,
-  onViewDetails
-}: ProductCardComponentProps) => {
+  onViewDetails,
+  isSelected,
+  onSelectionChange
+}: SelectableProductCardProps) => {
   return (
-    <Card className="overflow-hidden h-full flex flex-col">
+    <Card className="overflow-hidden h-full flex flex-col relative">
+      <div className="absolute top-2 right-2 z-10">
+        <Checkbox 
+          checked={isSelected}
+          onCheckedChange={(checked) => onSelectionChange(id, !!checked)}
+          className="h-5 w-5 bg-white border-gray-300 rounded"
+          aria-label={`Sélectionner ${name}`}
+        />
+      </div>
       <div className="relative h-48 bg-paritel-lightgray">
         <div className="absolute top-2 left-2">
           <Badge className="bg-paritel-primary text-white">{category}</Badge>
@@ -61,7 +60,7 @@ export const ProductCard = ({
           )}
         </div>
         {partner && (
-          <div className="absolute top-2 right-2">
+          <div className="absolute top-10 right-2">
             <Badge variant="outline" className="bg-white border-paritel-primary">
               {partner}
             </Badge>

@@ -1,10 +1,11 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { Search, Plus, Filter, ArrowUpDown } from "lucide-react";
+import { Search, Plus, Filter, ArrowUpDown, CheckSquare, Square, X } from "lucide-react";
 import { ProductCard, ProductCardProps } from "@/components/products/ProductCard";
+import { SelectableProductCard } from "@/components/products/SelectableProductCard";
 import { GlobalOfferingCircle } from "@/components/products/GlobalOfferingCircle";
 import { CategoryFilters, CategoryTabsList } from "@/components/products/CategoryFilters";
 import { DownloadMenu } from "@/components/products/DownloadMenu";
@@ -31,7 +32,14 @@ const Products = () => {
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Partial<ProductCardProps> | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<ProductCardProps | null>(null);
+  const [selectedProductIds, setSelectedProductIds] = useState<number[]>([]);
+  const [selectionMode, setSelectionMode] = useState(false);
   const isMobile = useIsMobile();
+  
+  // Get selected products array from IDs
+  const selectedProducts = products.filter(product => 
+    selectedProductIds.includes(product.id)
+  );
   
   const handleCategoryChange = (value: string) => {
     setSelectedCategory(value);
@@ -113,12 +121,38 @@ const Products = () => {
     }
   };
   
-  // Add callbacks to products for CRUD operations
+  // Product selection handlers
+  const handleProductSelection = (id: number, isSelected: boolean) => {
+    if (isSelected) {
+      setSelectedProductIds(prev => [...prev, id]);
+    } else {
+      setSelectedProductIds(prev => prev.filter(productId => productId !== id));
+    }
+  };
+  
+  const handleSelectAll = () => {
+    setSelectedProductIds(filteredProducts.map(product => product.id));
+  };
+  
+  const handleDeselectAll = () => {
+    setSelectedProductIds([]);
+  };
+  
+  const toggleSelectionMode = () => {
+    setSelectionMode(prev => !prev);
+    if (selectionMode) {
+      setSelectedProductIds([]);
+    }
+  };
+  
+  // Add callbacks to products for CRUD operations and selection
   const productsWithCallbacks = filteredProducts.map(product => ({
     ...product,
     onEdit: handleEditProduct,
     onDelete: handleDeleteProduct,
-    onViewDetails: handleViewProductDetails
+    onViewDetails: handleViewProductDetails,
+    isSelected: selectedProductIds.includes(product.id),
+    onSelectionChange: handleProductSelection
   }));
   
   return (
@@ -209,7 +243,19 @@ const Products = () => {
               <ArrowUpDown className="h-4 w-4" />
               Trier
             </Button>
-            <DownloadMenu products={filteredProducts} />
+            <Button 
+              variant={selectionMode ? "default" : "outline"} 
+              className={`flex gap-2 ${selectionMode ? "bg-paritel-primary" : ""}`}
+              onClick={toggleSelectionMode}
+            >
+              {selectionMode ? <CheckSquare className="h-4 w-4" /> : <Square className="h-4 w-4" />}
+              {selectionMode ? "Mode sélection" : "Sélectionner"}
+            </Button>
+            <DownloadMenu 
+              products={filteredProducts}
+              selectedProducts={selectedProducts}
+              hasSelection={selectedProductIds.length > 0}
+            />
           </div>
         </div>
 
@@ -222,10 +268,26 @@ const Products = () => {
             setSelectedSubcategory={setSelectedSubcategory}
           />
           
+          {selectionMode && selectedProductIds.length > 0 && (
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-sm font-medium">{selectedProductIds.length} produit(s) sélectionné(s)</span>
+              <Button variant="outline" size="sm" onClick={handleSelectAll}>
+                Tout sélectionner
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleDeselectAll}>
+                Tout désélectionner
+              </Button>
+            </div>
+          )}
+          
           <TabsContent value="all" className="mt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {productsWithCallbacks.map((product) => (
-                <ProductCard key={product.id} {...product} />
+                selectionMode ? (
+                  <SelectableProductCard key={product.id} {...product} />
+                ) : (
+                  <ProductCard key={product.id} {...product} />
+                )
               ))}
             </div>
           </TabsContent>
@@ -237,7 +299,11 @@ const Products = () => {
             <TabsContent value={category} key={category} className="mt-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {productsWithCallbacks.map((product) => (
-                  <ProductCard key={product.id} {...product} />
+                  selectionMode ? (
+                    <SelectableProductCard key={product.id} {...product} />
+                  ) : (
+                    <ProductCard key={product.id} {...product} />
+                  )
                 ))}
               </div>
             </TabsContent>
