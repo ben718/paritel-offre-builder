@@ -8,7 +8,6 @@ import Products from "./pages/Products";
 import Solutions from "./pages/Solutions";
 import CreateOffer from "./pages/CreateOffer";
 import NotFound from "./pages/NotFound";
-import Index from "./pages/Index";
 
 const queryClient = new QueryClient();
 
@@ -19,8 +18,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/" element={<Dashboard />} />
           <Route path="/products" element={<Products />} />
           <Route path="/solutions" element={<Solutions />} />
           <Route path="/create-offer" element={<CreateOffer />} />

@@ -63,10 +63,11 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
                 paritel: {
-                    primary: '#1EAEDB',
-                    secondary: '#33C3F0',
-                    dark: '#001330',
-                    light: '#F0F9FF',
+                    primary: '#2A4B8D',
+                    secondary: '#3B82F6',
+                    accent: '#0EA5E9',
+                    light: '#EFF6FF',
+                    dark: '#172554',
                     success: '#10B981',
                     warning: '#F59E0B',
                     danger: '#EF4444',
