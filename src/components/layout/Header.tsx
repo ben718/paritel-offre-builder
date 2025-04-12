@@ -1,9 +1,11 @@
 
-import { Bell, Plus, Search, User } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { MobileNav } from "./MobileNav";
+import NotificationCenter from "@/components/notifications/NotificationCenter";
+import UserMenu from "@/components/auth/UserMenu";
 
 const Header = () => {
   const isMobile = useIsMobile();
@@ -31,13 +33,8 @@ const Header = () => {
             <span className="sm:hidden">Créer</span>
           </Button>
         </Link>
-        <button className="relative p-1 sm:p-2 text-gray-600 hover:text-paritel-primary">
-          <Bell className="w-5 h-5" />
-          <span className="absolute top-0 right-0 w-2 h-2 rounded-full bg-paritel-danger"></span>
-        </button>
-        <button className="flex items-center p-1 text-gray-600 hover:text-paritel-primary">
-          <User className="w-5 h-5" />
-        </button>
+        <NotificationCenter />
+        <UserMenu />
       </div>
     </header>
   );
