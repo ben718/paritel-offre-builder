@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Dashboard from "./pages/Dashboard";
 import Products from "./pages/Products";
 import Solutions from "./pages/Solutions";
+import Partners from "./pages/Partners";
 import CreateOffer from "./pages/CreateOffer";
 import NotFound from "./pages/NotFound";
 
@@ -21,6 +22,7 @@ const App = () => (
           <Route path="/" element={<Dashboard />} />
           <Route path="/products" element={<Products />} />
           <Route path="/solutions" element={<Solutions />} />
+          <Route path="/partners" element={<Partners />} />
           <Route path="/create-offer" element={<CreateOffer />} />
           {/* Add more routes as needed */}
           <Route path="*" element={<NotFound />} />
