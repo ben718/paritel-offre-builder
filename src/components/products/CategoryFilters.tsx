@@ -127,12 +127,12 @@ export const CategoryFilters = ({
   }
 
   return (
-    <div className="mt-4 flex flex-wrap gap-2">
+    <div className="mt-4 flex flex-wrap gap-1 sm:gap-2 overflow-x-auto pb-2">
       {subcategories[categoryKey].map((subcategory) => (
         <Badge 
           key={subcategory.id}
           variant={selectedSubcategory === subcategory.id ? "default" : "outline"} 
-          className="cursor-pointer hover:bg-paritel-primary"
+          className="cursor-pointer hover:bg-paritel-primary text-xs sm:text-sm py-1 px-2 whitespace-nowrap"
           onClick={() => setSelectedSubcategory(subcategory.id)}
         >
           {subcategory.name}
@@ -143,20 +143,22 @@ export const CategoryFilters = ({
 };
 
 export const CategoryTabsList = () => {
+  const isMobile = window.innerWidth < 768;
+
   return (
-    <TabsList className="flex flex-wrap">
-      <TabsTrigger value="all">Tous les produits</TabsTrigger>
-      <TabsTrigger value="telephony">Téléphonie d'entreprise</TabsTrigger>
-      <TabsTrigger value="internet-network">Internet Très Haut Débit</TabsTrigger>
-      <TabsTrigger value="cybersecurity">Cybersécurité</TabsTrigger>
-      <TabsTrigger value="infogérance">Infogérance</TabsTrigger>
-      <TabsTrigger value="poste-travail">Sécurisation du poste de travail</TabsTrigger>
-      <TabsTrigger value="collaborative">Solutions collaboratives</TabsTrigger>
-      <TabsTrigger value="wifi">Wi-Fi public & privé</TabsTrigger>
-      <TabsTrigger value="tvcast">TVCast</TabsTrigger>
-      <TabsTrigger value="mobility">Mobiles</TabsTrigger>
-      <TabsTrigger value="monétique">Monétique</TabsTrigger>
-      <TabsTrigger value="surveillance">Surveillance</TabsTrigger>
+    <TabsList className="flex flex-wrap overflow-x-auto justify-start md:justify-center pb-2 max-w-full">
+      <TabsTrigger value="all" className="text-xs sm:text-sm px-2 py-1 whitespace-nowrap">Tous</TabsTrigger>
+      <TabsTrigger value="telephony" className="text-xs sm:text-sm px-2 py-1 whitespace-nowrap">Téléphonie</TabsTrigger>
+      <TabsTrigger value="internet-network" className="text-xs sm:text-sm px-2 py-1 whitespace-nowrap">Internet THD</TabsTrigger>
+      <TabsTrigger value="cybersecurity" className="text-xs sm:text-sm px-2 py-1 whitespace-nowrap">Cybersécurité</TabsTrigger>
+      <TabsTrigger value="infogérance" className="text-xs sm:text-sm px-2 py-1 whitespace-nowrap">Infogérance</TabsTrigger>
+      <TabsTrigger value="poste-travail" className="text-xs sm:text-sm px-2 py-1 whitespace-nowrap">Poste travail</TabsTrigger>
+      <TabsTrigger value="collaborative" className="text-xs sm:text-sm px-2 py-1 whitespace-nowrap">Collaboratif</TabsTrigger>
+      <TabsTrigger value="wifi" className="text-xs sm:text-sm px-2 py-1 whitespace-nowrap">Wi-Fi</TabsTrigger>
+      <TabsTrigger value="tvcast" className="text-xs sm:text-sm px-2 py-1 whitespace-nowrap">TVCast</TabsTrigger>
+      <TabsTrigger value="mobility" className="text-xs sm:text-sm px-2 py-1 whitespace-nowrap">Mobiles</TabsTrigger>
+      <TabsTrigger value="monétique" className="text-xs sm:text-sm px-2 py-1 whitespace-nowrap">Monétique</TabsTrigger>
+      <TabsTrigger value="surveillance" className="text-xs sm:text-sm px-2 py-1 whitespace-nowrap">Surveillance</TabsTrigger>
     </TabsList>
   );
 };

@@ -147,25 +147,25 @@ const Settings = () => {
 
         <Tabs defaultValue="profile" className="space-y-4">
           <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="profile" className="flex items-center justify-center">
-              <Building className="mr-2 h-4 w-4" />
+            <TabsTrigger value="profile" className="flex items-center justify-center px-1 sm:px-3">
+              <Building className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">Profil entreprise</span>
-              <span className="sm:hidden">Profil</span>
+              <span className="inline sm:hidden text-xs ml-1">Profil</span>
             </TabsTrigger>
-            <TabsTrigger value="notifications" className="flex items-center justify-center">
-              <Bell className="mr-2 h-4 w-4" />
+            <TabsTrigger value="notifications" className="flex items-center justify-center px-1 sm:px-3">
+              <Bell className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">Notifications</span>
-              <span className="sm:hidden">Notif.</span>
+              <span className="inline sm:hidden text-xs ml-1">Notif.</span>
             </TabsTrigger>
-            <TabsTrigger value="appearance" className="flex items-center justify-center">
-              <Palette className="mr-2 h-4 w-4" />
+            <TabsTrigger value="appearance" className="flex items-center justify-center px-1 sm:px-3">
+              <Palette className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">Système</span>
-              <span className="sm:hidden">Syst.</span>
+              <span className="inline sm:hidden text-xs ml-1">Syst.</span>
             </TabsTrigger>
-            <TabsTrigger value="security" className="flex items-center justify-center">
-              <Shield className="mr-2 h-4 w-4" />
+            <TabsTrigger value="security" className="flex items-center justify-center px-1 sm:px-3">
+              <Shield className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">Sécurité</span>
-              <span className="sm:hidden">Sécurité</span>
+              <span className="inline sm:hidden text-xs ml-1">Sécu.</span>
             </TabsTrigger>
           </TabsList>
           

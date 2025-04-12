@@ -52,16 +52,16 @@ export const SelectableProductCard = ({
           aria-label={`Sélectionner ${name}`}
         />
       </div>
-      <div className="relative h-48 bg-paritel-lightgray">
-        <div className="absolute top-2 left-2">
-          <Badge className="bg-paritel-primary text-white">{category}</Badge>
+      <div className="relative h-40 sm:h-48 bg-paritel-lightgray">
+        <div className="absolute top-2 left-2 flex flex-wrap max-w-[70%] gap-1">
+          <Badge className="bg-paritel-primary text-white text-xs">{category}</Badge>
           {subcategory && (
-            <Badge className="ml-1 bg-paritel-secondary text-white">{subcategory}</Badge>
+            <Badge className="bg-paritel-secondary text-white text-xs">{subcategory}</Badge>
           )}
         </div>
         {partner && (
-          <div className="absolute top-10 right-2">
-            <Badge variant="outline" className="bg-white border-paritel-primary">
+          <div className="absolute bottom-2 right-2">
+            <Badge variant="outline" className="bg-white/80 border-paritel-primary text-xs">
               {partner}
             </Badge>
           </div>
@@ -72,47 +72,53 @@ export const SelectableProductCard = ({
           className="w-full h-full object-contain"
         />
       </div>
-      <CardContent className="p-4 flex-1 flex flex-col">
-        <h3 className="font-medium text-lg mb-1">{name}</h3>
-        <p className="text-sm text-gray-600 mb-3 line-clamp-2">{description}</p>
+      <CardContent className="p-3 sm:p-4 flex-1 flex flex-col">
+        <h3 className="font-medium text-base sm:text-lg mb-1 line-clamp-1">{name}</h3>
+        <p className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3 line-clamp-2">{description}</p>
         
         {specs && specs.length > 0 && (
-          <ul className="text-sm text-gray-700 mb-3 list-disc pl-5">
-            {specs.slice(0, 3).map((spec, i) => (
-              <li key={i}>{spec}</li>
+          <ul className="text-xs sm:text-sm text-gray-700 mb-2 sm:mb-3 list-disc pl-4 sm:pl-5">
+            {specs.slice(0, 2).map((spec, i) => (
+              <li key={i} className="line-clamp-1">{spec}</li>
             ))}
-            {specs.length > 3 && (
+            {specs.length > 2 && (
               <li className="text-xs text-paritel-primary">
-                +{specs.length - 3} autres spécifications
+                +{specs.length - 2} autres spécifications
               </li>
             )}
           </ul>
         )}
         
-        <div className="flex flex-wrap gap-1 mb-3">
-          {tags.map((tag, i) => (
+        <div className="flex flex-wrap gap-1 mb-2 sm:mb-3">
+          {tags.slice(0, 3).map((tag, i) => (
             <Badge key={i} variant="secondary" className="text-xs">
               {tag}
             </Badge>
           ))}
+          {tags.length > 3 && (
+            <Badge variant="secondary" className="text-xs">
+              +{tags.length - 3}
+            </Badge>
+          )}
         </div>
         
         {pricing && (
-          <div className="text-sm text-gray-700 mb-2">
+          <div className="text-xs sm:text-sm text-gray-700 mb-2">
             À partir de <span className="font-semibold text-paritel-primary">{pricing}</span>
           </div>
         )}
         
-        <div className="flex justify-between mt-auto pt-3">
+        <div className="flex justify-between mt-auto pt-2 sm:pt-3">
           {onEdit && onDelete ? (
-            <div className="flex space-x-2">
+            <div className="flex space-x-1 sm:space-x-2">
               <Button 
                 variant="outline" 
                 size="sm" 
                 onClick={() => onEdit(id)}
+                className="px-2 sm:px-3 h-8 text-xs sm:text-sm"
               >
-                <Edit className="h-4 w-4 mr-1" />
-                Modifier
+                <Edit className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-1" />
+                <span className="hidden sm:inline">Modifier</span>
               </Button>
               
               <AlertDialog>
@@ -120,13 +126,13 @@ export const SelectableProductCard = ({
                   <Button 
                     variant="outline" 
                     size="sm" 
-                    className="text-red-600 border-red-200 hover:bg-red-50"
+                    className="text-red-600 border-red-200 hover:bg-red-50 px-2 sm:px-3 h-8 text-xs sm:text-sm"
                   >
-                    <Trash2 className="h-4 w-4 mr-1" />
-                    Supprimer
+                    <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-1" />
+                    <span className="hidden sm:inline">Supprimer</span>
                   </Button>
                 </AlertDialogTrigger>
-                <AlertDialogContent>
+                <AlertDialogContent className="max-w-[90vw] sm:max-w-lg">
                   <AlertDialogHeader>
                     <AlertDialogTitle>Êtes-vous sûr de vouloir supprimer ce produit ?</AlertDialogTitle>
                     <AlertDialogDescription>
@@ -147,18 +153,20 @@ export const SelectableProductCard = ({
               variant="outline" 
               size="sm" 
               onClick={onViewDetails ? () => onViewDetails(id) : undefined}
+              className="px-2 sm:px-3 h-8 text-xs sm:text-sm"
             >
-              <Eye className="h-4 w-4 mr-2" />
-              Détails
+              <Eye className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-1" />
+              <span className="hidden sm:inline">Détails</span>
             </Button>
           )}
           <Button 
             variant="default" 
             size="sm" 
-            className="bg-paritel-primary"
+            className="bg-paritel-primary px-2 sm:px-3 h-8 text-xs sm:text-sm"
             onClick={onViewDetails ? () => onViewDetails(id) : undefined}
           >
-            Détails
+            <span className="inline sm:hidden">Voir</span>
+            <span className="hidden sm:inline">Détails</span>
           </Button>
         </div>
       </CardContent>

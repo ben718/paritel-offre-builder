@@ -40,6 +40,7 @@ export function DownloadMenu({
   hasSelection,
   className = "" 
 }: DownloadMenuProps) {
+  const isMobile = window.innerWidth < 768;
   const [selectedFields, setSelectedFields] = useState<string[]>(
     EXPORT_FIELDS.map(field => field.id) // Initially select all fields
   );
@@ -73,9 +74,10 @@ export function DownloadMenu({
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" className={`flex items-center gap-2 ${className}`}>
-            <Download className="h-4 w-4" />
-            Télécharger
+          <Button variant="outline" className={`flex items-center gap-1 sm:gap-2 ${className} px-2 sm:px-3 text-xs sm:text-sm h-8 sm:h-9`}>
+            <Download className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Télécharger</span>
+            <span className="inline sm:hidden">Export</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
