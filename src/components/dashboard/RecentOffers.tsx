@@ -30,12 +30,12 @@ const getStatusColor = (status: OfferStatus) => {
 const OfferCard = ({ clientName, date, sector, status, onClick }: OfferCardProps) => {
   return (
     <div className="border border-gray-200 rounded-lg p-4 mb-4">
-      <div className="flex items-center mb-2">
-        <h4 className="font-medium text-sm flex-1">{clientName}</h4>
+      <div className="flex flex-wrap items-center mb-2">
+        <h4 className="font-medium text-sm flex-1 mb-1 sm:mb-0">{clientName}</h4>
         <Badge className={getStatusColor(status)}>{status}</Badge>
       </div>
-      <div className="flex items-center text-xs text-gray-500 mb-3">
-        <div className="flex items-center mr-4">
+      <div className="flex flex-wrap items-center text-xs text-gray-500 mb-3">
+        <div className="flex items-center mr-4 mb-1 sm:mb-0">
           <Calendar className="w-3 h-3 mr-1" />
           {date}
         </div>
@@ -44,11 +44,11 @@ const OfferCard = ({ clientName, date, sector, status, onClick }: OfferCardProps
           {sector}
         </div>
       </div>
-      <div className="flex justify-between">
-        <Button variant="outline" size="sm">
+      <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:justify-between">
+        <Button variant="outline" size="sm" className="w-full sm:w-auto">
           Détails
         </Button>
-        <Button variant="default" size="sm" className="bg-paritel-primary">
+        <Button variant="default" size="sm" className="bg-paritel-primary w-full sm:w-auto">
           Modifier
         </Button>
       </div>

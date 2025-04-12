@@ -130,13 +130,14 @@ const SolutionCard = ({
           </div>
         </div>
         
-        <div className="flex justify-between mt-auto">
+        <div className="flex flex-col sm:flex-row sm:justify-between mt-auto gap-2">
           {onEdit && onDelete ? (
-            <div className="flex space-x-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <Button 
                 variant="outline" 
                 size="sm" 
                 onClick={() => onEdit(id)}
+                className="w-full sm:w-auto"
               >
                 <Edit className="h-4 w-4 mr-1" />
                 Modifier
@@ -147,20 +148,20 @@ const SolutionCard = ({
                   <Button 
                     variant="outline" 
                     size="sm" 
-                    className="text-red-600 border-red-200 hover:bg-red-50"
+                    className="text-red-600 border-red-200 hover:bg-red-50 w-full sm:w-auto"
                   >
                     <Trash2 className="h-4 w-4 mr-1" />
                     Supprimer
                   </Button>
                 </AlertDialogTrigger>
-                <AlertDialogContent>
+                <AlertDialogContent className="max-w-[90vw] sm:max-w-lg">
                   <AlertDialogHeader>
                     <AlertDialogTitle>Êtes-vous sûr de vouloir supprimer cette solution ?</AlertDialogTitle>
                     <AlertDialogDescription>
                       Cette action est irréversible. La solution '{name}' sera définitivement supprimée.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
-                  <AlertDialogFooter>
+                  <AlertDialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-0">
                     <AlertDialogCancel>Annuler</AlertDialogCancel>
                     <AlertDialogAction onClick={() => onDelete(id)} className="bg-red-600">
                       Supprimer
@@ -170,12 +171,12 @@ const SolutionCard = ({
               </AlertDialog>
             </div>
           ) : (
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" className="w-full sm:w-auto">
               <Eye className="h-4 w-4 mr-2" />
               Détails
             </Button>
           )}
-          <Button variant="default" size="sm" className="bg-paritel-primary">
+          <Button variant="default" size="sm" className="bg-paritel-primary w-full sm:w-auto">
             Utiliser
           </Button>
         </div>
@@ -390,7 +391,7 @@ const Solutions = () => {
         </div>
 
         <Tabs defaultValue="all" onValueChange={setSelectedTab}>
-          <TabsList>
+          <TabsList className="flex flex-wrap">
             <TabsTrigger value="all">Tous les secteurs</TabsTrigger>
             <TabsTrigger value="hotel">Hôtellerie</TabsTrigger>
             <TabsTrigger value="health">Santé</TabsTrigger>

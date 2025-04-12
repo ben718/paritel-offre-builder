@@ -469,7 +469,7 @@ const CreateOffer = () => {
           </div>
         </div>
 
-        <div className="flex justify-between mb-8">
+        <div className="hidden md:flex justify-between mb-8">
           {Array.from({ length: totalSteps }).map((_, index) => (
             <div
               key={index}
@@ -506,6 +506,32 @@ const CreateOffer = () => {
               )}
             </div>
           ))}
+        </div>
+        
+        {/* Mobile stepper */}
+        <div className="flex md:hidden justify-between items-center mb-8">
+          <div className="flex items-center">
+            <div
+              className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                "bg-paritel-primary text-white"
+              }`}
+            >
+              {currentStep}
+            </div>
+            <div className="ml-3">
+              <div className="font-medium">
+                {currentStep === 1 && "Informations client"}
+                {currentStep === 2 && "Expression des besoins"}
+                {currentStep === 3 && "Sélection produits"}
+                {currentStep === 4 && "Personnalisation"}
+                {currentStep === 5 && "Résumé et finalisation"}
+              </div>
+              <div className="text-xs text-gray-500">Étape {currentStep} sur {totalSteps}</div>
+            </div>
+          </div>
+          <div className="text-xs font-medium bg-gray-100 py-1 px-2 rounded-full">
+            {Math.round((currentStep / totalSteps) * 100)}%
+          </div>
         </div>
 
         {/* Step 1: Customer Information */}

@@ -18,7 +18,7 @@ const Dashboard = () => {
           </p>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard
             title="Offres ce mois"
             value="24"
@@ -47,11 +47,11 @@ const Dashboard = () => {
           />
         </div>
 
-        <div className="grid gap-4 md:grid-cols-7">
-          <div className="col-span-7 md:col-span-5">
+        <div className="grid gap-4 grid-cols-1 md:grid-cols-7">
+          <div className="col-span-1 md:col-span-5">
             <RecentOffers />
           </div>
-          <div className="col-span-7 md:col-span-2">
+          <div className="col-span-1 md:col-span-2">
             <div className="space-y-4">
               <QuickAccess />
               <Card>

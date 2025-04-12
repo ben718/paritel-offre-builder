@@ -161,27 +161,27 @@ const PartnerCard = ({
           </div>
         )}
         
-        <div className="flex justify-between mt-4">
-          <div className="flex space-x-2">
-            <Button variant="outline" size="sm" onClick={() => onEdit(id)}>
+        <div className="flex flex-col sm:flex-row sm:justify-between mt-4 gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Button variant="outline" size="sm" onClick={() => onEdit(id)} className="w-full sm:w-auto">
               <Edit className="h-4 w-4 mr-1" />
               Modifier
             </Button>
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="outline" size="sm" className="text-red-600 border-red-200 hover:bg-red-50">
+                <Button variant="outline" size="sm" className="text-red-600 border-red-200 hover:bg-red-50 w-full sm:w-auto">
                   <Trash2 className="h-4 w-4 mr-1" />
                   Supprimer
                 </Button>
               </AlertDialogTrigger>
-              <AlertDialogContent>
+              <AlertDialogContent className="max-w-[90vw] sm:max-w-lg">
                 <AlertDialogHeader>
                   <AlertDialogTitle>Êtes-vous sûr de vouloir supprimer ce partenaire ?</AlertDialogTitle>
                   <AlertDialogDescription>
                     Cette action est irréversible. Le partenaire '{name}' sera définitivement supprimé.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
-                <AlertDialogFooter>
+                <AlertDialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-0">
                   <AlertDialogCancel>Annuler</AlertDialogCancel>
                   <AlertDialogAction onClick={() => onDelete(id)} className="bg-red-600">
                     Supprimer
@@ -193,7 +193,7 @@ const PartnerCard = ({
           <Button 
             variant="default" 
             size="sm" 
-            className="bg-paritel-primary"
+            className="bg-paritel-primary w-full sm:w-auto"
             onClick={onViewDetails ? () => onViewDetails(id) : undefined}
           >
             <Eye className="h-4 w-4 mr-2" />
@@ -619,14 +619,16 @@ const Partners = () => {
         </div>
 
         <Tabs defaultValue="all">
-          <TabsList>
-            <TabsTrigger value="all">Tous</TabsTrigger>
-            <TabsTrigger value="fournisseur">Fournisseurs</TabsTrigger>
-            <TabsTrigger value="revendeur">Revendeurs</TabsTrigger>
-            <TabsTrigger value="technologique">Technologiques</TabsTrigger>
-            <TabsTrigger value="strategique">Stratégiques</TabsTrigger>
-            <TabsTrigger value="premium">Premium</TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto pb-2">
+            <TabsList className="flex-wrap">
+              <TabsTrigger value="all">Tous</TabsTrigger>
+              <TabsTrigger value="fournisseur">Fournisseurs</TabsTrigger>
+              <TabsTrigger value="revendeur">Revendeurs</TabsTrigger>
+              <TabsTrigger value="technologique">Technologiques</TabsTrigger>
+              <TabsTrigger value="strategique">Stratégiques</TabsTrigger>
+              <TabsTrigger value="premium">Premium</TabsTrigger>
+            </TabsList>
+          </div>
           <TabsContent value="all" className="mt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {partnersWithViewDetails.map((partner) => (

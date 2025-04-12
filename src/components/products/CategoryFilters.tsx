@@ -143,8 +143,6 @@ export const CategoryFilters = ({
 };
 
 export const CategoryTabsList = () => {
-  const isMobile = window.innerWidth < 768;
-
   return (
     <TabsList className="flex flex-wrap overflow-x-auto justify-start md:justify-center pb-2 max-w-full">
       <TabsTrigger value="all" className="text-xs sm:text-sm px-2 py-1 whitespace-nowrap">Tous</TabsTrigger>

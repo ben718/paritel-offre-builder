@@ -260,7 +260,9 @@ const Products = () => {
         </div>
 
         <Tabs defaultValue="all" onValueChange={handleCategoryChange}>
-          <CategoryTabsList />
+          <div className="overflow-x-auto pb-2">
+            <CategoryTabsList />
+          </div>
           
           <CategoryFilters 
             selectedCategory={selectedCategory} 

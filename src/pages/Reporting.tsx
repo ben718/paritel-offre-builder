@@ -129,17 +129,17 @@ const Reporting = () => {
   return (
     <MainLayout>
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Reporting & Analyse</h1>
             <p className="text-muted-foreground">Suivez et analysez les performances de vos offres et ventes</p>
           </div>
-          <div className="flex space-x-2">
-            <Button variant="outline">
+          <div className="flex space-x-2 w-full sm:w-auto">
+            <Button variant="outline" className="flex-1 sm:flex-initial">
               <Download className="mr-2 h-4 w-4" />
               Exporter
             </Button>
-            <Button variant="outline">
+            <Button variant="outline" className="flex-1 sm:flex-initial">
               <Calendar className="mr-2 h-4 w-4" />
               Personnaliser
             </Button>
@@ -225,11 +225,11 @@ const Reporting = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <Card className="col-span-1 lg:col-span-2">
             <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
                 <CardTitle>Évolution des Ventes</CardTitle>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                   <Select value={period} onValueChange={setPeriod}>
-                    <SelectTrigger className="w-[140px]">
+                    <SelectTrigger className="w-full sm:w-[140px]">
                       <SelectValue placeholder="Période" />
                     </SelectTrigger>
                     <SelectContent>
@@ -240,7 +240,7 @@ const Reporting = () => {
                   </Select>
                   
                   <Select value={productType} onValueChange={setProductType}>
-                    <SelectTrigger className="w-[140px]">
+                    <SelectTrigger className="w-full sm:w-[140px]">
                       <SelectValue placeholder="Produits" />
                     </SelectTrigger>
                     <SelectContent>
@@ -318,29 +318,31 @@ const Reporting = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left font-medium p-3">Date</th>
-                    <th className="text-left font-medium p-3">Client</th>
-                    <th className="text-right font-medium p-3">Montant</th>
-                    <th className="text-right font-medium p-3">Statut</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recentOffers.map((offer) => (
-                    <tr key={offer.id} className="border-b last:border-b-0">
-                      <td className="p-3">{new Date(offer.date).toLocaleDateString('fr-FR')}</td>
-                      <td className="p-3 font-medium">{offer.company}</td>
-                      <td className="p-3 text-right">{offer.amount.toLocaleString('fr-FR')} €</td>
-                      <td className={`p-3 text-right ${offerStatusColor(offer.status)}`}>
-                        {offerStatusText(offer.status)}
-                      </td>
+            <div className="overflow-x-auto -mx-4 sm:mx-0">
+              <div className="inline-block min-w-full align-middle">
+                <table className="min-w-full divide-y divide-gray-200 text-sm">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left font-medium p-3 whitespace-nowrap">Date</th>
+                      <th className="text-left font-medium p-3 whitespace-nowrap">Client</th>
+                      <th className="text-right font-medium p-3 whitespace-nowrap">Montant</th>
+                      <th className="text-right font-medium p-3 whitespace-nowrap">Statut</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {recentOffers.map((offer) => (
+                      <tr key={offer.id} className="border-b last:border-b-0">
+                        <td className="p-3 whitespace-nowrap">{new Date(offer.date).toLocaleDateString('fr-FR')}</td>
+                        <td className="p-3 font-medium">{offer.company}</td>
+                        <td className="p-3 text-right whitespace-nowrap">{offer.amount.toLocaleString('fr-FR')} €</td>
+                        <td className={`p-3 text-right whitespace-nowrap ${offerStatusColor(offer.status)}`}>
+                          {offerStatusText(offer.status)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </CardContent>
         </Card>
