@@ -7,6 +7,7 @@ import { Search, Plus, Filter, ArrowUpDown } from "lucide-react";
 import { ProductCard, ProductCardProps } from "@/components/products/ProductCard";
 import { GlobalOfferingCircle } from "@/components/products/GlobalOfferingCircle";
 import { CategoryFilters, CategoryTabsList } from "@/components/products/CategoryFilters";
+import { DownloadMenu } from "@/components/products/DownloadMenu";
 import { products as initialProducts } from "@/data/productData";
 import ProductForm from "@/components/products/ProductForm";
 import ProductDetails from "@/components/products/ProductDetails";
@@ -208,6 +209,7 @@ const Products = () => {
               <ArrowUpDown className="h-4 w-4" />
               Trier
             </Button>
+            <DownloadMenu products={filteredProducts} />
           </div>
         </div>
 
