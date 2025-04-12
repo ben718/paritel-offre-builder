@@ -2,6 +2,18 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Eye, Edit, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export type ProductCardProps = {
   id: number;
@@ -16,6 +28,11 @@ export type ProductCardProps = {
   specs?: string[];
 };
 
+type ProductCardComponentProps = ProductCardProps & {
+  onEdit?: (id: number) => void;
+  onDelete?: (id: number) => void;
+};
+
 export const ProductCard = ({
   id,
   name,
@@ -27,7 +44,9 @@ export const ProductCard = ({
   pricing,
   image,
   specs,
-}: ProductCardProps) => {
+  onEdit,
+  onDelete
+}: ProductCardComponentProps) => {
   return (
     <Card className="overflow-hidden h-full flex flex-col">
       <div className="relative h-48 bg-paritel-lightgray">
@@ -56,9 +75,14 @@ export const ProductCard = ({
         
         {specs && specs.length > 0 && (
           <ul className="text-sm text-gray-700 mb-3 list-disc pl-5">
-            {specs.map((spec, i) => (
+            {specs.slice(0, 3).map((spec, i) => (
               <li key={i}>{spec}</li>
             ))}
+            {specs.length > 3 && (
+              <li className="text-xs text-paritel-primary">
+                +{specs.length - 3} autres spécifications
+              </li>
+            )}
           </ul>
         )}
         
@@ -77,9 +101,50 @@ export const ProductCard = ({
         )}
         
         <div className="flex justify-between mt-auto pt-3">
-          <Button variant="outline" size="sm">
-            Détails
-          </Button>
+          {onEdit && onDelete ? (
+            <div className="flex space-x-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => onEdit(id)}
+              >
+                <Edit className="h-4 w-4 mr-1" />
+                Modifier
+              </Button>
+              
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="text-red-600 border-red-200 hover:bg-red-50"
+                  >
+                    <Trash2 className="h-4 w-4 mr-1" />
+                    Supprimer
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Êtes-vous sûr de vouloir supprimer ce produit ?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Cette action est irréversible. Le produit '{name}' sera définitivement supprimé.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Annuler</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => onDelete(id)} className="bg-red-600">
+                      Supprimer
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+          ) : (
+            <Button variant="outline" size="sm">
+              <Eye className="h-4 w-4 mr-2" />
+              Détails
+            </Button>
+          )}
           <Button variant="default" size="sm" className="bg-paritel-primary">
             Ajouter
           </Button>

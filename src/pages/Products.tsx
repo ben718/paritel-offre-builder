@@ -2,18 +2,30 @@
 import { useState } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Search, Plus, Filter, ArrowUpDown } from "lucide-react";
-import { ProductCard } from "@/components/products/ProductCard";
+import { ProductCard, ProductCardProps } from "@/components/products/ProductCard";
 import { GlobalOfferingCircle } from "@/components/products/GlobalOfferingCircle";
 import { CategoryFilters, CategoryTabsList } from "@/components/products/CategoryFilters";
-import { products } from "@/data/productData";
+import { products as initialProducts } from "@/data/productData";
+import ProductForm from "@/components/products/ProductForm";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogHeader, 
+  DialogTitle,
+  DialogTrigger
+} from "@/components/ui/dialog";
 
 const Products = () => {
+  const [products, setProducts] = useState<ProductCardProps[]>(initialProducts);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedSubcategory, setSelectedSubcategory] = useState("all");
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Partial<ProductCardProps> | null>(null);
   
   const handleCategoryChange = (value: string) => {
     setSelectedCategory(value);
@@ -49,6 +61,45 @@ const Products = () => {
     return matchesSearch && matchesCategory && matchesSubcategory;
   });
   
+  // Handler functions for CRUD operations
+  const handleAddProduct = (data: Partial<ProductCardProps>) => {
+    const newProduct = {
+      ...data,
+      id: products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1,
+      tags: data.tags || [],
+    } as ProductCardProps;
+    
+    setProducts([...products, newProduct]);
+    setIsAddDialogOpen(false);
+  };
+  
+  const handleEditProduct = (id: number) => {
+    const product = products.find(p => p.id === id);
+    if (product) {
+      setEditingProduct(product);
+      setIsEditDialogOpen(true);
+    }
+  };
+  
+  const handleUpdateProduct = (data: Partial<ProductCardProps>) => {
+    setProducts(products.map(product => 
+      product.id === data.id ? { ...product, ...data } as ProductCardProps : product
+    ));
+    setEditingProduct(null);
+    setIsEditDialogOpen(false);
+  };
+  
+  const handleDeleteProduct = (id: number) => {
+    setProducts(products.filter(product => product.id !== id));
+  };
+  
+  // Add callbacks to products for CRUD operations
+  const productsWithCallbacks = filteredProducts.map(product => ({
+    ...product,
+    onEdit: handleEditProduct,
+    onDelete: handleDeleteProduct
+  }));
+  
   return (
     <MainLayout>
       <div className="space-y-6">
@@ -59,10 +110,47 @@ const Products = () => {
               Consultez notre catalogue complet de produits, services et partenaires
             </p>
           </div>
-          <Button className="bg-paritel-primary hover:bg-paritel-dark">
-            <Plus className="mr-2 h-4 w-4" />
-            Ajouter un produit
-          </Button>
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-paritel-primary hover:bg-paritel-dark">
+                <Plus className="mr-2 h-4 w-4" />
+                Ajouter un produit
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Ajouter un nouveau produit</DialogTitle>
+                <DialogDescription>
+                  Remplissez les informations pour créer un nouveau produit ou service.
+                </DialogDescription>
+              </DialogHeader>
+              <ProductForm 
+                onSubmit={handleAddProduct} 
+                onCancel={() => setIsAddDialogOpen(false)} 
+              />
+            </DialogContent>
+          </Dialog>
+          
+          <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+            <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Modifier le produit</DialogTitle>
+                <DialogDescription>
+                  Modifiez les informations du produit.
+                </DialogDescription>
+              </DialogHeader>
+              {editingProduct && (
+                <ProductForm 
+                  product={editingProduct} 
+                  onSubmit={handleUpdateProduct} 
+                  onCancel={() => {
+                    setEditingProduct(null);
+                    setIsEditDialogOpen(false);
+                  }} 
+                />
+              )}
+            </DialogContent>
+          </Dialog>
         </div>
 
         {/* Visualisation graphique de l'offre globale */}
@@ -102,7 +190,7 @@ const Products = () => {
           
           <TabsContent value="all" className="mt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredProducts.map((product) => (
+              {productsWithCallbacks.map((product) => (
                 <ProductCard key={product.id} {...product} />
               ))}
             </div>
@@ -114,7 +202,7 @@ const Products = () => {
             "monétique", "surveillance"].map(category => (
             <TabsContent value={category} key={category} className="mt-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredProducts.map((product) => (
+                {productsWithCallbacks.map((product) => (
                   <ProductCard key={product.id} {...product} />
                 ))}
               </div>
