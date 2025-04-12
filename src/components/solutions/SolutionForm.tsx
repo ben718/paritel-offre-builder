@@ -188,13 +188,14 @@ const SolutionForm = ({
           <Label>Produits inclus</Label>
           <div className="flex space-x-2">
             <Select 
-              value={selectedProductId ? String(selectedProductId) : ""} 
+              value={selectedProductId ? String(selectedProductId) : "no-product"} 
               onValueChange={handleProductSelect}
             >
               <SelectTrigger className="flex-1">
                 <SelectValue placeholder="Sélectionner un produit" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="no-product" className="hidden">Sélectionner un produit</SelectItem>
                 {availableProducts.map(product => (
                   <SelectItem key={product.id} value={String(product.id)}>
                     {product.name} ({product.category})

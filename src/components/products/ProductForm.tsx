@@ -200,7 +200,7 @@ const ProductForm = ({ product, onSubmit, onCancel }: ProductFormProps) => {
           <div className="space-y-2">
             <Label htmlFor="subcategory">Sous-catégorie</Label>
             <Select 
-              value={formData.subcategory || ""}
+              value={formData.subcategory || "no-subcategory"}
               onValueChange={handleSubcategoryChange}
             >
               <SelectTrigger>
@@ -213,7 +213,7 @@ const ProductForm = ({ product, onSubmit, onCancel }: ProductFormProps) => {
                         {subcat}
                       </SelectItem>
                     ))
-                  : <SelectItem value="">Aucune sous-catégorie disponible</SelectItem>
+                  : <SelectItem value="no-subcategory">Aucune sous-catégorie disponible</SelectItem>
                 }
               </SelectContent>
             </Select>
