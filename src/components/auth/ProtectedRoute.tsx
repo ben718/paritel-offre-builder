@@ -1,5 +1,6 @@
 
 import { Navigate, useLocation } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -8,26 +9,25 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute = ({ children, allowedRoles = [] }: ProtectedRouteProps) => {
   const location = useLocation();
+  const { isAuthenticated, user, isLoading } = useAuth();
   
-  // Check if user is authenticated
-  const isAuthenticated = (): boolean => {
-    const user = localStorage.getItem('currentUser');
-    return !!user;
-  };
+  // While authentication is being checked, show nothing
+  if (isLoading) {
+    return <div className="flex items-center justify-center min-h-screen">
+      <p>Chargement...</p>
+    </div>;
+  }
   
   // Check if user has required role
   const hasRequiredRole = (): boolean => {
     if (!allowedRoles.length) return true;
     
-    try {
-      const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
-      return allowedRoles.includes(user.role);
-    } catch (error) {
-      return false;
-    }
+    if (!user) return false;
+    
+    return allowedRoles.includes(user.role);
   };
   
-  if (!isAuthenticated()) {
+  if (!isAuthenticated) {
     // Redirect to login page with return url
     return <Navigate to="/login" state={{ from: location }} replace />;
   }

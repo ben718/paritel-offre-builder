@@ -9,6 +9,7 @@ import { CustomLabel } from "@/components/ui/custom-label";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/components/ui/use-toast";
 import { Eye, EyeOff, Lock, LogIn, Mail, ShieldCheck, User } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 const Login = () => {
   const { toast } = useToast();
@@ -33,31 +34,35 @@ const Login = () => {
     agreeTerms: false
   });
   
+  const { login } = useAuth();
+
   // Handle login form submission
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Mock login - in a real app, this would make an API call
-    if (loginData.email === "admin@paritel.fr" && loginData.password === "admin123") {
-      // Store user info in localStorage (would use secure cookies in production)
-      localStorage.setItem("currentUser", JSON.stringify({
-        id: 1,
-        name: "Admin User",
-        email: loginData.email,
-        role: "admin"
-      }));
+    try {
+      const success = await login(loginData.email, loginData.password);
       
+      if (success) {
+        toast({
+          title: "Connexion réussie",
+          description: "Bienvenue dans l'application Paritel AO & Catalogue",
+        });
+        
+        // Redirect to dashboard
+        navigate("/");
+      } else {
+        toast({
+          title: "Échec de la connexion",
+          description: "Email ou mot de passe incorrect",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error("Login error:", error);
       toast({
-        title: "Connexion réussie",
-        description: "Bienvenue dans l'application Paritel AO & Catalogue",
-      });
-      
-      // Redirect to dashboard
-      navigate("/");
-    } else {
-      toast({
-        title: "Échec de la connexion",
-        description: "Email ou mot de passe incorrect",
+        title: "Erreur de connexion",
+        description: "Une erreur est survenue lors de la connexion",
         variant: "destructive"
       });
     }
