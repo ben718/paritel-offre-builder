@@ -43,8 +43,10 @@ type Offer = {
     id: number;
     name: string;
     category: string;
-    quantity: number;
-    price: string;
+    quantity?: number;
+    price?: string;
+    showQuantity?: boolean;
+    showPrice?: boolean;
   }>;
 };
 
@@ -134,14 +136,18 @@ const MyOffers = () => {
         const productsSection = document.createElement('div');
         productsSection.style.marginBottom = '10mm';
         
+        // Determine which columns to show based on products
+        const showQuantityColumn = offer.products.some(p => p.showQuantity !== false);
+        const showPriceColumn = offer.products.some(p => p.showPrice !== false);
+        
         let productsHTML = `
           <h3 style="color: #6048b8;">Produits et services</h3>
           <table style="width: 100%; border-collapse: collapse; margin-top: 5mm;">
             <thead>
               <tr style="background-color: #6048b8; color: white;">
                 <th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Désignation</th>
-                <th style="padding: 8px; text-align: center; border: 1px solid #ddd;">Quantité</th>
-                <th style="padding: 8px; text-align: right; border: 1px solid #ddd;">Prix</th>
+                ${showQuantityColumn ? `<th style="padding: 8px; text-align: center; border: 1px solid #ddd;">Quantité</th>` : ''}
+                ${showPriceColumn ? `<th style="padding: 8px; text-align: right; border: 1px solid #ddd;">Prix</th>` : ''}
               </tr>
             </thead>
             <tbody>
@@ -149,9 +155,13 @@ const MyOffers = () => {
         
         let totalAmount = 0;
         offer.products.forEach(product => {
-          const priceValue = parseFloat(product.price.replace(/[^\d.-]/g, '')) || 0;
-          const totalPrice = priceValue * product.quantity;
-          totalAmount += totalPrice;
+          const priceValue = product.price ? parseFloat(product.price.replace(/[^\d.-]/g, '')) || 0 : 0;
+          const quantity = product.quantity || 0;
+          const totalPrice = product.showPrice !== false && product.showQuantity !== false ? priceValue * quantity : 0;
+          
+          if (product.showPrice !== false && product.showQuantity !== false) {
+            totalAmount += totalPrice;
+          }
           
           productsHTML += `
             <tr>
@@ -159,28 +169,43 @@ const MyOffers = () => {
                 <strong>${product.name}</strong><br>
                 <span style="color: #666; font-size: 12px;">${product.category}</span>
               </td>
-              <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">${product.quantity}</td>
-              <td style="padding: 8px; text-align: right; border: 1px solid #ddd;">${priceValue.toFixed(2)}€</td>
+              ${showQuantityColumn ? 
+                `<td style="padding: 8px; text-align: center; border: 1px solid #ddd;">
+                  ${product.showQuantity !== false ? (product.quantity || '-') : '-'}
+                </td>` : ''}
+              ${showPriceColumn ? 
+                `<td style="padding: 8px; text-align: right; border: 1px solid #ddd;">
+                  ${product.showPrice !== false ? (priceValue > 0 ? priceValue.toFixed(2) + '€' : '-') : '-'}
+                </td>` : ''}
             </tr>
           `;
         });
         
+        // Only show totals if any products have prices
+        const shouldShowTotals = showPriceColumn && showQuantityColumn && totalAmount > 0;
+        
         productsHTML += `
-            </tbody>
+            </tbody>`;
+            
+        if (shouldShowTotals) {
+          productsHTML += `
             <tfoot>
               <tr style="background-color: #f2f2f2;">
-                <td colspan="2" style="padding: 8px; text-align: right; border: 1px solid #ddd;"><strong>Total HT:</strong></td>
+                <td colspan="${1 + (showQuantityColumn ? 1 : 0)}" style="padding: 8px; text-align: right; border: 1px solid #ddd;"><strong>Total HT:</strong></td>
                 <td style="padding: 8px; text-align: right; border: 1px solid #ddd;"><strong>${totalAmount.toFixed(2)}€</strong></td>
               </tr>
               <tr>
-                <td colspan="2" style="padding: 8px; text-align: right; border: 1px solid #ddd;">TVA (20%):</td>
+                <td colspan="${1 + (showQuantityColumn ? 1 : 0)}" style="padding: 8px; text-align: right; border: 1px solid #ddd;">TVA (20%):</td>
                 <td style="padding: 8px; text-align: right; border: 1px solid #ddd;">${(totalAmount * 0.2).toFixed(2)}€</td>
               </tr>
               <tr style="background-color: #f2f2f2;">
-                <td colspan="2" style="padding: 8px; text-align: right; border: 1px solid #ddd;"><strong>Total TTC:</strong></td>
+                <td colspan="${1 + (showQuantityColumn ? 1 : 0)}" style="padding: 8px; text-align: right; border: 1px solid #ddd;"><strong>Total TTC:</strong></td>
                 <td style="padding: 8px; text-align: right; border: 1px solid #ddd;"><strong>${(totalAmount * 1.2).toFixed(2)}€</strong></td>
               </tr>
-            </tfoot>
+            </tfoot>`;
+        }
+        
+        productsHTML += `
           </table>
         `;
         
@@ -413,6 +438,8 @@ const MyOffers = () => {
                         <div className="text-sm">
                           <span className="font-medium">Produits: </span>
                           {offer.products.length} produit(s)
+                          {offer.products.some(p => p.showPrice === false) && " (prix masqués)"}
+                          {offer.products.some(p => p.showQuantity === false) && " (quantités masquées)"}
                         </div>
                         <div className="flex gap-2 mt-4">
                           <Button 
@@ -519,6 +546,8 @@ const MyOffers = () => {
                         <div className="text-sm">
                           <span className="font-medium">Produits: </span>
                           {draft.products.length} produit(s)
+                          {draft.products.some(p => p.showPrice === false) && " (prix masqués)"}
+                          {draft.products.some(p => p.showQuantity === false) && " (quantités masquées)"}
                         </div>
                         <div className="flex gap-2 mt-4">
                           <Button 
@@ -592,8 +621,12 @@ const MyOffers = () => {
                           <p className="text-xs text-gray-500">{product.category}</p>
                         </div>
                         <div className="text-right">
-                          <p className="font-medium">Qté: {product.quantity}</p>
-                          <p className="text-sm">{product.price}</p>
+                          {product.showQuantity !== false && product.quantity !== undefined && (
+                            <p className="font-medium">Qté: {product.quantity}</p>
+                          )}
+                          {product.showPrice !== false && product.price && (
+                            <p className="text-sm">{product.price}</p>
+                          )}
                         </div>
                       </div>
                     ))}

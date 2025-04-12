@@ -68,11 +68,11 @@ type OfferProduct = {
   id: number;
   name: string;
   category: string;
-  quantity: number;
-  price: string;
+  quantity?: number;
+  price?: string;
   notes?: string;
-  hideQuantity?: boolean;
-  hidePrice?: boolean;
+  showQuantity?: boolean;
+  showPrice?: boolean;
 };
 
 type Offer = {
@@ -165,7 +165,9 @@ const CreateOffer = () => {
           name: productToAdd.name,
           category: productToAdd.category,
           quantity: 1,
-          price: productToAdd.pricing.replace(/[^0-9,.]/g, '')
+          price: productToAdd.pricing.replace(/[^0-9,.]/g, ''),
+          showQuantity: true,
+          showPrice: true
         };
         
         setOffer({
@@ -361,13 +363,13 @@ const CreateOffer = () => {
         
         let totalAmount = 0;
         offer.products.forEach(product => {
-          if (!product.hidePrice) {
+          if (product.showPrice !== false && product.price) {
             const priceValue = parseFloat(product.price.replace(/[^\d.-]/g, '')) || 0;
-            const totalPrice = priceValue * (!product.hideQuantity ? product.quantity : 1);
+            const totalPrice = priceValue * (product.showQuantity !== false && product.quantity ? product.quantity : 1);
             totalAmount += totalPrice;
           }
           
-          const priceValue = parseFloat(product.price.replace(/[^\d.-]/g, '')) || 0;
+          const priceValue = product.price ? parseFloat(product.price.replace(/[^\d.-]/g, '')) || 0 : 0;
           productsHTML += `
             <tr>
               <td style="padding: 8px; border: 1px solid #ddd;">
@@ -376,10 +378,10 @@ const CreateOffer = () => {
                 ${product.notes ? `<br><span style="font-style: italic; font-size: 12px;">${product.notes}</span>` : ''}
               </td>
               <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">
-                ${product.hideQuantity ? '-' : product.quantity}
+                ${product.showQuantity === false ? '-' : product.quantity}
               </td>
               <td style="padding: 8px; text-align: right; border: 1px solid #ddd;">
-                ${product.hidePrice ? 'Sur devis' : `${priceValue.toFixed(2)}€`}
+                ${product.showPrice === false ? 'Sur devis' : `${priceValue.toFixed(2)}€`}
               </td>
             </tr>
           `;
@@ -840,7 +842,7 @@ const CreateOffer = () => {
                         </div>
                         
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-3">
-                          {product.hideQuantity !== true && (
+                          {product.showQuantity !== false && (
                             <div>
                               <div className="flex justify-between items-center">
                                 <CustomLabel htmlFor={`quantity-${product.id}`}>Quantité (optionnel)</CustomLabel>
@@ -849,7 +851,7 @@ const CreateOffer = () => {
                                   className="text-gray-400 hover:text-red-500"
                                   onClick={() => {
                                     const updatedProducts = offer.products.map(p => 
-                                      p.id === product.id ? { ...p, hideQuantity: true, quantity: 1 } : p
+                                      p.id === product.id ? { ...p, showQuantity: false, quantity: undefined } : p
                                     );
                                     setOffer({ ...offer, products: updatedProducts });
                                   }}
@@ -883,14 +885,14 @@ const CreateOffer = () => {
                               </div>
                             </div>
                           )}
-                          {product.hideQuantity === true && (
+                          {product.showQuantity === false && (
                             <div>
                               <button 
                                 type="button"
                                 className="flex items-center text-sm text-paritel-primary hover:underline"
                                 onClick={() => {
                                   const updatedProducts = offer.products.map(p => 
-                                    p.id === product.id ? { ...p, hideQuantity: false } : p
+                                    p.id === product.id ? { ...p, showQuantity: true, quantity: 1 } : p
                                   );
                                   setOffer({ ...offer, products: updatedProducts });
                                 }}
@@ -901,7 +903,7 @@ const CreateOffer = () => {
                             </div>
                           )}
                           
-                          {product.hidePrice !== true && (
+                          {product.showPrice !== false && (
                             <div>
                               <div className="flex justify-between items-center">
                                 <CustomLabel htmlFor={`price-${product.id}`}>Prix (optionnel)</CustomLabel>
@@ -910,7 +912,7 @@ const CreateOffer = () => {
                                   className="text-gray-400 hover:text-red-500"
                                   onClick={() => {
                                     const updatedProducts = offer.products.map(p => 
-                                      p.id === product.id ? { ...p, hidePrice: true } : p
+                                      p.id === product.id ? { ...p, showPrice: false, price: undefined } : p
                                     );
                                     setOffer({ ...offer, products: updatedProducts });
                                   }}
@@ -932,14 +934,14 @@ const CreateOffer = () => {
                               />
                             </div>
                           )}
-                          {product.hidePrice === true && (
+                          {product.showPrice === false && (
                             <div>
                               <button 
                                 type="button"
                                 className="flex items-center text-sm text-paritel-primary hover:underline"
                                 onClick={() => {
                                   const updatedProducts = offer.products.map(p => 
-                                    p.id === product.id ? { ...p, hidePrice: false } : p
+                                    p.id === product.id ? { ...p, showPrice: true, price: "" } : p
                                   );
                                   setOffer({ ...offer, products: updatedProducts });
                                 }}
@@ -1035,9 +1037,9 @@ const CreateOffer = () => {
                                 )}
                               </div>
                               <div className="text-right">
-                                {!product.hideQuantity && <p className="font-medium">Qté: {product.quantity}</p>}
-                                {!product.hidePrice && <p className="text-sm">{productDetails?.pricing}</p>}
-                                {(product.hideQuantity && product.hidePrice) && <p className="text-sm italic">Prix non spécifié</p>}
+                                {product.showQuantity !== false && product.quantity && <p className="font-medium">Qté: {product.quantity}</p>}
+                                {product.showPrice !== false && product.price && <p className="text-sm">{productDetails?.pricing}</p>}
+                                {(product.showQuantity === false && product.showPrice === false) && <p className="text-sm italic">Prix non spécifié</p>}
                               </div>
                             </div>
                           );
