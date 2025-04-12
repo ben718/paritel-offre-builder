@@ -17,9 +17,9 @@ import {
   FormDescription,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { CustomLabel } from "@/components/ui/custom-label";
 import { 
   Tabs,
   TabsContent, 
@@ -127,7 +127,7 @@ const CreateOffer = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <div className="space-y-1">
-                    <FormLabel>Nom de la société</FormLabel>
+                    <CustomLabel>Nom de la société</CustomLabel>
                     <div className="relative">
                       <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                       <Input className="pl-9" placeholder="Nom de la société" />
@@ -135,7 +135,7 @@ const CreateOffer = () => {
                   </div>
                   
                   <div className="space-y-1">
-                    <FormLabel>Secteur d'activité</FormLabel>
+                    <CustomLabel>Secteur d'activité</CustomLabel>
                     <Select defaultValue="business">
                       <SelectTrigger>
                         <SelectValue placeholder="Sélectionnez un secteur" />
@@ -152,14 +152,14 @@ const CreateOffer = () => {
                   </div>
                   
                   <div className="space-y-1">
-                    <FormLabel>Adresse</FormLabel>
+                    <CustomLabel>Adresse</CustomLabel>
                     <Textarea placeholder="Adresse complète" />
                   </div>
                 </div>
                 
                 <div className="space-y-4">
                   <div className="space-y-1">
-                    <FormLabel>Nom du contact</FormLabel>
+                    <CustomLabel>Nom du contact</CustomLabel>
                     <div className="relative">
                       <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                       <Input className="pl-9" placeholder="Nom du contact" />
@@ -167,7 +167,7 @@ const CreateOffer = () => {
                   </div>
                   
                   <div className="space-y-1">
-                    <FormLabel>Téléphone</FormLabel>
+                    <CustomLabel>Téléphone</CustomLabel>
                     <div className="relative">
                       <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                       <Input className="pl-9" placeholder="Numéro de téléphone" />
@@ -175,7 +175,7 @@ const CreateOffer = () => {
                   </div>
                   
                   <div className="space-y-1">
-                    <FormLabel>Email</FormLabel>
+                    <CustomLabel>Email</CustomLabel>
                     <div className="relative">
                       <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                       <Input className="pl-9" placeholder="Adresse email" />
@@ -183,7 +183,7 @@ const CreateOffer = () => {
                   </div>
                   
                   <div className="space-y-1">
-                    <FormLabel>Fonction</FormLabel>
+                    <CustomLabel>Fonction</CustomLabel>
                     <Input placeholder="Fonction du contact" />
                   </div>
                 </div>
@@ -203,7 +203,7 @@ const CreateOffer = () => {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-1">
-                <FormLabel>Contexte de la demande</FormLabel>
+                <CustomLabel>Contexte de la demande</CustomLabel>
                 <Textarea 
                   placeholder="Décrivez la situation actuelle et le contexte" 
                   className="min-h-[100px]"
@@ -211,7 +211,7 @@ const CreateOffer = () => {
               </div>
               
               <div className="space-y-1">
-                <FormLabel>Besoins exprimés</FormLabel>
+                <CustomLabel>Besoins exprimés</CustomLabel>
                 <Textarea 
                   placeholder="Listez les besoins exprimés par le client" 
                   className="min-h-[100px]"
@@ -219,7 +219,7 @@ const CreateOffer = () => {
               </div>
               
               <div className="space-y-1">
-                <FormLabel>Contraintes spécifiques</FormLabel>
+                <CustomLabel>Contraintes spécifiques</CustomLabel>
                 <Textarea 
                   placeholder="Précisez les contraintes à prendre en compte (budget, délais, techniques...)" 
                   className="min-h-[100px]"
@@ -228,12 +228,12 @@ const CreateOffer = () => {
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-1">
-                  <FormLabel>Budget estimé</FormLabel>
+                  <CustomLabel>Budget estimé</CustomLabel>
                   <Input placeholder="€" type="number" />
                 </div>
                 
                 <div className="space-y-1">
-                  <FormLabel>Délai souhaité</FormLabel>
+                  <CustomLabel>Délai souhaité</CustomLabel>
                   <Input placeholder="Date souhaitée" type="date" />
                 </div>
               </div>
