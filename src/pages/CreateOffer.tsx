@@ -832,26 +832,27 @@ const CreateOffer = () => {
                         
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-3">
                           <div>
-                            <CustomLabel>Quantité</CustomLabel>
+                            <CustomLabel htmlFor={`quantity-${product.id}`}>Quantité (optionnel)</CustomLabel>
                             <div className="flex items-center mt-1">
                               <button 
                                 type="button"
                                 className="w-8 h-8 flex items-center justify-center border rounded-l-md"
-                                onClick={() => updateProductQuantity(product.id, Math.max(1, product.quantity - 1))}
+                                onClick={() => updateProductQuantity(product.id, Math.max(0, product.quantity - 1))}
                               >
                                 -
                               </button>
                               <input
+                                id={`quantity-${product.id}`}
                                 type="number"
-                                min="1"
+                                min="0"
                                 value={product.quantity}
-                                onChange={(e) => updateProductQuantity(product.id, parseInt(e.target.value) || 1)}
+                                onChange={(e) => updateProductQuantity(product.id, parseInt(e.target.value) || 0)}
                                 className="w-12 h-8 text-center border-y"
                               />
                               <button 
                                 type="button"
                                 className="w-8 h-8 flex items-center justify-center border rounded-r-md"
-                                onClick={() => updateProductQuantity(product.id, product.quantity + 1)}
+                                onClick={() => updateProductQuantity(product.id, (product.quantity || 0) + 1)}
                               >
                                 +
                               </button>
