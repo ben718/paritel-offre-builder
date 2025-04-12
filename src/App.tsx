@@ -21,6 +21,8 @@ import Login from "./pages/Login";
 import Unauthorized from "./pages/Unauthorized";
 import ProductComparison from "./pages/ProductComparison";
 import AdvancedReporting from "./pages/AdvancedReporting";
+import SiteBuilder from "./pages/SiteBuilder";
+import CodeEditor from "./pages/CodeEditor";
 
 const queryClient = new QueryClient();
 
@@ -102,6 +104,18 @@ const App = () => (
             <Route path="/administration" element={
               <ProtectedRoute allowedRoles={['admin']}>
                 <Administration />
+              </ProtectedRoute>
+            } />
+            
+            {/* Super Admin routes */}
+            <Route path="/site-builder" element={
+              <ProtectedRoute allowedRoles={['superadmin']}>
+                <SiteBuilder />
+              </ProtectedRoute>
+            } />
+            <Route path="/code-editor" element={
+              <ProtectedRoute allowedRoles={['superadmin']}>
+                <CodeEditor />
               </ProtectedRoute>
             } />
             

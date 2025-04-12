@@ -6,7 +6,9 @@ import {
   LogOut, 
   Settings, 
   UserCog,
-  Shield
+  Shield,
+  Code,
+  Wrench
 } from 'lucide-react';
 import { 
   DropdownMenu, 
@@ -20,7 +22,7 @@ import {
 import { useAuth } from '@/context/AuthContext';
 
 const UserMenu = () => {
-  const { user, logout, isAdmin } = useAuth();
+  const { user, logout, isAdmin, isSuperAdmin } = useAuth();
   const navigate = useNavigate();
   
   const handleLogout = () => {
@@ -88,6 +90,19 @@ const UserMenu = () => {
               <DropdownMenuItem onClick={() => handleNavigate('/administration')}>
                 <Shield className="mr-2 h-4 w-4" />
                 <span>Administration</span>
+              </DropdownMenuItem>
+            </>
+          )}
+          {isSuperAdmin && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => handleNavigate('/site-builder')}>
+                <Wrench className="mr-2 h-4 w-4" />
+                <span>Concepteur de Site</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleNavigate('/code-editor')}>
+                <Code className="mr-2 h-4 w-4" />
+                <span>Éditeur de Code</span>
               </DropdownMenuItem>
             </>
           )}

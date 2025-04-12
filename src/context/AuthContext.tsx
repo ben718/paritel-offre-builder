@@ -14,6 +14,7 @@ interface AuthContextType {
   logout: () => void;
   isAuthenticated: boolean;
   isAdmin: boolean;
+  isSuperAdmin: boolean;
   isLoading: boolean;
 }
 
@@ -67,6 +68,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(userData);
         setIsLoading(false);
         return true;
+      } else if (email === 'superadmin@paritel.fr' && password === 'super123') {
+        const userData: User = {
+          id: 3,
+          name: 'Super Admin',
+          email: email,
+          role: 'superadmin'
+        };
+        
+        localStorage.setItem('currentUser', JSON.stringify(userData));
+        setUser(userData);
+        setIsLoading(false);
+        return true;
       }
       
       setIsLoading(false);
@@ -92,6 +105,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         logout,
         isAuthenticated: !!user,
         isAdmin: user?.role === 'admin',
+        isSuperAdmin: user?.role === 'superadmin',
         isLoading
       }}
     >
