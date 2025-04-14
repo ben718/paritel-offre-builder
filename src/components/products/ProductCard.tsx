@@ -1,4 +1,3 @@
-
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -25,6 +24,7 @@ export type ProductCardProps = {
   tags: string[];
   image: string;
   specs?: string[];
+  rating?: number;
 };
 
 type ProductCardComponentProps = ProductCardProps & {
@@ -45,6 +45,7 @@ export const ProductCard = ({
   tags,
   image,
   specs,
+  rating,
   onEdit,
   onDelete,
   onViewDetails,
