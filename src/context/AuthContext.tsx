@@ -1,5 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface User {
   id: number;
@@ -16,6 +17,7 @@ interface AuthContextType {
   isAdmin: boolean;
   isSuperAdmin: boolean;
   isLoading: boolean;
+  checkRouteAccess: (allowedRoles: string[]) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -23,6 +25,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
 
   // Initialize user from localStorage on page load
   useEffect(() => {
@@ -31,7 +34,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         setUser(JSON.parse(storedUser));
       } catch (error) {
-        console.error('Error parsing user data:', error);
+        console.error('Erreur lors du parsing des données utilisateur:', error);
         localStorage.removeItem('currentUser');
       }
     }
@@ -59,6 +62,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         localStorage.setItem('userRole', userData.role);
         setUser(userData);
         setIsLoading(false);
+        
+        // Redirection après connexion réussie
+        navigate('/dashboard');
         return true;
       } else if (email === 'user@paritel.fr' && password === 'user123') {
         const userData: User = {
@@ -72,6 +78,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         localStorage.setItem('userRole', userData.role);
         setUser(userData);
         setIsLoading(false);
+        
+        // Redirection après connexion réussie
+        navigate('/dashboard');
         return true;
       } else if (email === 'superadmin@paritel.fr' && password === 'super123') {
         const userData: User = {
@@ -85,13 +94,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         localStorage.setItem('userRole', userData.role);
         setUser(userData);
         setIsLoading(false);
+        
+        // Redirection après connexion réussie
+        navigate('/dashboard');
         return true;
       }
       
       setIsLoading(false);
       return false;
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('Erreur de connexion:', error);
       setIsLoading(false);
       return false;
     }
@@ -103,6 +115,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem('userRole');
     localStorage.removeItem('authToken');
     setUser(null);
+    navigate('/login');
+  };
+
+  // Function to check if user has access to a specific route
+  const checkRouteAccess = (allowedRoles: string[]): boolean => {
+    if (!user) return false;
+    return allowedRoles.includes(user.role);
   };
 
   return (
@@ -114,7 +133,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isAuthenticated: !!user,
         isAdmin: user?.role === 'admin',
         isSuperAdmin: user?.role === 'superadmin',
-        isLoading
+        isLoading,
+        checkRouteAccess
       }}
     >
       {children}

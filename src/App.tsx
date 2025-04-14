@@ -1,7 +1,8 @@
 
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
+import { useAuth } from '@/context/AuthContext';
 import Index from "@/pages/Index";
 import Login from "@/pages/Login";
 import Dashboard from "@/pages/Dashboard";
@@ -24,11 +25,19 @@ import ProductComparison from "@/pages/ProductComparison";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 
 function App() {
+  const { isAuthenticated } = useAuth();
+
   return (
     <div className="App">
       <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="/login" element={<Login />} />
+        {/* Redirection de la page d'accueil vers le dashboard si l'utilisateur est connecté */}
+        <Route path="/" element={
+          isAuthenticated ? <Navigate to="/dashboard" replace /> : <Index />
+        } />
+        
+        <Route path="/login" element={
+          isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />
+        } />
         
         <Route path="/dashboard" element={
           <ProtectedRoute allowedRoles={['user', 'admin', 'superadmin']}>
