@@ -42,7 +42,7 @@ import SolutionForm from "@/components/solutions/SolutionForm";
 import { products } from "@/data/productData";
 
 type SolutionCardProps = {
-  id: number;
+  id: string; // Changed from number to string to match SolutionProps
   name: string;
   description: string;
   industry: string;
@@ -56,8 +56,8 @@ type SolutionCardProps = {
 };
 
 type SolutionCardComponentProps = SolutionCardProps & {
-  onEdit?: (id: number) => void;
-  onDelete?: (id: number) => void;
+  onEdit?: (id: string) => void; // Changed from number to string to match SolutionProps
+  onDelete?: (id: string) => void; // Changed from number to string to match SolutionProps
 };
 
 const categoryIcons: Record<string, React.ReactNode> = {
@@ -188,7 +188,7 @@ const SolutionCard = ({
 const Solutions = () => {
   const [solutions, setSolutions] = useState<SolutionCardProps[]>([
     {
-      id: 1,
+      id: "1", // Changed from number to string to match SolutionProps
       name: "Pack Hôtellerie Premium",
       description: "Solution complète pour les hôtels incluant wifi, téléphonie et TV interactive.",
       industry: "Hôtellerie",
@@ -203,7 +203,7 @@ const Solutions = () => {
       recommended: true
     },
     {
-      id: 2,
+      id: "2", // Changed from number to string to match SolutionProps
       name: "Pack Hôtellerie Standard",
       description: "Offre essentielle pour les hôtels de petite et moyenne taille.",
       industry: "Hôtellerie",
@@ -215,7 +215,7 @@ const Solutions = () => {
       image: "https://placehold.co/600x400/0f766e/ffffff?text=Hôtellerie+Standard",
     },
     {
-      id: 3,
+      id: "3", // Changed from number to string to match SolutionProps
       name: "Pack Santé Connect",
       description: "Solution sécurisée pour les établissements de santé avec réseau cloisonné.",
       industry: "Santé",
@@ -230,7 +230,7 @@ const Solutions = () => {
       recommended: true
     },
     {
-      id: 4,
+      id: "4", // Changed from number to string to match SolutionProps
       name: "Pack PME Cloud",
       description: "Solution complète pour les PME avec communications unifiées et cybersécurité.",
       industry: "Entreprise",
@@ -243,7 +243,7 @@ const Solutions = () => {
       image: "https://placehold.co/600x400/1e40af/ffffff?text=PME+Cloud",
     },
     {
-      id: 5,
+      id: "5", // Changed from number to string to match SolutionProps
       name: "Pack Éducation Connect",
       description: "Solution adaptée aux établissements éducatifs avec wifi haute densité et filtrage.",
       industry: "Éducation",
@@ -256,7 +256,7 @@ const Solutions = () => {
       image: "https://placehold.co/600x400/365314/ffffff?text=Éducation+Connect",
     },
     {
-      id: 6,
+      id: "6", // Changed from number to string to match SolutionProps
       name: "Pack Secteur Public",
       description: "Solution sécurisée pour les collectivités locales avec téléphonie avancée.",
       industry: "Secteur Public",
@@ -286,7 +286,7 @@ const Solutions = () => {
   const handleAddSolution = (data: Partial<SolutionCardProps>) => {
     const newSolution = {
       ...data,
-      id: solutions.length > 0 ? Math.max(...solutions.map(s => s.id)) + 1 : 1,
+      id: solutions.length > 0 ? String(Math.max(...solutions.map(s => Number(s.id))) + 1) : "1", // Changed to support string id
       products: data.products || [],
     } as SolutionCardProps;
     
@@ -294,7 +294,7 @@ const Solutions = () => {
     setIsAddDialogOpen(false);
   };
   
-  const handleEditSolution = (id: number) => {
+  const handleEditSolution = (id: string) => { // Changed from number to string to match SolutionProps
     const solution = solutions.find(s => s.id === id);
     if (solution) {
       setEditingSolution(solution);
@@ -310,7 +310,7 @@ const Solutions = () => {
     setIsEditDialogOpen(false);
   };
   
-  const handleDeleteSolution = (id: number) => {
+  const handleDeleteSolution = (id: string) => { // Changed from number to string to match SolutionProps
     setSolutions(solutions.filter(solution => solution.id !== id));
   };
   

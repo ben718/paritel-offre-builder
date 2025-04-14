@@ -28,6 +28,7 @@ type ProductDetailsProps = {
   onAddToOffer?: () => void;
 };
 
+// Update the BusinessSolution type to use string id for consistency
 type BusinessSolution = {
   id: string;
   name: string;
