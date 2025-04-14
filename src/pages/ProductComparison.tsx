@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
@@ -33,9 +32,7 @@ const ProductComparison = () => {
   const [showSelector, setShowSelector] = useState(true);
   const [specCategories, setSpecCategories] = useState<string[]>([]);
   
-  // Initialize with products from data
   useEffect(() => {
-    // Generate spec categories from all selected products
     const allSpecs = new Set<string>();
     
     selectedProducts.forEach(product => {
@@ -49,37 +46,31 @@ const ProductComparison = () => {
     setSpecCategories(Array.from(allSpecs));
   }, [selectedProducts]);
   
-  // Handle adding product to comparison
   const handleAddProduct = (product: ComparisonProduct) => {
     if (selectedProducts.length < 4) {
       setSelectedProducts([...selectedProducts, product]);
     }
   };
   
-  // Handle removing product from comparison
   const handleRemoveProduct = (productId: string) => {
     setSelectedProducts(selectedProducts.filter(p => p.id !== productId));
   };
   
-  // Handle clearing all products
   const handleClearAll = () => {
     setSelectedProducts([]);
     setShowSelector(true);
   };
   
-  // Filter products by search term
   const filteredProducts = productData.filter(product => 
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     product.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (product.subcategory && product.subcategory.toLowerCase().includes(searchTerm.toLowerCase()))
   );
   
-  // Determine if a product is already selected
   const isProductSelected = (productId: number) => {
     return selectedProducts.some(p => p.id === productId.toString());
   };
 
-  // Render specification value
   const renderSpecValue = (value: any) => {
     if (typeof value === 'boolean') {
       return value ? <Check className="h-5 w-5 text-green-500 mx-auto" /> : <X className="h-5 w-5 text-red-500 mx-auto" />;
@@ -90,7 +81,6 @@ const ProductComparison = () => {
     }
   };
   
-  // Find difference in specs
   const getSpecClass = (spec: string) => {
     if (selectedProducts.length < 2) return "";
     
@@ -104,7 +94,6 @@ const ProductComparison = () => {
     return "";
   };
   
-  // Render empty placeholder cards
   const renderEmptyCards = () => {
     const count = 4 - selectedProducts.length;
     return Array.from({ length: count }).map((_, index) => (
@@ -319,9 +308,6 @@ const ProductComparison = () => {
                                         />
                                       ))}
                                     </div>
-                                    <div className="text-center font-medium text-lg">
-                                      {product.price.toLocaleString('fr-FR')} €
-                                    </div>
                                   </div>
                                 </th>
                               ))}
@@ -383,12 +369,9 @@ const ProductComparison = () => {
                                 
                                 <Separator className="my-4" />
                                 
-                                <div className="flex justify-between items-center">
-                                  <span className="font-medium text-lg">
-                                    {product.price.toLocaleString('fr-FR')} €
-                                  </span>
+                                <div className="flex justify-end items-center">
                                   <Button size="sm" className="bg-paritel-primary">
-                                    Ajouter
+                                    Ajouter à l'offre
                                   </Button>
                                 </div>
                               </CardContent>

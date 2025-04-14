@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ProductCardProps } from "./ProductCard";
-import { ArrowLeft, Package, Tag, Info, DollarSign } from "lucide-react";
+import { ArrowLeft, Package, Tag, Info } from "lucide-react";
 
 type ProductDetailsProps = {
   product: ProductCardProps;
@@ -19,7 +19,6 @@ const ProductDetails = ({ product, onBack, onAddToOffer }: ProductDetailsProps) 
     subcategory, 
     partner, 
     tags, 
-    pricing, 
     image, 
     specs 
   } = product;
@@ -56,15 +55,6 @@ const ProductDetails = ({ product, onBack, onAddToOffer }: ProductDetailsProps) 
             <h1 className="text-2xl font-bold">{name}</h1>
             <p className="text-gray-700 mt-2">{description}</p>
           </div>
-          
-          {pricing && (
-            <div className="flex items-center">
-              <DollarSign className="h-5 w-5 text-paritel-primary mr-2" />
-              <span className="text-lg font-medium">
-                Prix  <span className="text-paritel-primary font-semibold">{pricing}</span>
-              </span>
-            </div>
-          )}
           
           <div className="pt-2">
             <Button className="w-full bg-paritel-primary hover:bg-paritel-dark" onClick={onAddToOffer}>

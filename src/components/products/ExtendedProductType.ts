@@ -6,8 +6,6 @@ export interface ComparisonProduct {
   name: string;
   category: string;
   brand: string;
-  price: number;
-  rating: number;
   specifications: Record<string, string | boolean>;
   features: string[];
   image?: string;
@@ -19,8 +17,6 @@ export const transformProductToComparisonProduct = (product: ProductCardProps): 
     name: product.name,
     category: product.category,
     brand: product.subcategory || '',
-    price: 0, // Fixed price as we removed pricing
-    rating: 4, // Default rating
     specifications: product.specs?.reduce<Record<string, string | boolean>>((acc, spec) => {
       // Simplistic approach: split at colon if exists
       const colonIndex = spec.indexOf(':');

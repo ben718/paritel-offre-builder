@@ -3,9 +3,8 @@ import MainLayout from "@/components/layout/MainLayout";
 import { StatCard } from "@/components/dashboard/StatCard";
 import RecentOffers from "@/components/dashboard/RecentOffers";
 import QuickAccess from "@/components/dashboard/QuickAccess";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart3, FileSpreadsheet, Package, Percent } from "lucide-react";
+import { FileSpreadsheet, Package } from "lucide-react";
 
 const Dashboard = () => {
   return (
@@ -18,32 +17,18 @@ const Dashboard = () => {
           </p>
         </div>
 
-        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
           <StatCard
-            title="Offres ce mois"
-            value="24"
-            description="+12% par rapport au mois dernier"
+            title="Offres en cours"
+            value="Gestion des offres"
+            description="Créez et gérez vos offres personnalisées"
             icon={<FileSpreadsheet className="h-4 w-4 text-paritel-primary" />}
-            trend={{ value: 12, isPositive: true }}
           />
           <StatCard
-            title="Produits au catalogue"
-            value="156"
-            description="14 nouveaux produits ce mois-ci"
+            title="Catalogue produits"
+            value="156 produits"
+            description="Explorez notre catalogue complet"
             icon={<Package className="h-4 w-4 text-paritel-accent" />}
-          />
-          <StatCard
-            title="Offres acceptées"
-            value="68%"
-            description="+5% par rapport au trimestre précédent"
-            icon={<Percent className="h-4 w-4 text-paritel-success" />}
-            trend={{ value: 5, isPositive: true }}
-          />
-          <StatCard
-            title="Taux de conversion"
-            value="31%"
-            description="Basé sur les 30 derniers jours"
-            icon={<BarChart3 className="h-4 w-4 text-paritel-warning" />}
           />
         </div>
 
@@ -56,11 +41,11 @@ const Dashboard = () => {
               <QuickAccess />
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-lg font-medium">À venir prochainement</CardTitle>
+                  <CardTitle className="text-lg font-medium">À propos</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-muted-foreground">
-                    Mise à jour du catalogue prévue pour le 20/04/2025, avec l'intégration de nouveaux partenaires et produits.
+                    Catalogue de produits et services pour créer des offres personnalisées adaptées à vos besoins.
                   </p>
                 </CardContent>
               </Card>
