@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -42,9 +41,8 @@ export function DownloadMenu({
   className = "",
   onDownload 
 }: DownloadMenuProps) {
-  const isMobile = window.innerWidth < 768;
   const [selectedFields, setSelectedFields] = useState<string[]>(
-    EXPORT_FIELDS.map(field => field.id) // Initially select all fields
+    EXPORT_FIELDS.map(field => field.id)
   );
   const [showFieldDialog, setShowFieldDialog] = useState(false);
 
@@ -57,11 +55,15 @@ export function DownloadMenu({
   };
   
   const handleDownloadSelectedCSV = () => {
-    exportProductsToCSV(selectedProducts, "produits-selectionnes", selectedFields);
+    if (Array.isArray(selectedProducts) && selectedProducts.length > 0) {
+      exportProductsToCSV(selectedProducts, "produits-selectionnes", selectedFields);
+    }
   };
 
   const handleDownloadSelectedPDF = () => {
-    exportProductsToPDF(selectedProducts, "produits-selectionnes", selectedFields);
+    if (Array.isArray(selectedProducts) && selectedProducts.length > 0) {
+      exportProductsToPDF(selectedProducts, "produits-selectionnes", selectedFields);
+    }
   };
 
   const toggleField = (fieldId: string) => {
@@ -102,7 +104,7 @@ export function DownloadMenu({
           {hasSelection && (
             <>
               <DropdownMenuSeparator />
-              <DropdownMenuLabel>Produits sélectionnés ({selectedProducts.length})</DropdownMenuLabel>
+              <DropdownMenuLabel>Produits sélectionnées ({selectedProducts.length})</DropdownMenuLabel>
               <DropdownMenuItem onClick={handleDownloadSelectedCSV} disabled={selectedProducts.length === 0}>
                 <CheckSquare className="mr-2 h-4 w-4" />
                 <span>Sélection en CSV</span>
