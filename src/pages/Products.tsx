@@ -1,9 +1,8 @@
-
 import { useState, useEffect } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { Search, Plus, Filter, ArrowUpDown, CheckSquare, Square, X } from "lucide-react";
+import { Search, Plus, Filter, ArrowUpDown, CheckSquare, Square, X, FileCheck } from "lucide-react";
 import { ProductCard, ProductCardProps } from "@/components/products/ProductCard";
 import { SelectableProductCard } from "@/components/products/SelectableProductCard";
 import { GlobalOfferingCircle } from "@/components/products/GlobalOfferingCircle";
@@ -13,6 +12,8 @@ import { products as initialProducts } from "@/data/productData";
 import ProductForm from "@/components/products/ProductForm";
 import ProductDetails from "@/components/products/ProductDetails";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@/components/ui/use-toast";
 import { 
   Dialog, 
   DialogContent, 
@@ -23,6 +24,8 @@ import {
 } from "@/components/ui/dialog";
 
 const Products = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const [products, setProducts] = useState<ProductCardProps[]>(initialProducts);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -36,17 +39,11 @@ const Products = () => {
   const [selectionMode, setSelectionMode] = useState(false);
   const isMobile = useIsMobile();
   
-  // Get selected products array from IDs
-  const selectedProducts = products.filter(product => 
-    selectedProductIds.includes(product.id)
-  );
-  
   const handleCategoryChange = (value: string) => {
     setSelectedCategory(value);
     setSelectedSubcategory("all");
   };
   
-  // Filter products based on search query and selected category/subcategory
   const filteredProducts = products.filter((product) => {
     const matchesSearch = 
       searchQuery === "" || 
@@ -75,7 +72,6 @@ const Products = () => {
     return matchesSearch && matchesCategory && matchesSubcategory;
   });
   
-  // Handler functions for CRUD operations
   const handleAddProduct = (data: Partial<ProductCardProps>) => {
     const newProduct = {
       ...data,
@@ -117,11 +113,34 @@ const Products = () => {
   
   const handleAddToOffer = () => {
     if (selectedProduct) {
-      window.alert(`Produit "${selectedProduct.name}" ajouté à votre offre.`);
+      toast({
+        title: "Produit ajouté",
+        description: `${selectedProduct.name} a été ajouté à votre offre.`,
+      });
     }
   };
   
-  // Product selection handlers
+  const handleCompareSelected = () => {
+    if (selectedProductIds.length < 2) {
+      toast({
+        variant: "destructive",
+        title: "Sélection insuffisante",
+        description: "Veuillez sélectionner au moins 2 produits à comparer."
+      });
+      return;
+    }
+    
+    if (selectedProductIds.length > 4) {
+      toast({
+        title: "Trop de produits",
+        description: "Seuls les 4 premiers produits sélectionnés seront comparés.",
+      });
+    }
+    
+    localStorage.setItem('productsToCompare', JSON.stringify(selectedProductIds.slice(0, 4)));
+    navigate('/product-comparison');
+  };
+  
   const handleProductSelection = (id: number, isSelected: boolean) => {
     if (isSelected) {
       setSelectedProductIds(prev => [...prev, id]);
@@ -176,6 +195,15 @@ const Products = () => {
             </DialogContent>
           </Dialog>
           
+          <Button 
+            variant="outline" 
+            className="flex gap-2"
+            onClick={() => navigate('/product-comparison')}
+          >
+            <FileCheck className="h-4 w-4" />
+            Comparer des produits
+          </Button>
+          
           <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
             <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
               <DialogHeader>
@@ -210,7 +238,6 @@ const Products = () => {
           </Dialog>
         </div>
 
-        {/* Visualisation graphique de l'offre globale */}
         <GlobalOfferingCircle />
 
         <div className="flex flex-col sm:flex-row gap-4">
@@ -241,6 +268,14 @@ const Products = () => {
               {selectionMode ? <CheckSquare className="h-4 w-4" /> : <Square className="h-4 w-4" />}
               {selectionMode ? "Mode sélection" : "Sélectionner"}
             </Button>
+            {selectionMode && selectedProductIds.length >= 2 && (
+              <Button 
+                className="bg-paritel-primary"
+                onClick={handleCompareSelected}
+              >
+                Comparer ({selectedProductIds.length})
+              </Button>
+            )}
             <DownloadMenu 
               products={filteredProducts}
               selectedProducts={selectedProducts}
@@ -297,7 +332,6 @@ const Products = () => {
             </div>
           </TabsContent>
           
-          {/* Unique tab content for each category to avoid duplicate code */}
           {["telephony", "internet-network", "wifi", "cybersecurity", 
             "infogérance", "poste-travail", "collaborative", "tvcast", "mobility", 
             "monétique", "surveillance"].map(category => (

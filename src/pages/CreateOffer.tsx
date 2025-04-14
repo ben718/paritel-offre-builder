@@ -1,4 +1,4 @@
-
+import { useState } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -42,7 +42,6 @@ import {
   Plus,
   Check
 } from "lucide-react";
-import { useState } from "react";
 import { products } from "@/data/productData";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -75,11 +74,19 @@ type OfferProduct = {
   showPrice?: boolean;
 };
 
+type BusinessSolution = {
+  id: string;
+  name: string;
+  description: string;
+  products: OfferProduct[];
+};
+
 type Offer = {
   id?: number;
   customer: OfferCustomer;
   needs: OfferNeeds;
   products: OfferProduct[];
+  solutions: BusinessSolution[];
   date: string;
   status: "draft" | "final";
 };
@@ -87,7 +94,7 @@ type Offer = {
 const CreateOffer = () => {
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
-  const totalSteps = 5;
+  const totalSteps = 6; // Increased to include solution selection
   const [searchTerm, setSearchTerm] = useState("");
   const [offer, setOffer] = useState<Offer>({
     customer: {
@@ -107,9 +114,51 @@ const CreateOffer = () => {
       deadline: "",
     },
     products: [],
+    solutions: [],
     date: new Date().toISOString().split('T')[0],
     status: "draft",
   });
+
+  // Mock solutions - in a real app, this would come from an API or context
+  const availableSolutions: BusinessSolution[] = [
+    {
+      id: "1",
+      name: "Solution PME",
+      description: "Solution complète pour les PME incluant téléphonie et internet.",
+      products: [
+        { id: 1, name: "UCaaS", category: "Téléphonie d'entreprise", quantity: 1 },
+        { id: 28, name: "Mikrotik", category: "Internet Très Haut Débit", quantity: 1 }
+      ]
+    },
+    {
+      id: "2",
+      name: "Solution Hôtellerie",
+      description: "Ensemble de produits adaptés au secteur de l'hôtellerie.",
+      products: [
+        { id: 22, name: "FTTO", category: "Internet Très Haut Débit", quantity: 1 },
+        { id: 38, name: "Fortigate", category: "Cybersécurité", quantity: 1 },
+        { id: 44, name: "WiFi", category: "Wi-Fi public & privé indoor outdoor", quantity: 1 }
+      ]
+    },
+    {
+      id: "3",
+      name: "Solution Santé",
+      description: "Produits adaptés aux besoins du secteur de la santé.",
+      products: [
+        { id: 1, name: "UCaaS", category: "Téléphonie d'entreprise", quantity: 1 },
+        { id: 42, name: "Bitdefender", category: "Cybersécurité", quantity: 1 }
+      ]
+    },
+    {
+      id: "4",
+      name: "Solution Éducation",
+      description: "Services et produits pour les établissements d'enseignement.",
+      products: [
+        { id: 22, name: "FTTO", category: "Internet Très Haut Débit", quantity: 1 },
+        { id: 44, name: "WiFi", category: "Wi-Fi public & privé indoor outdoor", quantity: 1 }
+      ]
+    }
+  ];
 
   const goToPreviousStep = () => {
     if (currentStep > 1) {
@@ -451,6 +500,62 @@ const CreateOffer = () => {
       (product.subcategory && product.subcategory.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
+  const addSolution = (solutionId: string) => {
+    const solutionToAdd = availableSolutions.find(s => s.id === solutionId);
+    if (!solutionToAdd) return;
+
+    // Check if solution already exists in the offer
+    if (offer.solutions.some(s => s.id === solutionId)) {
+      toast({
+        title: "Solution déjà ajoutée",
+        description: "Cette solution est déjà présente dans l'offre",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Add solution to the offer
+    setOffer({
+      ...offer,
+      solutions: [...offer.solutions, solutionToAdd]
+    });
+
+    // Add the solution's products to the offer if they don't already exist
+    const newProducts = solutionToAdd.products.filter(
+      product => !offer.products.some(p => p.id === product.id)
+    );
+
+    if (newProducts.length > 0) {
+      setOffer(prev => ({
+        ...prev,
+        products: [...prev.products, ...newProducts]
+      }));
+
+      toast({
+        title: "Solution ajoutée",
+        description: `${solutionToAdd.name} et ${newProducts.length} produit(s) associés ont été ajoutés à l'offre`,
+      });
+    } else {
+      toast({
+        title: "Solution ajoutée",
+        description: `${solutionToAdd.name} a été ajoutée à l'offre`,
+      });
+    }
+  };
+
+  const removeSolution = (solutionId: string) => {
+    // Remove the solution
+    setOffer({
+      ...offer,
+      solutions: offer.solutions.filter(s => s.id !== solutionId)
+    });
+
+    toast({
+      title: "Solution retirée",
+      description: "La solution a été retirée de l'offre",
+    });
+  };
+
   return (
     <MainLayout>
       <div className="space-y-6">
@@ -493,9 +598,10 @@ const CreateOffer = () => {
               <div className="text-xs font-medium text-center">
                 {index === 0 && "Informations client"}
                 {index === 1 && "Expression des besoins"}
-                {index === 2 && "Sélection produits"}
-                {index === 3 && "Personnalisation"}
-                {index === 4 && "Résumé et finalisation"}
+                {index === 2 && "Solutions métiers"}
+                {index === 3 && "Sélection produits"}
+                {index === 4 && "Personnalisation"}
+                {index === 5 && "Résumé et finalisation"}
               </div>
               {index < totalSteps - 1 && (
                 <div
@@ -522,9 +628,10 @@ const CreateOffer = () => {
               <div className="font-medium">
                 {currentStep === 1 && "Informations client"}
                 {currentStep === 2 && "Expression des besoins"}
-                {currentStep === 3 && "Sélection produits"}
-                {currentStep === 4 && "Personnalisation"}
-                {currentStep === 5 && "Résumé et finalisation"}
+                {currentStep === 3 && "Solutions métiers"}
+                {currentStep === 4 && "Sélection produits"}
+                {currentStep === 5 && "Personnalisation"}
+                {currentStep === 6 && "Résumé et finalisation"}
               </div>
               <div className="text-xs text-gray-500">Étape {currentStep} sur {totalSteps}</div>
             </div>
@@ -716,417 +823,37 @@ const CreateOffer = () => {
           </Card>
         )}
 
-        {/* Step 3: Products Selection */}
+        {/* Step 3: Business Solutions */}
         {currentStep === 3 && (
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Sélection des produits et services</CardTitle>
-                <CardDescription>
-                  Choisissez les produits et services à inclure dans l'offre
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Tabs defaultValue="pack">
-                  <TabsList className="mb-4">
-                    <TabsTrigger value="pack">Packs métiers</TabsTrigger>
-                    <TabsTrigger value="products">Produits individuels</TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="pack">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      <div 
-                        className="border border-gray-200 rounded-lg p-4 hover:border-paritel-primary cursor-pointer"
-                        onClick={() => {
-                          // Add multiple products that make up the pack
-                          addProduct(22); // FTTO
-                          addProduct(38); // Fortigate
-                          addProduct(44); // WiFi
-                        }}
-                      >
-                        <div className="flex justify-between items-start mb-2">
-                          <h3 className="font-medium">Pack Hôtellerie Premium</h3>
-                          <div className="bg-paritel-primary text-white text-xs px-2 py-1 rounded">Recommandé</div>
-                        </div>
-                        <p className="text-sm text-gray-600 mb-2">Solution complète pour les hôtels incluant wifi, téléphonie et TV interactive.</p>
-                        <div className="text-xs text-gray-500">3 produits inclus</div>
-                      </div>
-                      
-                      <div 
-                        className="border border-gray-200 rounded-lg p-4 hover:border-paritel-primary cursor-pointer"
-                        onClick={() => {
-                          // Add multiple products that make up the pack
-                          addProduct(1); // UCaaS
-                          addProduct(42); // Bitdefender
-                          addProduct(28); // Mikrotik
-                        }}
-                      >
-                        <div className="flex justify-between items-start mb-2">
-                          <h3 className="font-medium">Pack PME Cloud</h3>
-                        </div>
-                        <p className="text-sm text-gray-600 mb-2">Solution complète pour les PME avec communications unifiées et cybersécurité.</p>
-                        <div className="text-xs text-gray-500">3 produits inclus</div>
-                      </div>
-                    </div>
-                  </TabsContent>
-                  
-                  <TabsContent value="products">
-                    <div className="flex mb-4">
-                      <Input 
-                        className="max-w-sm" 
-                        placeholder="Rechercher un produit..." 
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-2 max-h-[400px] overflow-y-auto">
-                      {filteredProducts.map(product => (
-                        <div key={product.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                          <div className="flex items-center">
-                            <Package className="h-5 w-5 mr-3 text-paritel-primary" />
-                            <div>
-                              <h4 className="font-medium">{product.name}</h4>
-                              <p className="text-xs text-gray-500">{product.category} - {product.subcategory}</p>
-                            </div>
-                          </div>
-                          <Button 
-                            size="sm"
-                            onClick={() => addProduct(product.id)}
-                            disabled={offer.products.some(p => p.id === product.id)}
-                          >
-                            {offer.products.some(p => p.id === product.id) ? 'Ajouté' : 'Ajouter'}
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  </TabsContent>
-                </Tabs>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle>Produits sélectionnés</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {offer.products.length === 0 ? (
-                    <p className="text-center text-gray-500 py-4">Aucun produit sélectionné</p>
-                  ) : (
-                    offer.products.map(product => {
-                      const productDetails = products.find(p => p.id === product.id);
-                      return (
-                        <div key={product.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                          <div className="flex items-center">
-                            <Package className="h-5 w-5 mr-3 text-paritel-primary" />
-                            <div>
-                              <h4 className="font-medium">{product.name}</h4>
-                              <p className="text-xs text-gray-500">{product.category}</p>
-                            </div>
-                          </div>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="text-destructive"
-                            onClick={() => removeProduct(product.id)}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      );
-                    })
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
-        {/* Step 4: Customization */}
-        {currentStep === 4 && (
           <Card>
             <CardHeader>
-              <CardTitle>Personnalisation de l'offre</CardTitle>
+              <CardTitle>Solutions métiers</CardTitle>
               <CardDescription>
-                Ajustez les quantités, prix et ajoutez des notes spécifiques
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {offer.products.length === 0 ? (
-                <p className="text-center text-gray-500 py-10">
-                  Aucun produit sélectionné. Veuillez revenir à l'étape précédente pour ajouter des produits.
-                </p>
-              ) : (
-                <div className="space-y-4">
-                  {offer.products.map(product => {
-                    const productDetails = products.find(p => p.id === product.id);
-                    return (
-                      <div key={product.id} className="p-4 border rounded-lg">
-                        <div className="flex justify-between items-center mb-3">
-                          <h3 className="font-medium">{product.name}</h3>
-                          <p className="text-sm font-medium">Prix non affiché</p>
-                        </div>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-3">
-                          {product.showQuantity !== false && (
-                            <div>
-                              <div className="flex justify-between items-center">
-                                <CustomLabel htmlFor={`quantity-${product.id}`}>Quantité (optionnel)</CustomLabel>
-                                <button 
-                                  type="button"
-                                  className="text-gray-400 hover:text-red-500"
-                                  onClick={() => {
-                                    const updatedProducts = offer.products.map(p => 
-                                      p.id === product.id ? { ...p, showQuantity: false, quantity: undefined } : p
-                                    );
-                                    setOffer({ ...offer, products: updatedProducts });
-                                  }}
-                                >
-                                  <X className="h-4 w-4" />
-                                </button>
-                              </div>
-                              <div className="flex items-center mt-1">
-                                <button 
-                                  type="button"
-                                  className="w-8 h-8 flex items-center justify-center border rounded-l-md"
-                                  onClick={() => updateProductQuantity(product.id, Math.max(0, product.quantity - 1))}
-                                >
-                                  -
-                                </button>
-                                <input
-                                  id={`quantity-${product.id}`}
-                                  type="number"
-                                  min="0"
-                                  value={product.quantity}
-                                  onChange={(e) => updateProductQuantity(product.id, parseInt(e.target.value) || 0)}
-                                  className="w-12 h-8 text-center border-y"
-                                />
-                                <button 
-                                  type="button"
-                                  className="w-8 h-8 flex items-center justify-center border rounded-r-md"
-                                  onClick={() => updateProductQuantity(product.id, (product.quantity || 0) + 1)}
-                                >
-                                  +
-                                </button>
-                              </div>
-                            </div>
-                          )}
-                          {product.showQuantity === false && (
-                            <div>
-                              <button 
-                                type="button"
-                                className="flex items-center text-sm text-paritel-primary hover:underline"
-                                onClick={() => {
-                                  const updatedProducts = offer.products.map(p => 
-                                    p.id === product.id ? { ...p, showQuantity: true, quantity: 1 } : p
-                                  );
-                                  setOffer({ ...offer, products: updatedProducts });
-                                }}
-                              >
-                                <Plus className="h-3 w-3 mr-1" />
-                                Ajouter la quantité
-                              </button>
-                            </div>
-                          )}
-                          
-                          {product.showPrice !== false && (
-                            <div>
-                              <div className="flex justify-between items-center">
-                                <CustomLabel htmlFor={`price-${product.id}`}>Prix (optionnel)</CustomLabel>
-                                <button 
-                                  type="button"
-                                  className="text-gray-400 hover:text-red-500"
-                                  onClick={() => {
-                                    const updatedProducts = offer.products.map(p => 
-                                      p.id === product.id ? { ...p, showPrice: false, price: undefined } : p
-                                    );
-                                    setOffer({ ...offer, products: updatedProducts });
-                                  }}
-                                >
-                                  <X className="h-4 w-4" />
-                                </button>
-                              </div>
-                              <Input
-                                id={`price-${product.id}`}
-                                placeholder="€"
-                                value={product.price}
-                                onChange={(e) => {
-                                  const updatedProducts = offer.products.map(p => 
-                                    p.id === product.id ? { ...p, price: e.target.value } : p
-                                  );
-                                  setOffer({ ...offer, products: updatedProducts });
-                                }}
-                                className="mt-1"
-                              />
-                            </div>
-                          )}
-                          {product.showPrice === false && (
-                            <div>
-                              <button 
-                                type="button"
-                                className="flex items-center text-sm text-paritel-primary hover:underline"
-                                onClick={() => {
-                                  const updatedProducts = offer.products.map(p => 
-                                    p.id === product.id ? { ...p, showPrice: true, price: "" } : p
-                                  );
-                                  setOffer({ ...offer, products: updatedProducts });
-                                }}
-                              >
-                                <Plus className="h-3 w-3 mr-1" />
-                                Ajouter le prix
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                        
-                        <div>
-                          <CustomLabel>Notes spécifiques</CustomLabel>
-                          <Textarea 
-                            placeholder="Ajoutez des informations spécifiques pour ce produit..." 
-                            value={product.notes || ''}
-                            onChange={(e) => updateProductNotes(product.id, e.target.value)}
-                            className="mt-1"
-                          />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
-        
-        {/* Step 5: Summary and Finalization */}
-        {currentStep === 5 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Résumé et finalisation</CardTitle>
-              <CardDescription>
-                Vérifiez les détails de l'offre avant génération
+                Sélectionnez les solutions métiers adaptées aux besoins du client
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
-                {offer.products.length === 0 ? (
-                  <p className="text-center text-gray-500 py-8">
-                    Aucun produit sélectionné. Veuillez revenir aux étapes précédentes pour compléter l'offre.
-                  </p>
-                ) : (
-                  <>
-                    <div className="rounded-lg border p-4">
-                      <h3 className="font-semibold mb-2">Détails du client</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                        <div>
-                          <p><span className="font-medium">Société:</span> {offer.customer.companyName || "Non spécifié"}</p>
-                          <p><span className="font-medium">Secteur:</span> {
-                            offer.customer.industry === "business" ? "Entreprise / PME" :
-                            offer.customer.industry === "hotel" ? "Hôtellerie" :
-                            offer.customer.industry === "health" ? "Santé" :
-                            offer.customer.industry === "education" ? "Éducation" :
-                            offer.customer.industry === "public" ? "Secteur Public" : "Autre"
-                          }</p>
-                          <p><span className="font-medium">Adresse:</span> {offer.customer.address || "Non spécifiée"}</p>
-                        </div>
-                        <div>
-                          <p><span className="font-medium">Contact:</span> {offer.customer.contactName || "Non spécifié"}</p>
-                          <p><span className="font-medium">Fonction:</span> {offer.customer.contactRole || "Non spécifiée"}</p>
-                          <p><span className="font-medium">Téléphone:</span> {offer.customer.contactPhone || "Non spécifié"}</p>
-                          <p><span className="font-medium">Email:</span> {offer.customer.contactEmail || "Non spécifié"}</p>
-                        </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {availableSolutions.map(solution => (
+                    <div 
+                      key={solution.id}
+                      className={`border rounded-lg p-4 hover:border-paritel-primary cursor-pointer transition-colors
+                        ${offer.solutions.some(s => s.id === solution.id) ? 'bg-paritel-accent/10 border-paritel-primary' : ''}
+                      `}
+                      onClick={() => offer.solutions.some(s => s.id === solution.id) 
+                        ? removeSolution(solution.id) 
+                        : addSolution(solution.id)
+                      }
+                    >
+                      <div className="flex justify-between items-start mb-2">
+                        <h3 className="font-medium">{solution.name}</h3>
+                        {offer.solutions.some(s => s.id === solution.id) ? (
+                          <div className="bg-paritel-primary text-white text-xs px-2 py-1 rounded">
+                            Sélectionnée
+                          </div>
+                        ) : null}
                       </div>
-                    </div>
-                    
-                    <div className="rounded-lg border p-4">
-                      <h3 className="font-semibold mb-2">Expression des besoins</h3>
-                      <div className="space-y-2 text-sm">
-                        <p><span className="font-medium">Contexte:</span> {offer.needs.context || "Non spécifié"}</p>
-                        <p><span className="font-medium">Besoins:</span> {offer.needs.needs || "Non spécifiés"}</p>
-                        <p><span className="font-medium">Contraintes:</span> {offer.needs.constraints || "Non spécifiées"}</p>
-                        <p><span className="font-medium">Budget estimé:</span> {offer.needs.budget ? `${offer.needs.budget}€` : "Non spécifié"}</p>
-                        <p><span className="font-medium">Délai souhaité:</span> {offer.needs.deadline || "Non spécifié"}</p>
-                      </div>
-                    </div>
-                    
-                    <div className="rounded-lg border p-4">
-                      <h3 className="font-semibold mb-2">Produits et services</h3>
-                      <div className="space-y-3">
-                        {offer.products.map(product => {
-                          const productDetails = products.find(p => p.id === product.id);
-                          return (
-                            <div key={product.id} className="flex items-start justify-between border-b pb-2">
-                              <div>
-                                <p className="font-medium">{product.name}</p>
-                                <p className="text-xs text-gray-500">{product.category}</p>
-                                {product.notes && (
-                                  <p className="text-xs italic mt-1">{product.notes}</p>
-                                )}
-                              </div>
-                              <div className="text-right">
-                                {product.showQuantity !== false && product.quantity && <p className="font-medium">Qté: {product.quantity}</p>}
-                                {product.showPrice !== false && product.price && <p className="text-sm">{product.price}€</p>}
-                                {(product.showQuantity === false && product.showPrice === false) && <p className="text-sm italic">Prix non spécifié</p>}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                    
-                    <div className="text-center space-y-4 py-6">
-                      <FileCheck className="h-16 w-16 mx-auto text-green-500" />
-                      <h2 className="text-xl font-semibold">Offre prête à être générée</h2>
-                      <p className="text-gray-600 max-w-md mx-auto">
-                        Votre offre pour {offer.customer.companyName || "votre client"} a été configurée et est prête à être générée en document.
-                      </p>
-                    </div>
-                    
-                    <div className="flex justify-center space-x-4">
-                      <Button 
-                        variant="outline" 
-                        className="w-40"
-                        onClick={finalizOffer}
-                      >
-                        <Save className="mr-2 h-4 w-4" />
-                        Finaliser
-                      </Button>
-                      <Button 
-                        className="w-40 bg-paritel-primary"
-                        onClick={downloadOffer}
-                      >
-                        <Download className="mr-2 h-4 w-4" />
-                        Télécharger PDF
-                      </Button>
-                    </div>
-                  </>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        <div className="flex justify-between mt-6">
-          <Button
-            variant="outline"
-            onClick={goToPreviousStep}
-            disabled={currentStep === 1}
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Précédent
-          </Button>
-          
-          <Button
-            onClick={goToNextStep}
-            disabled={currentStep === totalSteps}
-            className="bg-paritel-primary"
-          >
-            {currentStep === totalSteps - 1 ? "Finaliser" : "Suivant"}
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-    </MainLayout>
-  );
-};
-
-export default CreateOffer;
+                      <p className="text-sm text-gray-600 mb-2">{solution.description}</p>
+                      <div className="text-xs text-gray-500">
+                        {solution.products.length} produit{solution.products.length > 1 ? 's' : ''}

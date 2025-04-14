@@ -3,7 +3,24 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ProductCardProps } from "./ProductCard";
-import { ArrowLeft, Package, Tag, Info } from "lucide-react";
+import { ArrowLeft, Package, Tag, Info, Star } from "lucide-react";
+import { useState } from "react";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogDescription,
+  DialogFooter
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useToast } from "@/components/ui/use-toast";
 
 type ProductDetailsProps = {
   product: ProductCardProps;
@@ -20,8 +37,47 @@ const ProductDetails = ({ product, onBack, onAddToOffer }: ProductDetailsProps) 
     partner, 
     tags, 
     image, 
-    specs 
+    specs,
+    rating
   } = product;
+
+  const [isAddToSolutionOpen, setIsAddToSolutionOpen] = useState(false);
+  const [selectedSolution, setSelectedSolution] = useState("");
+  const { toast } = useToast();
+  
+  // Mock solution data - in a real app, this would come from a context or API
+  const availableSolutions = [
+    { id: "1", name: "Solution PME" },
+    { id: "2", name: "Solution Hôtellerie" },
+    { id: "3", name: "Solution Santé" },
+    { id: "4", name: "Solution Éducation" }
+  ];
+
+  const handleAddToSolution = () => {
+    if (!selectedSolution) {
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Veuillez sélectionner une solution métier."
+      });
+      return;
+    }
+
+    // Here we would normally update state or call an API to add the product to the solution
+    const solutionName = availableSolutions.find(s => s.id === selectedSolution)?.name;
+    
+    toast({
+      title: "Produit ajouté",
+      description: `${name} a été ajouté à la solution "${solutionName}"`
+    });
+    
+    setIsAddToSolutionOpen(false);
+    
+    // Call the original onAddToOffer if it exists
+    if (onAddToOffer) {
+      onAddToOffer();
+    }
+  };
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
@@ -53,12 +109,23 @@ const ProductDetails = ({ product, onBack, onAddToOffer }: ProductDetailsProps) 
               )}
             </div>
             <h1 className="text-2xl font-bold">{name}</h1>
+            {rating !== undefined && (
+              <div className="flex items-center mt-1 mb-2">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Star
+                    key={i}
+                    className={`h-4 w-4 ${i < Math.round(rating) ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}`}
+                  />
+                ))}
+                <span className="ml-2 text-sm text-gray-600">{rating.toFixed(1)}</span>
+              </div>
+            )}
             <p className="text-gray-700 mt-2">{description}</p>
           </div>
           
           <div className="pt-2">
-            <Button className="w-full bg-paritel-primary hover:bg-paritel-dark" onClick={onAddToOffer}>
-              Ajouter à l'offre
+            <Button className="w-full bg-paritel-primary hover:bg-paritel-dark" onClick={() => setIsAddToSolutionOpen(true)}>
+              Ajouter à une solution métier
             </Button>
           </div>
         </div>
@@ -109,6 +176,42 @@ const ProductDetails = ({ product, onBack, onAddToOffer }: ProductDetailsProps) 
           )}
         </div>
       </div>
+
+      {/* Add to Solution Dialog */}
+      <Dialog open={isAddToSolutionOpen} onOpenChange={setIsAddToSolutionOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Ajouter à une solution métier</DialogTitle>
+            <DialogDescription>
+              Sélectionnez la solution métier à laquelle vous souhaitez ajouter ce produit.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <Select value={selectedSolution} onValueChange={setSelectedSolution}>
+              <SelectTrigger>
+                <SelectValue placeholder="Sélectionner une solution métier" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableSolutions.map(solution => (
+                  <SelectItem key={solution.id} value={solution.id}>
+                    {solution.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddToSolutionOpen(false)}>
+              Annuler
+            </Button>
+            <Button onClick={handleAddToSolution} className="bg-paritel-primary">
+              Ajouter
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -1,697 +1,302 @@
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import MainLayout from "@/components/layout/MainLayout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input";
-import {
-  FileText, Download, Eye, Trash2, Search, MoreHorizontal, Plus, Calendar, Check
-} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Search, Plus, Filter, Building, Calendar, User, FileText, Download } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Link } from "react-router-dom";
+import { Separator } from "@/components/ui/separator";
+import { useNavigate } from "react-router-dom";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { 
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-  DialogClose,
-} from "@/components/ui/dialog";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
+
+type OfferStatus = "draft" | "sent" | "in_progress" | "accepted" | "rejected" | "expired";
 
 type Offer = {
   id: number;
-  customer: {
-    companyName: string;
-    industry: string;
-    contactName: string;
-  };
+  customerName: string;
+  customerType: string;
   date: string;
-  status: "draft" | "final";
-  products: Array<{
-    id: number;
-    name: string;
-    category: string;
-    quantity?: number;
-    price?: string;
-    showQuantity?: boolean;
-    showPrice?: boolean;
-  }>;
+  products: number;
+  contactName: string;
+  status: OfferStatus;
+};
+
+const statusLabels: Record<OfferStatus, { label: string; color: string }> = {
+  draft: { label: "Brouillon", color: "bg-gray-500" },
+  sent: { label: "Envoyé", color: "bg-blue-500" },
+  in_progress: { label: "En cours", color: "bg-yellow-500" },
+  accepted: { label: "Accepté", color: "bg-green-500" },
+  rejected: { label: "Refusé", color: "bg-red-500" },
+  expired: { label: "Expiré", color: "bg-gray-700" }
 };
 
 const MyOffers = () => {
+  const navigate = useNavigate();
   const { toast } = useToast();
-  const [offers, setOffers] = useState<Offer[]>([]);
-  const [drafts, setDrafts] = useState<Offer[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedOffer, setSelectedOffer] = useState<Offer | null>(null);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [filterStatus, setFilterStatus] = useState<string | null>(null);
+  const [offers, setOffers] = useState<Offer[]>([]);
 
+  // Load mock offers on component mount
   useEffect(() => {
-    // Load offers from localStorage
-    const savedOffers = localStorage.getItem('offers');
-    const savedDrafts = localStorage.getItem('offerDrafts');
+    // In a real app, this would fetch from an API
+    const mockOffers: Offer[] = [
+      {
+        id: 1,
+        customerName: "Hotel de Paris",
+        customerType: "Hôtellerie",
+        date: "2025-03-15",
+        products: 3,
+        contactName: "Marc Dupont",
+        status: "sent"
+      },
+      {
+        id: 2,
+        customerName: "Clinique Saint-Martin",
+        customerType: "Santé",
+        date: "2025-03-10",
+        products: 5,
+        contactName: "Sophie Leblanc",
+        status: "in_progress"
+      },
+      {
+        id: 3,
+        customerName: "École Polytechnique",
+        customerType: "Éducation",
+        date: "2025-03-05",
+        products: 2,
+        contactName: "Jean Moreau",
+        status: "accepted"
+      },
+      {
+        id: 4,
+        customerName: "Cabinet d'avocats Martin",
+        customerType: "Entreprise",
+        date: "2025-02-28",
+        products: 4,
+        contactName: "Pierre Lefebvre",
+        status: "draft"
+      },
+      {
+        id: 5,
+        customerName: "Mairie de Lyon",
+        customerType: "Secteur Public",
+        date: "2025-02-20",
+        products: 6,
+        contactName: "Marie Dubois",
+        status: "rejected"
+      }
+    ];
     
-    if (savedOffers) {
-      setOffers(JSON.parse(savedOffers));
-    }
-    
-    if (savedDrafts) {
-      setDrafts(JSON.parse(savedDrafts));
-    }
+    setOffers(mockOffers);
   }, []);
 
-  const downloadOffer = (offer: Offer) => {
-    import('html2pdf.js').then(html2pdf => {
-      // Create a PDF-friendly container
-      const pdfContainer = document.createElement('div');
-      pdfContainer.className = 'pdf-container';
-      pdfContainer.style.width = '210mm'; // A4 width
-      pdfContainer.style.padding = '15mm';
-      pdfContainer.style.fontFamily = 'Arial, sans-serif';
-      
-      // Add company info header
-      const header = document.createElement('div');
-      header.style.borderBottom = '1px solid #ddd';
-      header.style.paddingBottom = '10mm';
-      header.style.marginBottom = '10mm';
-      header.style.display = 'flex';
-      header.style.justifyContent = 'space-between';
-      
-      const companyInfo = document.createElement('div');
-      companyInfo.innerHTML = `
-        <h1 style="color: #6048b8; font-size: 24px; margin-bottom: 5px;">Offre commerciale</h1>
-        <h2 style="font-size: 18px; margin-top: 0; color: #444;">Paritel Solutions</h2>
-        <p style="color: #666; margin: 2px 0;">12 rue Henri Becquerel<br>77500 Chelles</p>
-        <p style="color: #666; margin: 2px 0;">Tel: 01.64.11.41.50</p>
-      `;
-      
-      const offerInfo = document.createElement('div');
-      offerInfo.style.textAlign = 'right';
-      offerInfo.innerHTML = `
-        <p style="margin: 2px 0;">Référence: OFF-${Date.now().toString().slice(-6)}</p>
-        <p style="margin: 2px 0;">Date: ${new Date().toLocaleDateString('fr-FR')}</p>
-        <p style="margin: 2px 0; font-weight: bold;">${offer.status === 'draft' ? 'BROUILLON' : 'PROPOSITION FINALE'}</p>
-      `;
-      
-      header.appendChild(companyInfo);
-      header.appendChild(offerInfo);
-      pdfContainer.appendChild(header);
-      
-      // Client info section
-      const clientSection = document.createElement('div');
-      clientSection.style.marginBottom = '10mm';
-      clientSection.style.padding = '5mm';
-      clientSection.style.backgroundColor = '#f9f9f9';
-      clientSection.style.borderRadius = '4px';
-      
-      clientSection.innerHTML = `
-        <h3 style="margin-top: 0; color: #6048b8;">Informations client</h3>
-        <table style="width: 100%; border-collapse: collapse;">
-          <tr>
-            <td style="width: 50%; padding: 4px;"><strong>Société:</strong> ${offer.customer.companyName || "Non spécifié"}</td>
-            <td style="width: 50%; padding: 4px;"><strong>Contact:</strong> ${offer.customer.contactName || "Non spécifié"}</td>
-          </tr>
-          <tr>
-            <td style="padding: 4px;"><strong>Secteur:</strong> ${offer.customer.industry || "Non spécifié"}</td>
-          </tr>
-        </table>
-      `;
-      
-      pdfContainer.appendChild(clientSection);
-      
-      // Products section
-      if (offer.products.length > 0) {
-        const productsSection = document.createElement('div');
-        productsSection.style.marginBottom = '10mm';
-        
-        // Determine which columns to show based on products
-        const showQuantityColumn = offer.products.some(p => p.showQuantity !== false);
-        const showPriceColumn = offer.products.some(p => p.showPrice !== false);
-        
-        let productsHTML = `
-          <h3 style="color: #6048b8;">Produits et services</h3>
-          <table style="width: 100%; border-collapse: collapse; margin-top: 5mm;">
-            <thead>
-              <tr style="background-color: #6048b8; color: white;">
-                <th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Désignation</th>
-                ${showQuantityColumn ? `<th style="padding: 8px; text-align: center; border: 1px solid #ddd;">Quantité</th>` : ''}
-                ${showPriceColumn ? `<th style="padding: 8px; text-align: right; border: 1px solid #ddd;">Prix</th>` : ''}
-              </tr>
-            </thead>
-            <tbody>
-        `;
-        
-        let totalAmount = 0;
-        offer.products.forEach(product => {
-          const priceValue = product.price ? parseFloat(product.price.replace(/[^\d.-]/g, '')) || 0 : 0;
-          const quantity = product.quantity || 0;
-          const totalPrice = product.showPrice !== false && product.showQuantity !== false ? priceValue * quantity : 0;
-          
-          if (product.showPrice !== false && product.showQuantity !== false) {
-            totalAmount += totalPrice;
-          }
-          
-          productsHTML += `
-            <tr>
-              <td style="padding: 8px; border: 1px solid #ddd;">
-                <strong>${product.name}</strong><br>
-                <span style="color: #666; font-size: 12px;">${product.category}</span>
-              </td>
-              ${showQuantityColumn ? 
-                `<td style="padding: 8px; text-align: center; border: 1px solid #ddd;">
-                  ${product.showQuantity !== false ? (product.quantity || '-') : '-'}
-                </td>` : ''}
-              ${showPriceColumn ? 
-                `<td style="padding: 8px; text-align: right; border: 1px solid #ddd;">
-                  ${product.showPrice !== false ? (priceValue > 0 ? priceValue.toFixed(2) + '€' : '-') : '-'}
-                </td>` : ''}
-            </tr>
-          `;
-        });
-        
-        // Only show totals if any products have prices
-        const shouldShowTotals = showPriceColumn && showQuantityColumn && totalAmount > 0;
-        
-        productsHTML += `
-            </tbody>`;
-            
-        if (shouldShowTotals) {
-          productsHTML += `
-            <tfoot>
-              <tr style="background-color: #f2f2f2;">
-                <td colspan="${1 + (showQuantityColumn ? 1 : 0)}" style="padding: 8px; text-align: right; border: 1px solid #ddd;"><strong>Total HT:</strong></td>
-                <td style="padding: 8px; text-align: right; border: 1px solid #ddd;"><strong>${totalAmount.toFixed(2)}€</strong></td>
-              </tr>
-              <tr>
-                <td colspan="${1 + (showQuantityColumn ? 1 : 0)}" style="padding: 8px; text-align: right; border: 1px solid #ddd;">TVA (20%):</td>
-                <td style="padding: 8px; text-align: right; border: 1px solid #ddd;">${(totalAmount * 0.2).toFixed(2)}€</td>
-              </tr>
-              <tr style="background-color: #f2f2f2;">
-                <td colspan="${1 + (showQuantityColumn ? 1 : 0)}" style="padding: 8px; text-align: right; border: 1px solid #ddd;"><strong>Total TTC:</strong></td>
-                <td style="padding: 8px; text-align: right; border: 1px solid #ddd;"><strong>${(totalAmount * 1.2).toFixed(2)}€</strong></td>
-              </tr>
-            </tfoot>`;
-        }
-        
-        productsHTML += `
-          </table>
-        `;
-        
-        productsSection.innerHTML = productsHTML;
-        pdfContainer.appendChild(productsSection);
-      }
-      
-      // Footer section
-      const footerSection = document.createElement('div');
-      footerSection.style.marginTop = '15mm';
-      footerSection.style.borderTop = '1px solid #ddd';
-      footerSection.style.paddingTop = '5mm';
-      footerSection.style.fontSize = '10px';
-      footerSection.style.color = '#666';
-      footerSection.style.textAlign = 'center';
-      
-      footerSection.innerHTML = `
-        <p>Paritel Solutions - SIRET: 123 456 789 00012 - TVA: FR12 123456789</p>
-        <p>Conditions de vente: Paiement à 30 jours fin de mois. Validité de l'offre: 30 jours.</p>
-      `;
-      
-      pdfContainer.appendChild(footerSection);
-      
-      // Generate PDF
-      const pdfOptions = {
-        margin: 0,
-        filename: `Offre_${offer.customer.companyName || 'Client'}_${new Date().toLocaleDateString('fr-FR')}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      };
-      
-      html2pdf.default(pdfContainer, pdfOptions).then(() => {
-        toast({
-          title: "Offre téléchargée",
-          description: "Votre offre a été téléchargée au format PDF",
-        });
-      });
-    });
-  };
-
-  const deleteOffer = (offerId: number, type: 'offer' | 'draft') => {
-    if (type === 'offer') {
-      const updatedOffers = offers.filter(offer => offer.id !== offerId);
-      setOffers(updatedOffers);
-      localStorage.setItem('offers', JSON.stringify(updatedOffers));
-    } else {
-      const updatedDrafts = drafts.filter(draft => draft.id !== offerId);
-      setDrafts(updatedDrafts);
-      localStorage.setItem('offerDrafts', JSON.stringify(updatedDrafts));
-    }
+  // Filter offers based on search term and status filter
+  const filteredOffers = offers.filter(offer => {
+    const matchesSearch = 
+      searchTerm === "" || 
+      offer.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      offer.contactName.toLowerCase().includes(searchTerm.toLowerCase());
     
-    setShowDeleteDialog(false);
+    const matchesFilter = 
+      filterStatus === null || 
+      offer.status === filterStatus;
+    
+    return matchesSearch && matchesFilter;
+  });
+
+  const handleStatusChange = (offerId: number, newStatus: OfferStatus) => {
+    setOffers(offers.map(offer => 
+      offer.id === offerId ? { ...offer, status: newStatus } : offer
+    ));
     
     toast({
-      title: type === 'offer' ? "Offre supprimée" : "Brouillon supprimé",
-      description: type === 'offer' 
-        ? "L'offre a été supprimée avec succès" 
-        : "Le brouillon a été supprimé avec succès",
+      title: "Statut mis à jour",
+      description: `L'offre a été marquée comme "${statusLabels[newStatus].label}"`,
     });
   };
-
-  const finalizeDraft = (draft: Offer) => {
-    // Convert draft to finalized offer
-    const finalOffer = {
-      ...draft,
-      id: Date.now(),
-      status: "final" as const,
-      date: new Date().toISOString()
-    };
-    
-    // Add to offers
-    const updatedOffers = [...offers, finalOffer];
-    setOffers(updatedOffers);
-    localStorage.setItem('offers', JSON.stringify(updatedOffers));
-    
-    // Remove from drafts
-    const updatedDrafts = drafts.filter(d => d.id !== draft.id);
-    setDrafts(updatedDrafts);
-    localStorage.setItem('offerDrafts', JSON.stringify(updatedDrafts));
-    
-    toast({
-      title: "Brouillon finalisé",
-      description: "Le brouillon a été converti en offre finalisée",
-    });
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('fr-FR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
-  };
-
-  const filterOffers = (items: Offer[]) => {
-    if (!searchTerm) return items;
-    
-    return items.filter(offer => 
-      offer.customer.companyName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      offer.customer.contactName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      offer.products.some(product => 
-        product.name.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    );
-  };
-
-  const filteredOffers = filterOffers(offers);
-  const filteredDrafts = filterOffers(drafts);
 
   return (
     <MainLayout>
       <div className="space-y-6">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Mes Offres</h1>
-            <p className="text-muted-foreground">Consultez et gérez vos offres personnalisées</p>
+            <p className="text-muted-foreground mt-1">
+              Gérez vos offres commerciales et suivez leur statut
+            </p>
           </div>
-          <div className="flex gap-2 w-full md:w-auto">
-            <div className="relative flex-1 md:flex-initial">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-              <Input
-                placeholder="Rechercher..."
-                className="pl-8 w-full"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <Link to="/create-offer">
-              <Button className="bg-paritel-primary whitespace-nowrap">
-                <Plus className="mr-2 h-4 w-4" />
-                Nouvelle offre
-              </Button>
-            </Link>
+          <Button 
+            className="bg-paritel-primary hover:bg-paritel-dark"
+            onClick={() => navigate('/create-offer')}
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Créer une offre
+          </Button>
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <input
+              type="text"
+              placeholder="Rechercher une offre..."
+              className="w-full py-2 pl-9 pr-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-paritel-accent"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          
+          <div className="flex-shrink-0 w-full sm:w-auto">
+            <Select value={filterStatus || ""} onValueChange={(value) => setFilterStatus(value === "" ? null : value as OfferStatus)}>
+              <SelectTrigger className="w-full sm:w-[200px]">
+                <div className="flex items-center">
+                  <Filter className="h-4 w-4 mr-2" />
+                  <span>{filterStatus ? statusLabels[filterStatus as OfferStatus].label : "Tous les statuts"}</span>
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Tous les statuts</SelectItem>
+                {Object.entries(statusLabels).map(([key, { label }]) => (
+                  <SelectItem key={key} value={key}>{label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
-        <Tabs defaultValue="offers" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="offers" className="relative">
-              Offres finalisées
-              {offers.length > 0 && (
-                <Badge className="ml-2 bg-paritel-primary text-white">{offers.length}</Badge>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="drafts">
-              Brouillons
-              {drafts.length > 0 && (
-                <Badge className="ml-2">{drafts.length}</Badge>
-              )}
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="offers" className="space-y-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle>Offres ({filteredOffers.length})</CardTitle>
+          </CardHeader>
+          <CardContent>
             {filteredOffers.length === 0 ? (
-              <Card>
-                <CardContent className="flex flex-col items-center justify-center py-10 text-center">
-                  <FileText className="h-12 w-12 text-gray-400 mb-4" />
-                  <h3 className="text-lg font-medium mb-2">Aucune offre finalisée</h3>
-                  <p className="text-muted-foreground mb-4 max-w-md">
-                    Vous n'avez pas encore d'offres finalisées.
-                    {searchTerm ? " Essayez avec d'autres termes de recherche." : ""}
-                  </p>
-                  {!searchTerm && (
-                    <Link to="/create-offer">
-                      <Button className="bg-paritel-primary">
-                        <Plus className="mr-2 h-4 w-4" />
-                        Créer ma première offre
-                      </Button>
-                    </Link>
-                  )}
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredOffers.map((offer) => (
-                  <Card key={offer.id} className="hover:shadow-md transition-shadow">
-                    <CardHeader className="pb-2">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <CardTitle className="text-lg truncate" title={offer.customer.companyName || "Sans titre"}>
-                            {offer.customer.companyName || "Sans titre"}
-                          </CardTitle>
-                          <CardDescription className="flex items-center mt-1">
-                            <Calendar className="mr-1 h-3 w-3" />
-                            {formatDate(offer.date)}
-                          </CardDescription>
-                        </div>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Options</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => {
-                              setSelectedOffer(offer);
-                            }}>
-                              <Eye className="mr-2 h-4 w-4" />
-                              Voir les détails
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => downloadOffer(offer)}>
-                              <Download className="mr-2 h-4 w-4" />
-                              Télécharger
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem 
-                              className="text-destructive"
-                              onClick={() => {
-                                setSelectedOffer(offer);
-                                setShowDeleteDialog(true);
-                              }}
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Supprimer
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-2">
-                        <div className="text-sm">
-                          <span className="font-medium">Contact: </span>
-                          {offer.customer.contactName || "Non spécifié"}
-                        </div>
-                        <div className="text-sm">
-                          <span className="font-medium">Produits: </span>
-                          {offer.products.length} produit(s)
-                          {offer.products.some(p => p.showPrice === false) && " (prix masqués)"}
-                          {offer.products.some(p => p.showQuantity === false) && " (quantités masquées)"}
-                        </div>
-                        <div className="flex gap-2 mt-4">
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            className="flex-1"
-                            onClick={() => setSelectedOffer(offer)}
-                          >
-                            <Eye className="mr-1 h-4 w-4" />
-                            Détails
-                          </Button>
-                          <Button 
-                            size="sm"
-                            className="flex-1 bg-paritel-primary"
-                            onClick={() => downloadOffer(offer)}
-                          >
-                            <Download className="mr-1 h-4 w-4" />
-                            Télécharger
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </TabsContent>
-          
-          <TabsContent value="drafts" className="space-y-4">
-            {filteredDrafts.length === 0 ? (
-              <Card>
-                <CardContent className="flex flex-col items-center justify-center py-10 text-center">
-                  <FileText className="h-12 w-12 text-gray-400 mb-4" />
-                  <h3 className="text-lg font-medium mb-2">Aucun brouillon</h3>
-                  <p className="text-muted-foreground mb-4 max-w-md">
-                    Vous n'avez pas encore de brouillons enregistrés.
-                    {searchTerm ? " Essayez avec d'autres termes de recherche." : ""}
-                  </p>
-                  {!searchTerm && (
-                    <Link to="/create-offer">
-                      <Button className="bg-paritel-primary">
-                        <Plus className="mr-2 h-4 w-4" />
-                        Créer une offre
-                      </Button>
-                    </Link>
-                  )}
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredDrafts.map((draft) => (
-                  <Card key={draft.id} className="hover:shadow-md transition-shadow">
-                    <CardHeader className="pb-2">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <CardTitle className="text-lg truncate" title={draft.customer.companyName || "Brouillon sans titre"}>
-                            {draft.customer.companyName || "Brouillon sans titre"}
-                          </CardTitle>
-                          <CardDescription className="flex items-center mt-1">
-                            <Calendar className="mr-1 h-3 w-3" />
-                            {formatDate(draft.date)}
-                          </CardDescription>
-                        </div>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Options</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => {
-                              setSelectedOffer(draft);
-                            }}>
-                              <Eye className="mr-2 h-4 w-4" />
-                              Voir les détails
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => finalizeDraft(draft)}>
-                              <Check className="mr-2 h-4 w-4" />
-                              Finaliser
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem 
-                              className="text-destructive"
-                              onClick={() => {
-                                setSelectedOffer(draft);
-                                setShowDeleteDialog(true);
-                              }}
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Supprimer
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-2">
-                        <div className="text-sm">
-                          <span className="font-medium">Contact: </span>
-                          {draft.customer.contactName || "Non spécifié"}
-                        </div>
-                        <div className="text-sm">
-                          <span className="font-medium">Produits: </span>
-                          {draft.products.length} produit(s)
-                          {draft.products.some(p => p.showPrice === false) && " (prix masqués)"}
-                          {draft.products.some(p => p.showQuantity === false) && " (quantités masquées)"}
-                        </div>
-                        <div className="flex gap-2 mt-4">
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            className="flex-1"
-                            onClick={() => setSelectedOffer(draft)}
-                          >
-                            <Eye className="mr-1 h-4 w-4" />
-                            Détails
-                          </Button>
-                          <Button 
-                            size="sm"
-                            className="flex-1 bg-paritel-primary"
-                            onClick={() => finalizeDraft(draft)}
-                          >
-                            <Check className="mr-1 h-4 w-4" />
-                            Finaliser
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
-      </div>
-
-      {/* Offer Details Dialog */}
-      {selectedOffer && (
-        <Dialog open={selectedOffer !== null && !showDeleteDialog} onOpenChange={(open) => {
-          if (!open) setSelectedOffer(null);
-        }}>
-          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Détails de l'offre</DialogTitle>
-              <DialogDescription>
-                Offre pour {selectedOffer.customer.companyName || "Client"}
-                <span className="ml-2 text-gray-500 text-xs">
-                  {formatDate(selectedOffer.date)}
-                </span>
-              </DialogDescription>
-            </DialogHeader>
-            
-            <div className="space-y-4 mt-2">
-              <div className="rounded-lg border p-4">
-                <h3 className="font-semibold mb-2">Détails du client</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <p><span className="font-medium">Société:</span> {selectedOffer.customer.companyName || "Non spécifié"}</p>
-                    <p><span className="font-medium">Secteur:</span> {selectedOffer.customer.industry || "Non spécifié"}</p>
-                  </div>
-                  <div>
-                    <p><span className="font-medium">Contact:</span> {selectedOffer.customer.contactName || "Non spécifié"}</p>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="rounded-lg border p-4">
-                <h3 className="font-semibold mb-2">Produits et services</h3>
-                {selectedOffer.products.length === 0 ? (
-                  <p className="text-gray-500 italic">Aucun produit dans cette offre</p>
-                ) : (
-                  <div className="space-y-3">
-                    {selectedOffer.products.map(product => (
-                      <div key={product.id} className="flex items-start justify-between border-b pb-2">
-                        <div>
-                          <p className="font-medium">{product.name}</p>
-                          <p className="text-xs text-gray-500">{product.category}</p>
-                        </div>
-                        <div className="text-right">
-                          {product.showQuantity !== false && product.quantity !== undefined && (
-                            <p className="font-medium">Qté: {product.quantity}</p>
-                          )}
-                          {product.showPrice !== false && product.price && (
-                            <p className="text-sm">{product.price}</p>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+              <div className="text-center py-12">
+                <FileText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-700 mb-1">Aucune offre trouvée</h3>
+                <p className="text-gray-500">
+                  {searchTerm || filterStatus 
+                    ? "Aucune offre ne correspond à vos critères de recherche" 
+                    : "Commencez par créer une nouvelle offre"}
+                </p>
+                {!searchTerm && !filterStatus && (
+                  <Button 
+                    className="mt-4 bg-paritel-primary"
+                    onClick={() => navigate('/create-offer')}
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Créer une offre
+                  </Button>
                 )}
               </div>
-            </div>
-            
-            <DialogFooter className="gap-2 sm:gap-0">
-              {selectedOffer.status === "draft" ? (
-                <Button 
-                  className="bg-green-600 hover:bg-green-700"
-                  onClick={() => {
-                    finalizeDraft(selectedOffer);
-                    setSelectedOffer(null);
-                  }}
-                >
-                  <Check className="mr-2 h-4 w-4" />
-                  Finaliser cette offre
-                </Button>
-              ) : (
-                <Button
-                  className="bg-paritel-primary"
-                  onClick={() => {
-                    downloadOffer(selectedOffer);
-                  }}
-                >
-                  <Download className="mr-2 h-4 w-4" />
-                  Télécharger
-                </Button>
-              )}
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="text-left text-gray-500 text-sm border-b">
+                      <th className="font-medium p-3 pl-0">Client</th>
+                      <th className="font-medium p-3">Date</th>
+                      <th className="font-medium p-3">Contact</th>
+                      <th className="font-medium p-3">Produits</th>
+                      <th className="font-medium p-3">Statut</th>
+                      <th className="font-medium p-3 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredOffers.map(offer => (
+                      <tr key={offer.id} className="border-b hover:bg-gray-50">
+                        <td className="p-3 pl-0">
+                          <div className="flex items-start">
+                            <Building className="h-4 w-4 text-gray-400 mt-0.5 mr-2" />
+                            <div>
+                              <div className="font-medium">{offer.customerName}</div>
+                              <div className="text-xs text-gray-500">{offer.customerType}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="p-3">
+                          <div className="flex items-center">
+                            <Calendar className="h-4 w-4 text-gray-400 mr-2" />
+                            <span>{new Date(offer.date).toLocaleDateString()}</span>
+                          </div>
+                        </td>
+                        <td className="p-3">
+                          <div className="flex items-center">
+                            <User className="h-4 w-4 text-gray-400 mr-2" />
+                            <span>{offer.contactName}</span>
+                          </div>
+                        </td>
+                        <td className="p-3">
+                          <Badge variant="outline">{offer.products} produit{offer.products > 1 ? 's' : ''}</Badge>
+                        </td>
+                        <td className="p-3">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="p-0 h-auto">
+                                <Badge className={`${statusLabels[offer.status].color} text-white`}>
+                                  {statusLabels[offer.status].label}
+                                </Badge>
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="start">
+                              {Object.entries(statusLabels).map(([key, { label }]) => (
+                                <DropdownMenuItem 
+                                  key={key}
+                                  onClick={() => handleStatusChange(offer.id, key as OfferStatus)}
+                                  className={offer.status === key ? "font-medium" : ""}
+                                >
+                                  {label}
+                                </DropdownMenuItem>
+                              ))}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </td>
+                        <td className="p-3 text-right">
+                          <Button variant="ghost" size="sm">
+                            <Download className="h-4 w-4 mr-1" />
+                            PDF
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="ml-2"
+                            onClick={() => navigate(`/create-offer?edit=${offer.id}`)}
+                          >
+                            Voir
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-      {/* Delete Confirmation Dialog */}
-      {showDeleteDialog && selectedOffer && (
-        <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Confirmer la suppression</DialogTitle>
-              <DialogDescription>
-                Êtes-vous sûr de vouloir supprimer {selectedOffer.status === "draft" ? "ce brouillon" : "cette offre"} ?
-                Cette action est irréversible.
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter className="gap-2 sm:gap-0">
-              <Button 
-                variant="outline" 
-                onClick={() => setShowDeleteDialog(false)}
-              >
-                Annuler
-              </Button>
-              <Button 
-                variant="destructive"
-                onClick={() => deleteOffer(selectedOffer.id, selectedOffer.status === "draft" ? "draft" : "offer")}
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Supprimer
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
+        <div className="rounded-lg border border-dashed p-6 text-center">
+          <h3 className="text-lg font-medium mb-2">Besoin de créer une réponse à un Appel d'Offres?</h3>
+          <p className="text-gray-600 mb-4">
+            Importez un document PDF ou Word pour générer automatiquement une réponse à un Appel d'Offres
+          </p>
+          <Button className="bg-paritel-primary">
+            Importer un document AO
+          </Button>
+        </div>
+      </div>
     </MainLayout>
   );
 };
