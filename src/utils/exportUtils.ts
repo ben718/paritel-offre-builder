@@ -19,13 +19,13 @@ export const EXPORT_FIELDS: ExportField[] = [
   { id: 'category', label: 'Catégorie', key: 'category' },
   { id: 'subcategory', label: 'Sous-catégorie', key: 'subcategory' },
   { id: 'partner', label: 'Partenaire', key: 'partner' },
-  { id: 'pricing', label: 'Prix', key: 'pricing' },
+  // Pricing field removed
   { id: 'tags', label: 'Tags', key: (product) => product.tags.join(', ') },
   { id: 'specs', label: 'Spécifications', key: (product) => product.specs ? product.specs.join('; ') : '' },
 ];
 
 // Default fields to include if none selected
-const DEFAULT_EXPORT_FIELDS = ['name', 'category', 'subcategory', 'pricing', 'description'];
+const DEFAULT_EXPORT_FIELDS = ['name', 'category', 'subcategory', 'description'];
 
 /**
  * Get value from product based on field definition

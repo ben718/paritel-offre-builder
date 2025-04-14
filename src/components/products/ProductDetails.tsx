@@ -19,7 +19,6 @@ const ProductDetails = ({ product, onBack, onAddToOffer }: ProductDetailsProps) 
     subcategory, 
     partner, 
     tags, 
-    pricing, 
     image, 
     specs 
   } = product;
@@ -57,14 +56,7 @@ const ProductDetails = ({ product, onBack, onAddToOffer }: ProductDetailsProps) 
             <p className="text-gray-700 mt-2">{description}</p>
           </div>
           
-          {pricing && (
-            <div className="flex items-center">
-              <DollarSign className="h-5 w-5 text-paritel-primary mr-2" />
-              <span className="text-lg font-medium">
-                À partir de <span className="text-paritel-primary font-semibold">{pricing}</span>
-              </span>
-            </div>
-          )}
+          {/* Pricing section removed */}
           
           <div className="pt-2">
             <Button className="w-full bg-paritel-primary hover:bg-paritel-dark" onClick={onAddToOffer}>

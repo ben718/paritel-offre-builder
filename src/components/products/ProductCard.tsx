@@ -23,7 +23,6 @@ export type ProductCardProps = {
   subcategory?: string;
   partner?: string;
   tags: string[];
-  pricing?: string;
   image: string;
   specs?: string[];
 };
@@ -44,7 +43,6 @@ export const ProductCard = ({
   subcategory,
   partner,
   tags,
-  pricing,
   image,
   specs,
   onEdit,
@@ -121,11 +119,7 @@ export const ProductCard = ({
           )}
         </div>
         
-        {pricing && (
-          <div className="text-xs sm:text-sm text-gray-700 mb-2">
-            À partir de <span className="font-semibold text-paritel-primary">{pricing}</span>
-          </div>
-        )}
+        {/* Pricing section removed */}
         
         <div className="flex justify-between mt-auto pt-2 sm:pt-3">
           {onEdit && onDelete ? (

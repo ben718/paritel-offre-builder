@@ -165,7 +165,7 @@ const CreateOffer = () => {
           name: productToAdd.name,
           category: productToAdd.category,
           quantity: 1,
-          price: productToAdd.pricing.replace(/[^0-9,.]/g, ''),
+          price: "0",
           showQuantity: true,
           showPrice: true
         };
@@ -864,7 +864,7 @@ const CreateOffer = () => {
                       <div key={product.id} className="p-4 border rounded-lg">
                         <div className="flex justify-between items-center mb-3">
                           <h3 className="font-medium">{product.name}</h3>
-                          <p className="text-sm font-medium">{productDetails?.pricing}</p>
+                          <p className="text-sm font-medium">Prix non affiché</p>
                         </div>
                         
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-3">
@@ -1064,7 +1064,7 @@ const CreateOffer = () => {
                               </div>
                               <div className="text-right">
                                 {product.showQuantity !== false && product.quantity && <p className="font-medium">Qté: {product.quantity}</p>}
-                                {product.showPrice !== false && product.price && <p className="text-sm">{productDetails?.pricing}</p>}
+                                {product.showPrice !== false && product.price && <p className="text-sm">{product.price}€</p>}
                                 {(product.showQuantity === false && product.showPrice === false) && <p className="text-sm italic">Prix non spécifié</p>}
                               </div>
                             </div>

@@ -30,7 +30,6 @@ const ProductForm = ({ product, onSubmit, onCancel }: ProductFormProps) => {
       subcategory: "",
       partner: "",
       tags: [],
-      pricing: "",
       image: "https://placehold.co/600x400/1EAEDB/ffffff?text=Product",
       specs: []
     }
@@ -263,16 +262,7 @@ const ProductForm = ({ product, onSubmit, onCancel }: ProductFormProps) => {
           </Select>
         </div>
         
-        <div className="space-y-2">
-          <Label htmlFor="pricing">Prix</Label>
-          <Input
-            id="pricing"
-            name="pricing"
-            value={formData.pricing || ""}
-            onChange={handleChange}
-            placeholder="Ex: 15€/mois, À partir de 149€, etc."
-          />
-        </div>
+        {/* Price field removed */}
         
         <div className="space-y-2">
           <Label htmlFor="image">Image URL</Label>

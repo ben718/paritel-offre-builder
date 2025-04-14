@@ -14,19 +14,12 @@ export interface ComparisonProduct {
 }
 
 export const transformProductToComparisonProduct = (product: ProductCardProps): ComparisonProduct => {
-  // Extract numeric value from pricing string (e.g., "149€" -> 149)
-  const extractPrice = (pricing?: string): number => {
-    if (!pricing) return 0;
-    const match = pricing.match(/(\d+(?:\.\d+)?)/);
-    return match ? parseFloat(match[0]) : 0;
-  };
-
   return {
     id: product.id.toString(),
     name: product.name,
     category: product.category,
     brand: product.subcategory || '',
-    price: extractPrice(product.pricing),
+    price: 0, // Fixed price as we removed pricing
     rating: 4, // Default rating
     specifications: product.specs?.reduce<Record<string, string | boolean>>((acc, spec) => {
       // Simplistic approach: split at colon if exists

@@ -26,7 +26,6 @@ export const SelectableProductCard = ({
     subcategory,
     partner,
     tags,
-    pricing,
     image,
     specs
   } = product;
@@ -92,11 +91,7 @@ export const SelectableProductCard = ({
           )}
         </div>
         
-        {pricing && (
-          <div className="text-xs sm:text-sm text-gray-700 mb-2">
-            À partir de <span className="font-semibold text-paritel-primary">{pricing}</span>
-          </div>
-        )}
+        {/* Pricing section removed */}
         
         <div className="flex justify-end mt-auto pt-2 sm:pt-3">
           <Button 
