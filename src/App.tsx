@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
@@ -63,26 +64,95 @@ function App() {
         <Route path="/" element={<Index />} />
         <Route path="/login" element={<Login />} />
         
-        <Route element={<ProtectedRoute allowedRoles={['user', 'admin']} />}>
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/products" element={<Products />} />
-          <Route path="/product-comparison" element={<ProductComparison />} />
-          <Route path="/partners" element={<Partners />} />
-          <Route path="/solutions" element={<Solutions />} />
-          <Route path="/create-offer" element={<CreateOffer />} />
-          <Route path="/my-offers" element={<MyOffers />} />
-          <Route path="/reporting" element={<Reporting />} />
-          <Route path="/advanced-reporting" element={<AdvancedReporting />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/code-editor" element={<CodeEditor />} />
-          <Route path="/site-builder" element={<SiteBuilder />} />
-        </Route>
+        <Route path="/dashboard" element={
+          <ProtectedRoute allowedRoles={['user', 'admin']}>
+            <Dashboard />
+          </ProtectedRoute>
+        } />
         
-        <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
-          <Route path="/admin" element={<Administration />} />
-          <Route path="/users" element={<Users />} />
-        </Route>
+        <Route path="/products" element={
+          <ProtectedRoute allowedRoles={['user', 'admin']}>
+            <Products />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/product-comparison" element={
+          <ProtectedRoute allowedRoles={['user', 'admin']}>
+            <ProductComparison />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/partners" element={
+          <ProtectedRoute allowedRoles={['user', 'admin']}>
+            <Partners />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/solutions" element={
+          <ProtectedRoute allowedRoles={['user', 'admin']}>
+            <Solutions />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/create-offer" element={
+          <ProtectedRoute allowedRoles={['user', 'admin']}>
+            <CreateOffer />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/my-offers" element={
+          <ProtectedRoute allowedRoles={['user', 'admin']}>
+            <MyOffers />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/reporting" element={
+          <ProtectedRoute allowedRoles={['user', 'admin']}>
+            <Reporting />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/advanced-reporting" element={
+          <ProtectedRoute allowedRoles={['user', 'admin']}>
+            <AdvancedReporting />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/profile" element={
+          <ProtectedRoute allowedRoles={['user', 'admin']}>
+            <Profile />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/settings" element={
+          <ProtectedRoute allowedRoles={['user', 'admin']}>
+            <Settings />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/code-editor" element={
+          <ProtectedRoute allowedRoles={['user', 'admin']}>
+            <CodeEditor />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/site-builder" element={
+          <ProtectedRoute allowedRoles={['user', 'admin']}>
+            <SiteBuilder />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/admin" element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <Administration />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/users" element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <Users />
+          </ProtectedRoute>
+        } />
         
         <Route path="/unauthorized" element={<Unauthorized />} />
         <Route path="*" element={<NotFound />} />

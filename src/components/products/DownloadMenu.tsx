@@ -32,13 +32,15 @@ interface DownloadMenuProps {
   selectedProducts: ProductCardProps[];
   hasSelection: boolean;
   className?: string;
+  onDownload?: () => void;
 }
 
 export function DownloadMenu({ 
   products, 
   selectedProducts, 
   hasSelection,
-  className = "" 
+  className = "",
+  onDownload 
 }: DownloadMenuProps) {
   const isMobile = window.innerWidth < 768;
   const [selectedFields, setSelectedFields] = useState<string[]>(
@@ -133,6 +135,16 @@ export function DownloadMenu({
               </DropdownMenuSubContent>
             </DropdownMenuPortal>
           </DropdownMenuSub>
+          
+          {onDownload && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={onDownload}>
+                <Download className="mr-2 h-4 w-4" />
+                <span>Export avancé</span>
+              </DropdownMenuItem>
+            </>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
       
