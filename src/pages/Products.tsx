@@ -164,6 +164,15 @@ const Products = () => {
     }
   };
   
+  const handleDownloadMenu = () => {
+    const selectedProductsToExport = selectedProductIds.length > 0
+      ? products.filter(p => selectedProductIds.includes(p.id))
+      : filteredProducts;
+    
+    localStorage.setItem('productsToExport', JSON.stringify(selectedProductsToExport));
+    navigate('/product-export');
+  };
+  
   return (
     <MainLayout>
       <div className="space-y-6">
@@ -278,8 +287,11 @@ const Products = () => {
             )}
             <DownloadMenu 
               products={filteredProducts}
-              selectedProducts={selectedProducts}
+              selectedProducts={selectedProductIds.length > 0 
+                ? products.filter(p => selectedProductIds.includes(p.id))
+                : filteredProducts}
               hasSelection={selectedProductIds.length > 0}
+              onDownload={handleDownloadMenu}
             />
           </div>
         </div>

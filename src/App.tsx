@@ -34,7 +34,6 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles, children 
   const location = useLocation();
 
   useEffect(() => {
-    // Simulate fetching user role from local storage or authentication context
     const storedRole = localStorage.getItem('userRole') as Role | null;
     setUserRole(storedRole);
 
@@ -44,7 +43,6 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles, children 
   }, [allowedRoles, navigate, location]);
 
   if (userRole === null) {
-    // You might want to render a loading indicator here
     return <div>Loading...</div>;
   }
 
@@ -55,7 +53,6 @@ function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    // Check if the user is logged in (e.g., token exists in local storage)
     const token = localStorage.getItem('authToken');
     setIsLoggedIn(!!token);
   }, []);
