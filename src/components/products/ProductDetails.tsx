@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ProductCardProps } from "./ProductCard";
 import { ArrowLeft, Package, Tag, Info, Star } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Dialog, 
   DialogContent, 
@@ -28,6 +28,18 @@ type ProductDetailsProps = {
   onAddToOffer?: () => void;
 };
 
+type BusinessSolution = {
+  id: string;
+  name: string;
+  description: string;
+  products: {
+    id: number;
+    name: string;
+    category: string;
+    quantity?: number;
+  }[];
+};
+
 const ProductDetails = ({ product, onBack, onAddToOffer }: ProductDetailsProps) => {
   const { 
     name, 
@@ -43,15 +55,47 @@ const ProductDetails = ({ product, onBack, onAddToOffer }: ProductDetailsProps) 
 
   const [isAddToSolutionOpen, setIsAddToSolutionOpen] = useState(false);
   const [selectedSolution, setSelectedSolution] = useState("");
+  const [availableSolutions, setAvailableSolutions] = useState<BusinessSolution[]>([]);
   const { toast } = useToast();
   
-  // Mock solution data - in a real app, this would come from a context or API
-  const availableSolutions = [
-    { id: "1", name: "Solution PME" },
-    { id: "2", name: "Solution Hôtellerie" },
-    { id: "3", name: "Solution Santé" },
-    { id: "4", name: "Solution Éducation" }
-  ];
+  // Load solutions from localStorage
+  useEffect(() => {
+    // Get solutions from localStorage or use empty array if none exist
+    const storedSolutions = localStorage.getItem('businessSolutions');
+    if (storedSolutions) {
+      try {
+        const parsedSolutions = JSON.parse(storedSolutions);
+        setAvailableSolutions(parsedSolutions);
+      } catch (error) {
+        console.error("Error parsing stored solutions:", error);
+        setAvailableSolutions([]);
+      }
+    } else {
+      // Fallback to example solutions only if no solutions exist in localStorage
+      const exampleSolutions: BusinessSolution[] = [
+        { 
+          id: "1", 
+          name: "Solution PME", 
+          description: "Solution complète pour les PME",
+          products: []
+        },
+        { 
+          id: "2", 
+          name: "Solution Hôtellerie", 
+          description: "Solution pour l'hôtellerie",
+          products: []
+        },
+        { 
+          id: "3", 
+          name: "Solution Santé", 
+          description: "Solution pour le secteur de la santé",
+          products: []
+        }
+      ];
+      setAvailableSolutions(exampleSolutions);
+      localStorage.setItem('businessSolutions', JSON.stringify(exampleSolutions));
+    }
+  }, []);
 
   const handleAddToSolution = () => {
     if (!selectedSolution) {
@@ -63,12 +107,47 @@ const ProductDetails = ({ product, onBack, onAddToOffer }: ProductDetailsProps) 
       return;
     }
 
-    // Here we would normally update state or call an API to add the product to the solution
-    const solutionName = availableSolutions.find(s => s.id === selectedSolution)?.name;
+    // Find the selected solution
+    const solutionIndex = availableSolutions.findIndex(s => s.id === selectedSolution);
+    if (solutionIndex === -1) return;
+    
+    const solution = availableSolutions[solutionIndex];
+    
+    // Check if product is already in the solution
+    if (solution.products.some(p => p.id === product.id)) {
+      toast({
+        variant: "destructive",
+        title: "Produit déjà ajouté",
+        description: `${name} est déjà présent dans cette solution.`
+      });
+      return;
+    }
+    
+    // Add product to solution
+    const updatedSolution = {
+      ...solution,
+      products: [
+        ...solution.products,
+        { 
+          id: product.id || 0, 
+          name: product.name,
+          category: product.category,
+          quantity: 1
+        }
+      ]
+    };
+    
+    // Update solutions array
+    const updatedSolutions = [...availableSolutions];
+    updatedSolutions[solutionIndex] = updatedSolution;
+    
+    // Save to localStorage
+    localStorage.setItem('businessSolutions', JSON.stringify(updatedSolutions));
+    setAvailableSolutions(updatedSolutions);
     
     toast({
       title: "Produit ajouté",
-      description: `${name} a été ajouté à la solution "${solutionName}"`
+      description: `${name} a été ajouté à la solution "${solution.name}"`
     });
     
     setIsAddToSolutionOpen(false);
@@ -193,11 +272,15 @@ const ProductDetails = ({ product, onBack, onAddToOffer }: ProductDetailsProps) 
                 <SelectValue placeholder="Sélectionner une solution métier" />
               </SelectTrigger>
               <SelectContent>
-                {availableSolutions.map(solution => (
-                  <SelectItem key={solution.id} value={solution.id}>
-                    {solution.name}
-                  </SelectItem>
-                ))}
+                {availableSolutions.length > 0 ? (
+                  availableSolutions.map(solution => (
+                    <SelectItem key={solution.id} value={solution.id}>
+                      {solution.name}
+                    </SelectItem>
+                  ))
+                ) : (
+                  <SelectItem value="no-solutions">Aucune solution disponible</SelectItem>
+                )}
               </SelectContent>
             </Select>
           </div>

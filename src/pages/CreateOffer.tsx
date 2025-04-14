@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -97,6 +96,7 @@ const CreateOffer = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 6; // Increased to include solution selection
   const [searchTerm, setSearchTerm] = useState("");
+  const [availableSolutions, setAvailableSolutions] = useState<BusinessSolution[]>([]);
   const [offer, setOffer] = useState<Offer>({
     customer: {
       companyName: "",
@@ -120,46 +120,65 @@ const CreateOffer = () => {
     status: "draft",
   });
 
-  // Mock solutions - in a real app, this would come from an API or context
-  const availableSolutions: BusinessSolution[] = [
-    {
-      id: "1",
-      name: "Solution PME",
-      description: "Solution complète pour les PME incluant téléphonie et internet.",
-      products: [
-        { id: 1, name: "UCaaS", category: "Téléphonie d'entreprise", quantity: 1 },
-        { id: 28, name: "Mikrotik", category: "Internet Très Haut Débit", quantity: 1 }
-      ]
-    },
-    {
-      id: "2",
-      name: "Solution Hôtellerie",
-      description: "Ensemble de produits adaptés au secteur de l'hôtellerie.",
-      products: [
-        { id: 22, name: "FTTO", category: "Internet Très Haut Débit", quantity: 1 },
-        { id: 38, name: "Fortigate", category: "Cybersécurité", quantity: 1 },
-        { id: 44, name: "WiFi", category: "Wi-Fi public & privé indoor outdoor", quantity: 1 }
-      ]
-    },
-    {
-      id: "3",
-      name: "Solution Santé",
-      description: "Produits adaptés aux besoins du secteur de la santé.",
-      products: [
-        { id: 1, name: "UCaaS", category: "Téléphonie d'entreprise", quantity: 1 },
-        { id: 42, name: "Bitdefender", category: "Cybersécurité", quantity: 1 }
-      ]
-    },
-    {
-      id: "4",
-      name: "Solution Éducation",
-      description: "Services et produits pour les établissements d'enseignement.",
-      products: [
-        { id: 22, name: "FTTO", category: "Internet Très Haut Débit", quantity: 1 },
-        { id: 44, name: "WiFi", category: "Wi-Fi public & privé indoor outdoor", quantity: 1 }
-      ]
+  useEffect(() => {
+    const storedSolutions = localStorage.getItem('businessSolutions');
+    if (storedSolutions) {
+      try {
+        const parsedSolutions = JSON.parse(storedSolutions);
+        setAvailableSolutions(parsedSolutions);
+      } catch (error) {
+        console.error("Error parsing stored solutions:", error);
+        
+        const fallbackSolutions: BusinessSolution[] = [
+          {
+            id: "1",
+            name: "Solution PME",
+            description: "Solution complète pour les PME incluant téléphonie et internet.",
+            products: [
+              { id: 1, name: "UCaaS", category: "Téléphonie d'entreprise", quantity: 1 },
+              { id: 28, name: "Mikrotik", category: "Internet Très Haut Débit", quantity: 1 }
+            ]
+          },
+          {
+            id: "2",
+            name: "Solution Hôtellerie",
+            description: "Ensemble de produits adaptés au secteur de l'hôtellerie.",
+            products: [
+              { id: 22, name: "FTTO", category: "Internet Très Haut Débit", quantity: 1 },
+              { id: 38, name: "Fortigate", category: "Cybersécurité", quantity: 1 }
+            ]
+          }
+        ];
+        
+        setAvailableSolutions(fallbackSolutions);
+        localStorage.setItem('businessSolutions', JSON.stringify(fallbackSolutions));
+      }
+    } else {
+      const defaultSolutions: BusinessSolution[] = [
+        {
+          id: "1",
+          name: "Solution PME",
+          description: "Solution complète pour les PME incluant téléphonie et internet.",
+          products: [
+            { id: 1, name: "UCaaS", category: "Téléphonie d'entreprise", quantity: 1 },
+            { id: 28, name: "Mikrotik", category: "Internet Très Haut Débit", quantity: 1 }
+          ]
+        },
+        {
+          id: "2",
+          name: "Solution Hôtellerie",
+          description: "Ensemble de produits adaptés au secteur de l'hôtellerie.",
+          products: [
+            { id: 22, name: "FTTO", category: "Internet Très Haut Débit", quantity: 1 },
+            { id: 38, name: "Fortigate", category: "Cybersécurité", quantity: 1 }
+          ]
+        }
+      ];
+      
+      setAvailableSolutions(defaultSolutions);
+      localStorage.setItem('businessSolutions', JSON.stringify(defaultSolutions));
     }
-  ];
+  }, []);
 
   const goToPreviousStep = () => {
     if (currentStep > 1) {
@@ -208,7 +227,6 @@ const CreateOffer = () => {
   const addProduct = (productId: number) => {
     const productToAdd = products.find(p => p.id === productId);
     if (productToAdd) {
-      // Check if product already exists in the offer
       if (!offer.products.some(p => p.id === productId)) {
         const newProduct: OfferProduct = {
           id: productToAdd.id,
@@ -305,14 +323,12 @@ const CreateOffer = () => {
 
   const downloadOffer = () => {
     import('html2pdf.js').then(html2pdf => {
-      // Create a PDF-friendly container
       const pdfContainer = document.createElement('div');
       pdfContainer.className = 'pdf-container';
-      pdfContainer.style.width = '210mm'; // A4 width
+      pdfContainer.style.width = '210mm';
       pdfContainer.style.padding = '15mm';
       pdfContainer.style.fontFamily = 'Arial, sans-serif';
       
-      // Add company info header
       const header = document.createElement('div');
       header.style.borderBottom = '1px solid #ddd';
       header.style.paddingBottom = '10mm';
@@ -340,7 +356,6 @@ const CreateOffer = () => {
       header.appendChild(offerInfo);
       pdfContainer.appendChild(header);
       
-      // Client info section
       const clientSection = document.createElement('div');
       clientSection.style.marginBottom = '10mm';
       clientSection.style.padding = '5mm';
@@ -376,7 +391,6 @@ const CreateOffer = () => {
       
       pdfContainer.appendChild(clientSection);
       
-      // Needs section
       if (offer.needs.context || offer.needs.needs || offer.needs.constraints) {
         const needsSection = document.createElement('div');
         needsSection.style.marginBottom = '10mm';
@@ -393,7 +407,6 @@ const CreateOffer = () => {
         pdfContainer.appendChild(needsSection);
       }
       
-      // Products section
       if (offer.products.length > 0) {
         const productsSection = document.createElement('div');
         productsSection.style.marginBottom = '10mm';
@@ -460,7 +473,6 @@ const CreateOffer = () => {
         pdfContainer.appendChild(productsSection);
       }
       
-      // Footer section
       const footerSection = document.createElement('div');
       footerSection.style.marginTop = '15mm';
       footerSection.style.borderTop = '1px solid #ddd';
@@ -476,7 +488,6 @@ const CreateOffer = () => {
       
       pdfContainer.appendChild(footerSection);
       
-      // Generate PDF
       const pdfOptions = {
         margin: 0,
         filename: `Offre_${offer.customer.companyName || 'Client'}_${new Date().toLocaleDateString('fr-FR')}.pdf`,
@@ -505,7 +516,6 @@ const CreateOffer = () => {
     const solutionToAdd = availableSolutions.find(s => s.id === solutionId);
     if (!solutionToAdd) return;
 
-    // Check if solution already exists in the offer
     if (offer.solutions.some(s => s.id === solutionId)) {
       toast({
         title: "Solution déjà ajoutée",
@@ -515,13 +525,11 @@ const CreateOffer = () => {
       return;
     }
 
-    // Add solution to the offer
     setOffer({
       ...offer,
       solutions: [...offer.solutions, solutionToAdd]
     });
 
-    // Add the solution's products to the offer if they don't already exist
     const newProducts = solutionToAdd.products.filter(
       product => !offer.products.some(p => p.id === product.id)
     );
@@ -545,7 +553,6 @@ const CreateOffer = () => {
   };
 
   const removeSolution = (solutionId: string) => {
-    // Remove the solution
     setOffer({
       ...offer,
       solutions: offer.solutions.filter(s => s.id !== solutionId)
@@ -615,7 +622,6 @@ const CreateOffer = () => {
           ))}
         </div>
         
-        {/* Mobile stepper */}
         <div className="flex md:hidden justify-between items-center mb-8">
           <div className="flex items-center">
             <div
@@ -642,7 +648,6 @@ const CreateOffer = () => {
           </div>
         </div>
 
-        {/* Step 1: Customer Information */}
         {currentStep === 1 && (
           <Card>
             <CardHeader>
@@ -754,7 +759,6 @@ const CreateOffer = () => {
           </Card>
         )}
 
-        {/* Step 2: Needs Expression */}
         {currentStep === 2 && (
           <Card>
             <CardHeader>
@@ -824,7 +828,6 @@ const CreateOffer = () => {
           </Card>
         )}
 
-        {/* Step 3: Business Solutions */}
         {currentStep === 3 && (
           <Card>
             <CardHeader>
@@ -835,39 +838,44 @@ const CreateOffer = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {availableSolutions.map(solution => (
-                    <div 
-                      key={solution.id}
-                      className={`border rounded-lg p-4 hover:border-paritel-primary cursor-pointer transition-colors
-                        ${offer.solutions.some(s => s.id === solution.id) ? 'bg-paritel-accent/10 border-paritel-primary' : ''}
-                      `}
-                      onClick={() => offer.solutions.some(s => s.id === solution.id) 
-                        ? removeSolution(solution.id) 
-                        : addSolution(solution.id)
-                      }
-                    >
-                      <div className="flex justify-between items-start mb-2">
-                        <h3 className="font-medium">{solution.name}</h3>
-                        {offer.solutions.some(s => s.id === solution.id) ? (
-                          <div className="bg-paritel-primary text-white text-xs px-2 py-1 rounded">
-                            Sélectionnée
-                          </div>
-                        ) : null}
+                {availableSolutions.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-gray-500">Aucune solution métier disponible.</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {availableSolutions.map(solution => (
+                      <div 
+                        key={solution.id}
+                        className={`border rounded-lg p-4 hover:border-paritel-primary cursor-pointer transition-colors
+                          ${offer.solutions.some(s => s.id === solution.id) ? 'bg-paritel-accent/10 border-paritel-primary' : ''}
+                        `}
+                        onClick={() => offer.solutions.some(s => s.id === solution.id) 
+                          ? removeSolution(solution.id) 
+                          : addSolution(solution.id)
+                        }
+                      >
+                        <div className="flex justify-between items-start mb-2">
+                          <h3 className="font-medium">{solution.name}</h3>
+                          {offer.solutions.some(s => s.id === solution.id) ? (
+                            <div className="bg-paritel-primary text-white text-xs px-2 py-1 rounded">
+                              Sélectionnée
+                            </div>
+                          ) : null}
+                        </div>
+                        <p className="text-sm text-gray-600 mb-2">{solution.description}</p>
+                        <div className="text-xs text-gray-500">
+                          {solution.products.length} produit{solution.products.length > 1 ? 's' : ''}
+                        </div>
                       </div>
-                      <p className="text-sm text-gray-600 mb-2">{solution.description}</p>
-                      <div className="text-xs text-gray-500">
-                        {solution.products.length} produit{solution.products.length > 1 ? 's' : ''}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
         )}
 
-        {/* Navigation Buttons */}
         <div className="flex justify-between mt-8">
           {currentStep > 1 ? (
             <Button

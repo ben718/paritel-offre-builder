@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,6 +14,7 @@ import {
 import { X, Check, Upload, Plus, Trash2 } from "lucide-react";
 import { DialogFooter } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/components/ui/use-toast";
 
 type ProductItem = {
   id: number;
@@ -22,7 +23,7 @@ type ProductItem = {
 }
 
 type SolutionProps = {
-  id: number;
+  id: string;
   name: string;
   description: string;
   industry: string;
@@ -44,8 +45,10 @@ const SolutionForm = ({
   onCancel,
   availableProducts 
 }: SolutionFormProps) => {
+  const { toast } = useToast();
   const [formData, setFormData] = useState<Partial<SolutionProps>>(
     solution || {
+      id: Date.now().toString(),
       name: "",
       description: "",
       industry: "Entreprise",
@@ -92,6 +95,17 @@ const SolutionForm = ({
             ...formData,
             products: [...(formData.products || []), product]
           });
+          
+          toast({
+            title: "Produit ajouté",
+            description: `${product.name} a été ajouté à la solution`
+          });
+        } else {
+          toast({
+            title: "Produit déjà présent",
+            description: "Ce produit est déjà dans la solution",
+            variant: "destructive"
+          });
         }
         setSelectedProductId("");
       }
@@ -109,6 +123,30 @@ const SolutionForm = ({
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Make sure the solution has an ID
+    if (!formData.id) {
+      formData.id = Date.now().toString();
+    }
+    
+    // Save to localStorage
+    const existingSolutions = JSON.parse(localStorage.getItem('businessSolutions') || '[]');
+    
+    // Check if we're updating an existing solution
+    if (solution?.id) {
+      const index = existingSolutions.findIndex((s: any) => s.id === solution.id);
+      if (index !== -1) {
+        existingSolutions[index] = formData;
+      } else {
+        existingSolutions.push(formData);
+      }
+    } else {
+      existingSolutions.push(formData);
+    }
+    
+    localStorage.setItem('businessSolutions', JSON.stringify(existingSolutions));
+    
+    // Call the original onSubmit
     onSubmit(formData);
   };
   

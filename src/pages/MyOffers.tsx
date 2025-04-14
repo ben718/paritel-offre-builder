@@ -50,58 +50,114 @@ const MyOffers = () => {
   const [filterStatus, setFilterStatus] = useState<string | null>(null);
   const [offers, setOffers] = useState<Offer[]>([]);
 
-  // Load mock offers on component mount
+  // Load offers on component mount
   useEffect(() => {
-    // In a real app, this would fetch from an API
-    const mockOffers: Offer[] = [
-      {
-        id: 1,
-        customerName: "Hotel de Paris",
-        customerType: "Hôtellerie",
-        date: "2025-03-15",
-        products: 3,
-        contactName: "Marc Dupont",
-        status: "sent"
-      },
-      {
-        id: 2,
-        customerName: "Clinique Saint-Martin",
-        customerType: "Santé",
-        date: "2025-03-10",
-        products: 5,
-        contactName: "Sophie Leblanc",
-        status: "in_progress"
-      },
-      {
-        id: 3,
-        customerName: "École Polytechnique",
-        customerType: "Éducation",
-        date: "2025-03-05",
-        products: 2,
-        contactName: "Jean Moreau",
-        status: "accepted"
-      },
-      {
-        id: 4,
-        customerName: "Cabinet d'avocats Martin",
-        customerType: "Entreprise",
-        date: "2025-02-28",
-        products: 4,
-        contactName: "Pierre Lefebvre",
-        status: "draft"
-      },
-      {
-        id: 5,
-        customerName: "Mairie de Lyon",
-        customerType: "Secteur Public",
-        date: "2025-02-20",
-        products: 6,
-        contactName: "Marie Dubois",
-        status: "rejected"
-      }
-    ];
+    // First try to load from localStorage
+    const storedOffers = localStorage.getItem('offers');
+    const storedDrafts = localStorage.getItem('offerDrafts');
     
-    setOffers(mockOffers);
+    let loadedOffers: Offer[] = [];
+    
+    // Process saved offers
+    if (storedOffers) {
+      try {
+        const parsedOffers = JSON.parse(storedOffers);
+        parsedOffers.forEach((offer: any) => {
+          loadedOffers.push({
+            id: offer.id,
+            customerName: offer.customer?.companyName || "Client sans nom",
+            customerType: offer.customer?.industry === "business" ? "Entreprise" : 
+                         offer.customer?.industry === "hotel" ? "Hôtellerie" :
+                         offer.customer?.industry === "health" ? "Santé" :
+                         offer.customer?.industry === "education" ? "Éducation" :
+                         offer.customer?.industry === "public" ? "Secteur Public" : "Autre",
+            date: new Date(offer.date).toISOString().split('T')[0],
+            products: offer.products?.length || 0,
+            contactName: offer.customer?.contactName || "Contact inconnu",
+            status: "sent" // Default status for finalized offers
+          });
+        });
+      } catch (error) {
+        console.error("Error loading offers:", error);
+      }
+    }
+    
+    // Process drafts
+    if (storedDrafts) {
+      try {
+        const parsedDrafts = JSON.parse(storedDrafts);
+        parsedDrafts.forEach((draft: any) => {
+          loadedOffers.push({
+            id: draft.id,
+            customerName: draft.customer?.companyName || "Brouillon",
+            customerType: draft.customer?.industry === "business" ? "Entreprise" : 
+                          draft.customer?.industry === "hotel" ? "Hôtellerie" :
+                          draft.customer?.industry === "health" ? "Santé" :
+                          draft.customer?.industry === "education" ? "Éducation" :
+                          draft.customer?.industry === "public" ? "Secteur Public" : "Autre",
+            date: new Date(draft.date).toISOString().split('T')[0],
+            products: draft.products?.length || 0,
+            contactName: draft.customer?.contactName || "Contact inconnu",
+            status: "draft"
+          });
+        });
+      } catch (error) {
+        console.error("Error loading drafts:", error);
+      }
+    }
+    
+    // If no offers were loaded from localStorage, use mock data
+    if (loadedOffers.length === 0) {
+      loadedOffers = [
+        {
+          id: 1,
+          customerName: "Hotel de Paris",
+          customerType: "Hôtellerie",
+          date: "2025-03-15",
+          products: 3,
+          contactName: "Marc Dupont",
+          status: "sent"
+        },
+        {
+          id: 2,
+          customerName: "Clinique Saint-Martin",
+          customerType: "Santé",
+          date: "2025-03-10",
+          products: 5,
+          contactName: "Sophie Leblanc",
+          status: "in_progress"
+        },
+        {
+          id: 3,
+          customerName: "École Polytechnique",
+          customerType: "Éducation",
+          date: "2025-03-05",
+          products: 2,
+          contactName: "Jean Moreau",
+          status: "accepted"
+        },
+        {
+          id: 4,
+          customerName: "Cabinet d'avocats Martin",
+          customerType: "Entreprise",
+          date: "2025-02-28",
+          products: 4,
+          contactName: "Pierre Lefebvre",
+          status: "draft"
+        },
+        {
+          id: 5,
+          customerName: "Mairie de Lyon",
+          customerType: "Secteur Public",
+          date: "2025-02-20",
+          products: 6,
+          contactName: "Marie Dubois",
+          status: "rejected"
+        }
+      ];
+    }
+    
+    setOffers(loadedOffers);
   }, []);
 
   // Filter offers based on search term and status filter
