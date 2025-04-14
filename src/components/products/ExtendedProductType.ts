@@ -9,6 +9,7 @@ export interface ComparisonProduct {
   specifications: Record<string, string | boolean>;
   features: string[];
   image?: string;
+  rating?: number; // Add the rating property
 }
 
 export const transformProductToComparisonProduct = (product: ProductCardProps): ComparisonProduct => {
@@ -31,6 +32,7 @@ export const transformProductToComparisonProduct = (product: ProductCardProps): 
       return acc;
     }, {}) || {},
     features: product.specs || [],
-    image: product.image
+    image: product.image,
+    rating: product.rating // Include the rating in the transformation
   };
 };
