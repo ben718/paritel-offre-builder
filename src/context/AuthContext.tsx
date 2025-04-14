@@ -43,6 +43,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     
     try {
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       // Mock auth check - would be replaced with actual API call
       if (email === 'admin@paritel.fr' && password === 'admin123') {
         const userData: User = {
@@ -53,6 +56,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
         
         localStorage.setItem('currentUser', JSON.stringify(userData));
+        localStorage.setItem('userRole', userData.role);
         setUser(userData);
         setIsLoading(false);
         return true;
@@ -65,6 +69,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
         
         localStorage.setItem('currentUser', JSON.stringify(userData));
+        localStorage.setItem('userRole', userData.role);
         setUser(userData);
         setIsLoading(false);
         return true;
@@ -77,6 +82,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
         
         localStorage.setItem('currentUser', JSON.stringify(userData));
+        localStorage.setItem('userRole', userData.role);
         setUser(userData);
         setIsLoading(false);
         return true;
@@ -94,6 +100,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Logout function
   const logout = () => {
     localStorage.removeItem('currentUser');
+    localStorage.removeItem('userRole');
+    localStorage.removeItem('authToken');
     setUser(null);
   };
 

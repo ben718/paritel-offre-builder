@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CustomLabel } from "@/components/ui/custom-label";
 import { Separator } from "@/components/ui/separator";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff, Lock, LogIn, Mail, ShieldCheck, User } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
@@ -16,6 +16,7 @@ const Login = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("login");
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Login form state
   const [loginData, setLoginData] = useState({
@@ -34,11 +35,19 @@ const Login = () => {
     agreeTerms: false
   });
   
-  const { login } = useAuth();
+  const { login, user, isAuthenticated } = useAuth();
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      navigate('/dashboard');
+    }
+  }, [isAuthenticated, user, navigate]);
 
   // Handle login form submission
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
     
     try {
       const success = await login(loginData.email, loginData.password);
@@ -50,7 +59,7 @@ const Login = () => {
         });
         
         // Redirect to dashboard
-        navigate("/");
+        navigate("/dashboard");
       } else {
         toast({
           title: "Échec de la connexion",
@@ -65,6 +74,8 @@ const Login = () => {
         description: "Une erreur est survenue lors de la connexion",
         variant: "destructive"
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
   
@@ -209,9 +220,19 @@ const Login = () => {
                     </label>
                   </div>
                   
-                  <Button type="submit" className="w-full bg-paritel-primary hover:bg-paritel-primary/90">
-                    <LogIn className="mr-2 h-4 w-4" />
-                    Se connecter
+                  <Button 
+                    type="submit" 
+                    className="w-full bg-paritel-primary hover:bg-paritel-primary/90"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <>Connexion en cours...</>
+                    ) : (
+                      <>
+                        <LogIn className="mr-2 h-4 w-4" />
+                        Se connecter
+                      </>
+                    )}
                   </Button>
                 </form>
               </TabsContent>
