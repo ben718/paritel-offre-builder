@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
@@ -857,3 +858,58 @@ const CreateOffer = () => {
                       <p className="text-sm text-gray-600 mb-2">{solution.description}</p>
                       <div className="text-xs text-gray-500">
                         {solution.products.length} produit{solution.products.length > 1 ? 's' : ''}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Navigation Buttons */}
+        <div className="flex justify-between mt-8">
+          {currentStep > 1 ? (
+            <Button
+              variant="outline"
+              onClick={goToPreviousStep}
+              className="flex items-center"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" /> Précédent
+            </Button>
+          ) : (
+            <div></div>
+          )}
+
+          {currentStep < totalSteps ? (
+            <Button
+              onClick={goToNextStep}
+              className="bg-paritel-primary hover:bg-paritel-dark flex items-center"
+            >
+              Suivant <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+          ) : (
+            <div className="flex space-x-2">
+              <Button
+                variant="default"
+                onClick={finalizOffer}
+                className="bg-paritel-primary hover:bg-paritel-dark flex items-center"
+              >
+                <FileCheck className="w-4 h-4 mr-2" /> Finaliser l'offre
+              </Button>
+              <Button
+                variant="outline"
+                onClick={downloadOffer}
+                className="flex items-center"
+              >
+                <Download className="w-4 h-4 mr-2" /> Télécharger PDF
+              </Button>
+            </div>
+          )}
+        </div>
+      </div>
+    </MainLayout>
+  );
+};
+
+export default CreateOffer;
