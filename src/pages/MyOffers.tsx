@@ -217,7 +217,10 @@ const MyOffers = () => {
           </div>
           
           <div className="flex-shrink-0 w-full sm:w-auto">
-            <Select value={filterStatus || ""} onValueChange={(value) => setFilterStatus(value === "" ? null : value as OfferStatus)}>
+            <Select 
+              value={filterStatus || "all"} 
+              onValueChange={(value) => setFilterStatus(value === "all" ? null : value as OfferStatus)}
+            >
               <SelectTrigger className="w-full sm:w-[200px]">
                 <div className="flex items-center">
                   <Filter className="h-4 w-4 mr-2" />
@@ -225,7 +228,7 @@ const MyOffers = () => {
                 </div>
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Tous les statuts</SelectItem>
+                <SelectItem value="all">Tous les statuts</SelectItem>
                 {Object.entries(statusLabels).map(([key, { label }]) => (
                   <SelectItem key={key} value={key}>{label}</SelectItem>
                 ))}
