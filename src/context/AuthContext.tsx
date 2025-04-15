@@ -23,6 +23,7 @@ interface AuthContextType {
   isAdmin: boolean;
   isSuperAdmin: boolean;
   isLoading: boolean;
+  isReady: boolean;
   checkRouteAccess: (allowedRoles: string[]) => boolean;
 }
 
@@ -35,9 +36,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isProfileLoading, setIsProfileLoading] = useState(true); // new state to track profile loading
+  const [isProfileLoading, setIsProfileLoading] = useState(true);
   const navigate = useNavigate();
-  const { toast } = useToast(); // Assurez-vous d'avoir un hook pour afficher les toasts
+  const { toast } = useToast();
 
   const fetchUserProfile = async (user: User | null) => {
     if (!user) return;
@@ -45,20 +46,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsProfileLoading(true);
 
     try {
-      // Récupération des données du profil utilisateur
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('id, email, full_name, avatar_url')
         .eq('id', user.id)
         .single();
 
-      // Récupération des rôles de l'utilisateur
       const { data: rolesData, error: rolesError } = await supabase
         .from('user_roles')
         .select('role')
         .eq('user_id', user.id);
 
-      // Gérer les erreurs de récupération de profil ou de rôles
       if (profileError || rolesError) {
         console.error('Erreur lors de la récupération du profil ou des rôles', profileError || rolesError);
         toast({
@@ -119,7 +117,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return false;
       }
 
-      // user & profile will be updated by auth listener
       return true;
     } catch (error) {
       console.error('Login error:', error);
@@ -145,9 +142,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const checkRouteAccess = (allowedRoles: string[]): boolean => {
-    if (!userProfile) return false;
+    if (!userProfile || !userProfile.roles) return false;
     return userProfile.roles.some((role) => allowedRoles.includes(role));
   };
+
+  const isReady = !isLoading && !isProfileLoading;
 
   return (
     <AuthContext.Provider
@@ -161,6 +160,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isAdmin: userProfile?.roles.includes('admin') || false,
         isSuperAdmin: userProfile?.roles.includes('superadmin') || false,
         isLoading,
+        isReady,
         checkRouteAccess,
       }}
     >
