@@ -26,6 +26,7 @@ export class OfferService {
       .from('offers')
       .select(`
         id,
+        customer_id,
         status,
         created_at,
         notes,
@@ -64,6 +65,7 @@ export class OfferService {
       .from('offers')
       .select(`
         id,
+        customer_id,
         status,
         created_at,
         notes,
