@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -22,7 +21,7 @@ import {
 import { useAuth } from '@/context/AuthContext';
 
 const UserMenu = () => {
-  const { user, logout, isAdmin, isSuperAdmin } = useAuth();
+  const { userProfile, logout, isAdmin, isSuperAdmin } = useAuth();
   const navigate = useNavigate();
   
   const handleLogout = () => {
@@ -34,7 +33,7 @@ const UserMenu = () => {
     navigate(path);
   };
   
-  if (!user) {
+  if (!userProfile) {
     return (
       <button
         className="flex items-center p-1 text-gray-600 hover:text-paritel-primary"
@@ -44,14 +43,16 @@ const UserMenu = () => {
       </button>
     );
   }
-  
-  const initials = user.name
-    .split(' ')
-    .map(n => n[0])
-    .join('')
-    .toUpperCase()
-    .substring(0, 2);
-  
+
+  const initials = userProfile.full_name
+    ? userProfile.full_name
+        .split(' ')
+        .map(n => n[0])
+        .join('')
+        .toUpperCase()
+        .substring(0, 2)
+    : userProfile.email[0]?.toUpperCase();
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -64,9 +65,11 @@ const UserMenu = () => {
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{user.name}</p>
+            <p className="text-sm font-medium leading-none">
+              {userProfile.full_name || userProfile.email}
+            </p>
             <p className="text-xs leading-none text-muted-foreground">
-              {user.email}
+              {userProfile.email}
             </p>
           </div>
         </DropdownMenuLabel>
