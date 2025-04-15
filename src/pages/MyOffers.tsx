@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
@@ -19,20 +20,11 @@ import {
   DropdownMenuItem, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { OfferService } from "@/services/OfferService";
+import type { Database } from "@/integrations/supabase/types";
 
-type OfferStatus = "draft" | "sent" | "in_progress" | "accepted" | "rejected" | "expired";
-
-type Offer = {
-  id: string;
-  customer_name: string;
-  customer_type: string;
-  date: string;
-  products: number;
-  contact_name: string;
-  status: OfferStatus;
-};
+type OfferStatus = Database["public"]["Enums"]["offer_status"];
 
 const statusLabels: Record<OfferStatus, { label: string; color: string }> = {
   draft: { label: "Brouillon", color: "bg-gray-500" },
@@ -46,66 +38,51 @@ const statusLabels: Record<OfferStatus, { label: string; color: string }> = {
 const MyOffers = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<string | null>(null);
 
-  const { data: offers = [], isLoading } = useQuery({
+  // Mutation pour mettre à jour le statut de l'offre
+  const updateStatusMutation = useMutation({
+    mutationFn: ({offerId, newStatus}: {offerId: string, newStatus: OfferStatus}) => 
+      OfferService.updateOfferStatus(offerId, newStatus),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['offers'] });
+      toast({
+        title: "Statut mis à jour",
+        description: "Le statut de l'offre a été mis à jour avec succès.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Erreur",
+        description: "Impossible de mettre à jour le statut de l'offre.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const { data: allOffers = [], isLoading } = useQuery({
     queryKey: ['offers'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('offers')
-        .select(`
-          id,
-          status,
-          created_at,
-          customers (
-            company_name,
-            industry,
-            contact_name
-          ),
-          offer_products (
-            id
-          )
-        `);
-
-      if (error) {
-        throw error;
-      }
-
-      return data.map((offer: any) => ({
+      const offers = await OfferService.getAllOffers();
+      return offers.map(offer => ({
         id: offer.id,
-        customer_name: offer.customers.company_name,
-        customer_type: offer.customers.industry,
-        date: new Date(offer.created_at).toISOString().split('T')[0],
-        products: offer.offer_products.length,
-        contact_name: offer.customers.contact_name,
-        status: offer.status,
+        customer_name: offer.customer_name,
+        customer_type: offer.customer_industry,
+        date: offer.created_at,
+        products: 0, // Nous devrons faire une requête séparée pour compter les produits
+        contact_name: offer.contact_name,
+        status: offer.status as OfferStatus,
       }));
     }
   });
 
   const handleStatusChange = async (offerId: string, newStatus: OfferStatus) => {
-    const { error } = await supabase
-      .from('offers')
-      .update({ status: newStatus })
-      .eq('id', offerId);
-
-    if (error) {
-      toast({
-        title: "Erreur",
-        description: "Impossible de mettre à jour le statut de l'offre",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    toast({
-      title: "Statut mis à jour",
-      description: `L'offre a été marquée comme "${statusLabels[newStatus].label}"`,
-    });
+    updateStatusMutation.mutate({offerId, newStatus});
   };
 
-  const filteredOffers = offers.filter(offer => {
+  const filteredOffers = allOffers.filter(offer => {
     const matchesSearch = 
       searchTerm === "" || 
       offer.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -175,7 +152,11 @@ const MyOffers = () => {
             <CardTitle>Offres ({filteredOffers.length})</CardTitle>
           </CardHeader>
           <CardContent>
-            {filteredOffers.length === 0 ? (
+            {isLoading ? (
+              <div className="flex justify-center p-8">
+                <div className="animate-spin h-8 w-8 border-2 border-paritel-primary border-t-transparent rounded-full"></div>
+              </div>
+            ) : filteredOffers.length === 0 ? (
               <div className="text-center py-12">
                 <FileText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-700 mb-1">Aucune offre trouvée</h3>

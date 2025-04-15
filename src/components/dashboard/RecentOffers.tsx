@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, Building } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import type { Database } from "@/integrations/supabase/types";
+import { OfferService } from "@/services/OfferService";
 
 type OfferStatus = Database["public"]["Enums"]["offer_status"];
 
@@ -29,6 +29,8 @@ const getStatusColor = (status: OfferStatus) => {
     case "in_progress":
       return "bg-yellow-100 text-yellow-800";
     case "expired":
+      return "bg-gray-100 text-gray-800";
+    case "draft":
       return "bg-gray-100 text-gray-800";
     default:
       return "bg-yellow-100 text-yellow-800";
@@ -79,30 +81,15 @@ const OfferCard = ({ clientName, date, sector, status, offerId }: OfferCardProps
 const RecentOffers = () => {
   const navigate = useNavigate();
   
-  const { data: offers = [] } = useQuery({
+  const { data: offers = [], isLoading } = useQuery({
     queryKey: ['recent-offers'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('offers')
-        .select(`
-          id,
-          status,
-          created_at,
-          customers (
-            company_name,
-            industry
-          )
-        `)
-        .order('created_at', { ascending: false })
-        .limit(4);
-
-      if (error) throw error;
-      
-      return data.map((offer) => ({
+      const recentOffers = await OfferService.getRecentOffers(4);
+      return recentOffers.map(offer => ({
         id: offer.id,
-        clientName: offer.customers.company_name,
+        clientName: offer.customer_name,
         date: offer.created_at,
-        sector: offer.customers.industry,
+        sector: offer.customer_industry,
         status: offer.status,
       }));
     },
@@ -121,16 +108,26 @@ const RecentOffers = () => {
         </Button>
       </CardHeader>
       <CardContent>
-        {offers.map((offer) => (
-          <OfferCard
-            key={offer.id}
-            clientName={offer.clientName}
-            date={offer.date}
-            sector={offer.sector}
-            status={offer.status}
-            offerId={offer.id}
-          />
-        ))}
+        {isLoading ? (
+          <div className="flex justify-center p-4">
+            <div className="animate-spin h-5 w-5 border-2 border-paritel-primary border-t-transparent rounded-full"></div>
+          </div>
+        ) : offers.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            Aucune offre récente à afficher
+          </div>
+        ) : (
+          offers.map((offer) => (
+            <OfferCard
+              key={offer.id}
+              clientName={offer.clientName}
+              date={offer.date}
+              sector={offer.sector}
+              status={offer.status}
+              offerId={offer.id}
+            />
+          ))
+        )}
       </CardContent>
     </Card>
   );
