@@ -1,7 +1,7 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import type { ProductCardProps } from '@/components/products/ProductCard';
 import { v4 as uuidv4 } from 'uuid';
+import { useToast } from '@/hooks/use-toast'; // Assurez-vous d'avoir un hook pour afficher des toasts
 
 export class ProductService {
   static async getAllProducts(): Promise<ProductCardProps[]> {
@@ -28,6 +28,7 @@ export class ProductService {
   }
 
   static async saveProduct(product: Partial<ProductCardProps>): Promise<string | null> {
+    const { toast } = useToast();
     let imageUrl = product.image;
 
     if (typeof imageUrl === 'string' && imageUrl.startsWith('data:image')) {
@@ -40,6 +41,11 @@ export class ProductService {
 
       if (uploadError) {
         console.error('Error uploading image:', uploadError);
+        toast({
+          title: 'Erreur de téléchargement',
+          description: 'Une erreur est survenue lors du téléchargement de l\'image.',
+          variant: 'destructive',
+        });
         return null;
       }
 
@@ -62,6 +68,11 @@ export class ProductService {
 
     if (error) {
       console.error('Error saving product:', error);
+      toast({
+        title: 'Erreur de sauvegarde',
+        description: 'Une erreur est survenue lors de la sauvegarde du produit.',
+        variant: 'destructive',
+      });
       return null;
     }
 
@@ -69,6 +80,7 @@ export class ProductService {
   }
 
   static async updateProduct(id: number, product: Partial<ProductCardProps>): Promise<boolean> {
+    const { toast } = useToast();
     let imageUrl = product.image;
 
     if (typeof imageUrl === 'string' && imageUrl.startsWith('data:image')) {
@@ -81,6 +93,11 @@ export class ProductService {
 
       if (uploadError) {
         console.error('Error uploading image:', uploadError);
+        toast({
+          title: 'Erreur de téléchargement',
+          description: 'Une erreur est survenue lors du téléchargement de l\'image.',
+          variant: 'destructive',
+        });
         return false;
       }
 
@@ -106,6 +123,11 @@ export class ProductService {
 
     if (error) {
       console.error('Error updating product:', error);
+      toast({
+        title: 'Erreur de mise à jour',
+        description: 'Une erreur est survenue lors de la mise à jour du produit.',
+        variant: 'destructive',
+      });
       return false;
     }
 
@@ -113,6 +135,7 @@ export class ProductService {
   }
 
   static async deleteProduct(id: number): Promise<boolean> {
+    const { toast } = useToast();
     const { error } = await supabase
       .from('products')
       .delete()
@@ -120,6 +143,11 @@ export class ProductService {
 
     if (error) {
       console.error('Error deleting product:', error);
+      toast({
+        title: 'Erreur de suppression',
+        description: 'Une erreur est survenue lors de la suppression du produit.',
+        variant: 'destructive',
+      });
       return false;
     }
 
