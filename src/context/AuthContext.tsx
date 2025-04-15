@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react'; 
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
@@ -40,6 +40,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // Fetch user profile and roles
   const fetchUserProfile = async (user: User | null) => {
     if (!user) return;
 
@@ -67,7 +68,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
-      const roles = rolesData.map((r) => r.role);
+      const roles = (rolesData ?? []).map((r) => r.role);
       setUserProfile({ ...profile, roles });
     } catch (err) {
       console.error('Erreur lors de la récupération du profil utilisateur', err);
@@ -81,6 +82,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Effect to handle authentication state changes
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
@@ -89,6 +91,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       fetchUserProfile(session?.user ?? null);
     });
 
+    // Initial session check
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -101,6 +104,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
+  // Login method
   const login = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
     try {
@@ -117,6 +121,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return false;
       }
 
+      setIsLoading(false);
+      navigate('/dashboard'); // Rediriger après connexion réussie
       return true;
     } catch (error) {
       console.error('Login error:', error);
@@ -130,6 +136,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Logout method
   const logout = async () => {
     try {
       await supabase.auth.signOut();
@@ -141,6 +148,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Check if the user has access to a route based on roles
   const checkRouteAccess = (allowedRoles: string[]): boolean => {
     if (!userProfile || !userProfile.roles) return false;
     return userProfile.roles.some((role) => allowedRoles.includes(role));
