@@ -1,3 +1,34 @@
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { Session, User } from '@supabase/supabase-js';
+
+// ---- Interfaces ----
+interface UserProfile {
+  id: string;
+  email: string;
+  full_name: string;
+  avatar_url: string;
+  roles: string[];
+}
+
+interface AuthContextType {
+  user: User | null;
+  userProfile: UserProfile | null;
+  session: Session | null;
+  login: (email: string, password: string) => Promise<boolean>;
+  logout: () => Promise<void>;
+  isAuthenticated: boolean;
+  isAdmin: boolean;
+  isSuperAdmin: boolean;
+  isLoading: boolean;
+  checkRouteAccess: (allowedRoles: string[]) => boolean;
+}
+
+// ---- Context ----
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+// ---- Provider ----
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
@@ -5,7 +36,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Fetch profile & roles from Supabase
   const fetchUserProfile = async (user: User | null) => {
     if (!user) return;
 
@@ -27,33 +57,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       const roles = rolesData.map((r) => r.role);
-
-      setUserProfile({
-        ...profile,
-        roles,
-      });
+      setUserProfile({ ...profile, roles });
     } catch (err) {
       console.error('Failed to fetch profile', err);
     }
   };
 
-  // Auth state listener
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setIsLoading(false);
-
-        fetchUserProfile(session?.user ?? null);
-      }
-    );
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setIsLoading(false);
+      fetchUserProfile(session?.user ?? null);
+    });
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setIsLoading(false);
-
       fetchUserProfile(session?.user ?? null);
     });
 
@@ -65,10 +86,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
       if (error) {
         console.error('Login error:', error.message);
@@ -76,7 +94,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return false;
       }
 
-      // user & profile will be handled by listener
+      // user & profile will be updated by auth listener
       return true;
     } catch (error) {
       console.error('Login error:', error);
@@ -98,7 +116,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const checkRouteAccess = (allowedRoles: string[]): boolean => {
     if (!userProfile) return false;
-    return userProfile.roles.some((r) => allowedRoles.includes(r));
+    return userProfile.roles.some((role) => allowedRoles.includes(role));
   };
 
   return (
@@ -113,10 +131,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isAdmin: userProfile?.roles.includes('admin') || false,
         isSuperAdmin: userProfile?.roles.includes('superadmin') || false,
         isLoading,
-        checkRouteAccess
+        checkRouteAccess,
       }}
     >
       {children}
     </AuthContext.Provider>
   );
+};
+
+// ---- Hook ----
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 };
