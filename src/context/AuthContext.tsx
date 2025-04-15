@@ -35,33 +35,51 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isProfileLoading, setIsProfileLoading] = useState(true); // new state to track profile loading
   const navigate = useNavigate();
   const { toast } = useToast(); // Assurez-vous d'avoir un hook pour afficher les toasts
 
   const fetchUserProfile = async (user: User | null) => {
     if (!user) return;
 
+    setIsProfileLoading(true);
+
     try {
+      // Récupération des données du profil utilisateur
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('id, email, full_name, avatar_url')
         .eq('id', user.id)
         .single();
 
+      // Récupération des rôles de l'utilisateur
       const { data: rolesData, error: rolesError } = await supabase
         .from('user_roles')
         .select('role')
         .eq('user_id', user.id);
 
+      // Gérer les erreurs de récupération de profil ou de rôles
       if (profileError || rolesError) {
-        console.error('Profile or role fetch error', profileError || rolesError);
+        console.error('Erreur lors de la récupération du profil ou des rôles', profileError || rolesError);
+        toast({
+          title: 'Erreur de récupération du profil',
+          description: 'Une erreur est survenue lors de la récupération de votre profil.',
+          variant: 'destructive',
+        });
         return;
       }
 
       const roles = rolesData.map((r) => r.role);
       setUserProfile({ ...profile, roles });
     } catch (err) {
-      console.error('Failed to fetch profile', err);
+      console.error('Erreur lors de la récupération du profil utilisateur', err);
+      toast({
+        title: 'Erreur de récupération du profil',
+        description: 'Une erreur est survenue. Veuillez réessayer.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsProfileLoading(false);
     }
   };
 
