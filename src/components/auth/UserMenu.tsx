@@ -21,18 +21,21 @@ import {
 import { useAuth } from '@/context/AuthContext';
 
 const UserMenu = () => {
-  const { userProfile, logout, isAdmin, isSuperAdmin } = useAuth();
+  const { userProfile, logout } = useAuth();
   const navigate = useNavigate();
-  
+
+  // Helper function to check if the user has a certain role
+  const hasRole = (role: string) => userProfile?.roles.includes(role);
+
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
-  
+
   const handleNavigate = (path: string) => {
     navigate(path);
   };
-  
+
   if (!userProfile) {
     return (
       <button
@@ -83,7 +86,9 @@ const UserMenu = () => {
             <Settings className="mr-2 h-4 w-4" />
             <span>Paramètres</span>
           </DropdownMenuItem>
-          {isAdmin && (
+
+          {/* Conditional rendering based on roles */}
+          {hasRole('admin') && (
             <>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => handleNavigate('/users')}>
@@ -96,7 +101,8 @@ const UserMenu = () => {
               </DropdownMenuItem>
             </>
           )}
-          {isSuperAdmin && (
+
+          {hasRole('superadmin') && (
             <>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => handleNavigate('/site-builder')}>
