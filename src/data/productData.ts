@@ -1,5 +1,5 @@
 
-// This file will now be managed through the Supabase database
+// Les produits sont maintenant gérés via Supabase
 import { ProductCardProps } from "@/components/products/ProductCard";
 
 export const products: ProductCardProps[] = [];

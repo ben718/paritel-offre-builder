@@ -2,12 +2,13 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, Building, FileText } from "lucide-react";
+import { Calendar, Building } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import type { Database } from "@/integrations/supabase/types";
 
-type OfferStatus = "draft" | "sent" | "accepted" | "rejected";
+type OfferStatus = Database["public"]["Enums"]["offer_status"];
 
 type OfferCardProps = {
   clientName: string;
@@ -25,6 +26,10 @@ const getStatusColor = (status: OfferStatus) => {
       return "bg-green-100 text-green-800";
     case "rejected":
       return "bg-red-100 text-red-800";
+    case "in_progress":
+      return "bg-yellow-100 text-yellow-800";
+    case "expired":
+      return "bg-gray-100 text-gray-800";
     default:
       return "bg-yellow-100 text-yellow-800";
   }
@@ -72,6 +77,8 @@ const OfferCard = ({ clientName, date, sector, status, offerId }: OfferCardProps
 };
 
 const RecentOffers = () => {
+  const navigate = useNavigate();
+  
   const { data: offers = [] } = useQuery({
     queryKey: ['recent-offers'],
     queryFn: async () => {
@@ -91,7 +98,7 @@ const RecentOffers = () => {
 
       if (error) throw error;
       
-      return data.map((offer: any) => ({
+      return data.map((offer) => ({
         id: offer.id,
         clientName: offer.customers.company_name,
         date: offer.created_at,
@@ -120,7 +127,7 @@ const RecentOffers = () => {
             clientName={offer.clientName}
             date={offer.date}
             sector={offer.sector}
-            status={offer.status as OfferStatus}
+            status={offer.status}
             offerId={offer.id}
           />
         ))}
