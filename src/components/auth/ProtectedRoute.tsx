@@ -34,7 +34,7 @@ const ProtectedRoute = ({ children, allowedRoles = [] }: ProtectedRouteProps) =>
 
   if (allowedRoles.length > 0 && !hasRequiredRole()) {
     // Redirect to unauthorized page if the user doesn't have required roles
-    return <Navigate to="/unauthorized" state={{ from: location }} replace />;
+    return <Navigate to="/dashboard" state={{ from: location }} replace />;
   }
 
   return <>{children}</>;
