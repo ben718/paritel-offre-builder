@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
+import { useToast } from '@/hooks/use-toast';
 
 // ---- Interfaces ----
 interface UserProfile {
@@ -35,6 +36,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+  const { toast } = useToast(); // Assurez-vous d'avoir un hook pour afficher les toasts
 
   const fetchUserProfile = async (user: User | null) => {
     if (!user) return;
@@ -90,6 +92,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) {
         console.error('Login error:', error.message);
+        toast({
+          title: 'Erreur de connexion',
+          description: 'Email ou mot de passe incorrect.',
+          variant: 'destructive',
+        });
         setIsLoading(false);
         return false;
       }
@@ -98,6 +105,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return true;
     } catch (error) {
       console.error('Login error:', error);
+      toast({
+        title: 'Erreur de connexion',
+        description: 'Une erreur est survenue. Veuillez réessayer.',
+        variant: 'destructive',
+      });
       setIsLoading(false);
       return false;
     }
