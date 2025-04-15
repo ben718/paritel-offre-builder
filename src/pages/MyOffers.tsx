@@ -1,11 +1,9 @@
-
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Search, Plus, Filter, Building, Calendar, User, FileText, Download } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { useNavigate } from "react-router-dom";
 import {
   Select,
@@ -21,16 +19,18 @@ import {
   DropdownMenuItem, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 type OfferStatus = "draft" | "sent" | "in_progress" | "accepted" | "rejected" | "expired";
 
 type Offer = {
-  id: number;
-  customerName: string;
-  customerType: string;
+  id: string;
+  customer_name: string;
+  customer_type: string;
   date: string;
   products: number;
-  contactName: string;
+  contact_name: string;
   status: OfferStatus;
 };
 
@@ -48,124 +48,68 @@ const MyOffers = () => {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<string | null>(null);
-  const [offers, setOffers] = useState<Offer[]>([]);
 
-  // Load offers on component mount
-  useEffect(() => {
-    // First try to load from localStorage
-    const storedOffers = localStorage.getItem('offers');
-    const storedDrafts = localStorage.getItem('offerDrafts');
-    
-    let loadedOffers: Offer[] = [];
-    
-    // Process saved offers
-    if (storedOffers) {
-      try {
-        const parsedOffers = JSON.parse(storedOffers);
-        parsedOffers.forEach((offer: any) => {
-          loadedOffers.push({
-            id: offer.id,
-            customerName: offer.customer?.companyName || "Client sans nom",
-            customerType: offer.customer?.industry === "business" ? "Entreprise" : 
-                         offer.customer?.industry === "hotel" ? "Hôtellerie" :
-                         offer.customer?.industry === "health" ? "Santé" :
-                         offer.customer?.industry === "education" ? "Éducation" :
-                         offer.customer?.industry === "public" ? "Secteur Public" : "Autre",
-            date: new Date(offer.date).toISOString().split('T')[0],
-            products: offer.products?.length || 0,
-            contactName: offer.customer?.contactName || "Contact inconnu",
-            status: "sent" // Default status for finalized offers
-          });
-        });
-      } catch (error) {
-        console.error("Error loading offers:", error);
-      }
-    }
-    
-    // Process drafts
-    if (storedDrafts) {
-      try {
-        const parsedDrafts = JSON.parse(storedDrafts);
-        parsedDrafts.forEach((draft: any) => {
-          loadedOffers.push({
-            id: draft.id,
-            customerName: draft.customer?.companyName || "Brouillon",
-            customerType: draft.customer?.industry === "business" ? "Entreprise" : 
-                          draft.customer?.industry === "hotel" ? "Hôtellerie" :
-                          draft.customer?.industry === "health" ? "Santé" :
-                          draft.customer?.industry === "education" ? "Éducation" :
-                          draft.customer?.industry === "public" ? "Secteur Public" : "Autre",
-            date: new Date(draft.date).toISOString().split('T')[0],
-            products: draft.products?.length || 0,
-            contactName: draft.customer?.contactName || "Contact inconnu",
-            status: "draft"
-          });
-        });
-      } catch (error) {
-        console.error("Error loading drafts:", error);
-      }
-    }
-    
-    // If no offers were loaded from localStorage, use mock data
-    if (loadedOffers.length === 0) {
-      loadedOffers = [
-        {
-          id: 1,
-          customerName: "Hotel de Paris",
-          customerType: "Hôtellerie",
-          date: "2025-03-15",
-          products: 3,
-          contactName: "Marc Dupont",
-          status: "sent"
-        },
-        {
-          id: 2,
-          customerName: "Clinique Saint-Martin",
-          customerType: "Santé",
-          date: "2025-03-10",
-          products: 5,
-          contactName: "Sophie Leblanc",
-          status: "in_progress"
-        },
-        {
-          id: 3,
-          customerName: "École Polytechnique",
-          customerType: "Éducation",
-          date: "2025-03-05",
-          products: 2,
-          contactName: "Jean Moreau",
-          status: "accepted"
-        },
-        {
-          id: 4,
-          customerName: "Cabinet d'avocats Martin",
-          customerType: "Entreprise",
-          date: "2025-02-28",
-          products: 4,
-          contactName: "Pierre Lefebvre",
-          status: "draft"
-        },
-        {
-          id: 5,
-          customerName: "Mairie de Lyon",
-          customerType: "Secteur Public",
-          date: "2025-02-20",
-          products: 6,
-          contactName: "Marie Dubois",
-          status: "rejected"
-        }
-      ];
-    }
-    
-    setOffers(loadedOffers);
-  }, []);
+  const { data: offers = [], isLoading } = useQuery({
+    queryKey: ['offers'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('offers')
+        .select(`
+          id,
+          status,
+          created_at,
+          customers (
+            company_name,
+            industry,
+            contact_name
+          ),
+          offer_products (
+            id
+          )
+        `);
 
-  // Filter offers based on search term and status filter
+      if (error) {
+        throw error;
+      }
+
+      return data.map((offer: any) => ({
+        id: offer.id,
+        customer_name: offer.customers.company_name,
+        customer_type: offer.customers.industry,
+        date: new Date(offer.created_at).toISOString().split('T')[0],
+        products: offer.offer_products.length,
+        contact_name: offer.customers.contact_name,
+        status: offer.status,
+      }));
+    }
+  });
+
+  const handleStatusChange = async (offerId: string, newStatus: OfferStatus) => {
+    const { error } = await supabase
+      .from('offers')
+      .update({ status: newStatus })
+      .eq('id', offerId);
+
+    if (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de mettre à jour le statut de l'offre",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Statut mis à jour",
+      description: `L'offre a été marquée comme "${statusLabels[newStatus].label}"`,
+    });
+  };
+
   const filteredOffers = offers.filter(offer => {
     const matchesSearch = 
       searchTerm === "" || 
-      offer.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      offer.contactName.toLowerCase().includes(searchTerm.toLowerCase());
+      offer.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      offer.contact_name.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesFilter = 
       filterStatus === null || 
@@ -173,17 +117,6 @@ const MyOffers = () => {
     
     return matchesSearch && matchesFilter;
   });
-
-  const handleStatusChange = (offerId: number, newStatus: OfferStatus) => {
-    setOffers(offers.map(offer => 
-      offer.id === offerId ? { ...offer, status: newStatus } : offer
-    ));
-    
-    toast({
-      title: "Statut mis à jour",
-      description: `L'offre a été marquée comme "${statusLabels[newStatus].label}"`,
-    });
-  };
 
   return (
     <MainLayout>
@@ -281,8 +214,8 @@ const MyOffers = () => {
                           <div className="flex items-start">
                             <Building className="h-4 w-4 text-gray-400 mt-0.5 mr-2" />
                             <div>
-                              <div className="font-medium">{offer.customerName}</div>
-                              <div className="text-xs text-gray-500">{offer.customerType}</div>
+                              <div className="font-medium">{offer.customer_name}</div>
+                              <div className="text-xs text-gray-500">{offer.customer_type}</div>
                             </div>
                           </div>
                         </td>
@@ -295,7 +228,7 @@ const MyOffers = () => {
                         <td className="p-3">
                           <div className="flex items-center">
                             <User className="h-4 w-4 text-gray-400 mr-2" />
-                            <span>{offer.contactName}</span>
+                            <span>{offer.contact_name}</span>
                           </div>
                         </td>
                         <td className="p-3">

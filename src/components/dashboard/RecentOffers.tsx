@@ -3,31 +3,36 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, Building, FileText } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
-type OfferStatus = "Brouillon" | "Envoyée" | "Acceptée" | "Refusée";
+type OfferStatus = "draft" | "sent" | "accepted" | "rejected";
 
 type OfferCardProps = {
   clientName: string;
   date: string;
   sector: string;
   status: OfferStatus;
-  onClick?: () => void;
+  offerId: string;
 };
 
 const getStatusColor = (status: OfferStatus) => {
   switch (status) {
-    case "Envoyée":
+    case "sent":
       return "bg-blue-100 text-blue-800";
-    case "Acceptée":
+    case "accepted":
       return "bg-green-100 text-green-800";
-    case "Refusée":
+    case "rejected":
       return "bg-red-100 text-red-800";
     default:
       return "bg-yellow-100 text-yellow-800";
   }
 };
 
-const OfferCard = ({ clientName, date, sector, status, onClick }: OfferCardProps) => {
+const OfferCard = ({ clientName, date, sector, status, offerId }: OfferCardProps) => {
+  const navigate = useNavigate();
+  
   return (
     <div className="border border-gray-200 rounded-lg p-4 mb-4">
       <div className="flex flex-wrap items-center mb-2">
@@ -37,7 +42,7 @@ const OfferCard = ({ clientName, date, sector, status, onClick }: OfferCardProps
       <div className="flex flex-wrap items-center text-xs text-gray-500 mb-3">
         <div className="flex items-center mr-4 mb-1 sm:mb-0">
           <Calendar className="w-3 h-3 mr-1" />
-          {date}
+          {new Date(date).toLocaleDateString()}
         </div>
         <div className="flex items-center">
           <Building className="w-3 h-3 mr-1" />
@@ -45,10 +50,20 @@ const OfferCard = ({ clientName, date, sector, status, onClick }: OfferCardProps
         </div>
       </div>
       <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:justify-between">
-        <Button variant="outline" size="sm" className="w-full sm:w-auto">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="w-full sm:w-auto"
+          onClick={() => navigate(`/create-offer?edit=${offerId}`)}
+        >
           Détails
         </Button>
-        <Button variant="default" size="sm" className="bg-paritel-primary w-full sm:w-auto">
+        <Button 
+          variant="default" 
+          size="sm" 
+          className="bg-paritel-primary w-full sm:w-auto"
+          onClick={() => navigate(`/create-offer?edit=${offerId}`)}
+        >
           Modifier
         </Button>
       </div>
@@ -57,42 +72,44 @@ const OfferCard = ({ clientName, date, sector, status, onClick }: OfferCardProps
 };
 
 const RecentOffers = () => {
-  const offers = [
-    {
-      id: 1,
-      clientName: "Hôtel Le Majestic",
-      date: "15/04/2025",
-      sector: "Hôtellerie",
-      status: "Envoyée" as OfferStatus,
+  const { data: offers = [] } = useQuery({
+    queryKey: ['recent-offers'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('offers')
+        .select(`
+          id,
+          status,
+          created_at,
+          customers (
+            company_name,
+            industry
+          )
+        `)
+        .order('created_at', { ascending: false })
+        .limit(4);
+
+      if (error) throw error;
+      
+      return data.map((offer: any) => ({
+        id: offer.id,
+        clientName: offer.customers.company_name,
+        date: offer.created_at,
+        sector: offer.customers.industry,
+        status: offer.status,
+      }));
     },
-    {
-      id: 2,
-      clientName: "EPHAD Soleil",
-      date: "08/04/2025",
-      sector: "Santé",
-      status: "Brouillon" as OfferStatus,
-    },
-    {
-      id: 3,
-      clientName: "Cabinet Dupont & Associés",
-      date: "05/04/2025",
-      sector: "Services",
-      status: "Acceptée" as OfferStatus,
-    },
-    {
-      id: 4,
-      clientName: "Restaurant La Bonne Table",
-      date: "02/04/2025",
-      sector: "Restauration",
-      status: "Refusée" as OfferStatus,
-    },
-  ];
+  });
 
   return (
     <Card>
       <CardHeader className="pb-2 flex flex-row items-center justify-between">
         <CardTitle className="text-lg font-medium">Offres récentes</CardTitle>
-        <Button variant="link" className="text-paritel-primary">
+        <Button 
+          variant="link" 
+          className="text-paritel-primary"
+          onClick={() => navigate('/my-offers')}
+        >
           Voir tout <span className="ml-1">→</span>
         </Button>
       </CardHeader>
@@ -103,7 +120,8 @@ const RecentOffers = () => {
             clientName={offer.clientName}
             date={offer.date}
             sector={offer.sector}
-            status={offer.status}
+            status={offer.status as OfferStatus}
+            offerId={offer.id}
           />
         ))}
       </CardContent>
