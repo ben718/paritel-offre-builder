@@ -1,28 +1,31 @@
 
-import { createRoot } from 'react-dom/client'
-import { BrowserRouter } from 'react-router-dom';
-import App from './App.tsx'
-import './index.css'
-import { AuthProvider } from './context/AuthContext';
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { BrowserRouter as Router } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { AuthProvider } from './context/AuthContext';
+import App from './App';
+import './index.css';
 
-// Create a client with updated configuration
+// Create a client
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
+      refetchOnWindowFocus: false,
       staleTime: 5 * 60 * 1000, // 5 minutes
-      retry: 1,
-      refetchOnWindowFocus: false, // Disable refetching on window focus
+      retry: 1
     },
   },
 });
 
-createRoot(document.getElementById("root")!).render(
-  <BrowserRouter>
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <App />
-      </AuthProvider>
+      <Router>
+        <AuthProvider>
+          <App />
+        </AuthProvider>
+      </Router>
     </QueryClientProvider>
-  </BrowserRouter>
+  </React.StrictMode>
 );

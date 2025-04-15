@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -10,6 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff, Lock, LogIn, Mail, ShieldCheck, User } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 const Login = () => {
   const { toast } = useToast();
@@ -35,7 +35,7 @@ const Login = () => {
     agreeTerms: false
   });
   
-  const { login, user, isAuthenticated } = useAuth();
+  const { login, user, isAuthenticated, isLoading } = useAuth();
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -50,6 +50,7 @@ const Login = () => {
     setIsSubmitting(true);
     
     try {
+      console.log("Attempting login with:", loginData.email);
       const success = await login(loginData.email, loginData.password);
       
       if (success) {
@@ -80,8 +81,9 @@ const Login = () => {
   };
   
   // Handle register form submission
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
     
     // Validate passwords match
     if (registerData.password !== registerData.confirmPassword) {
@@ -90,17 +92,50 @@ const Login = () => {
         description: "Les mots de passe ne correspondent pas",
         variant: "destructive"
       });
+      setIsSubmitting(false);
       return;
     }
     
-    // Mock registration - in a real app, this would make an API call
-    toast({
-      title: "Inscription réussie",
-      description: "Votre compte a été créé et est en attente d'activation",
-    });
-    
-    // Switch to login tab
-    setActiveTab("login");
+    try {
+      // Register with Supabase Auth
+      const { data, error } = await supabase.auth.signUp({
+        email: registerData.email,
+        password: registerData.password,
+        options: {
+          data: {
+            full_name: registerData.name,
+            department: registerData.department
+          }
+        }
+      });
+      
+      if (error) {
+        console.error("Registration error:", error);
+        toast({
+          title: "Erreur d'inscription",
+          description: error.message,
+          variant: "destructive"
+        });
+      } else {
+        console.log("Registration successful:", data);
+        toast({
+          title: "Inscription réussie",
+          description: "Votre compte a été créé. Vous pouvez maintenant vous connecter.",
+        });
+        
+        // Switch to login tab
+        setActiveTab("login");
+      }
+    } catch (error) {
+      console.error("Registration error:", error);
+      toast({
+        title: "Erreur d'inscription",
+        description: "Une erreur est survenue lors de l'inscription",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
   
   // Handle login input changes
