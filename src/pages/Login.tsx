@@ -51,7 +51,7 @@ const Login = () => {
 
     try {
       console.log("Attempting login with:", loginData.email);
-      
+
       // Call login function from AuthContext
       const success = await login(loginData.email, loginData.password);
 
@@ -247,7 +247,71 @@ const Login = () => {
 
               <TabsContent value="register">
                 {/* Registration form */}
-                {/* Similar to login but with registration-specific fields */}
+                <form onSubmit={handleRegister} className="space-y-4 pt-4">
+                  <div className="space-y-2">
+                    <CustomLabel htmlFor="name">Nom</CustomLabel>
+                    <Input
+                      id="name"
+                      name="name"
+                      value={registerData.name}
+                      onChange={handleRegisterChange}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <CustomLabel htmlFor="email">Email</CustomLabel>
+                    <Input
+                      id="email"
+                      name="email"
+                      type="email"
+                      value={registerData.email}
+                      onChange={handleRegisterChange}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <CustomLabel htmlFor="password">Mot de passe</CustomLabel>
+                    <Input
+                      id="password"
+                      name="password"
+                      type="password"
+                      value={registerData.password}
+                      onChange={handleRegisterChange}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <CustomLabel htmlFor="confirmPassword">Confirmer le mot de passe</CustomLabel>
+                    <Input
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      type="password"
+                      value={registerData.confirmPassword}
+                      onChange={handleRegisterChange}
+                      required
+                    />
+                  </div>
+
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="agreeTerms"
+                      name="agreeTerms"
+                      checked={registerData.agreeTerms}
+                      onChange={handleRegisterChange}
+                    />
+                    <label htmlFor="agreeTerms" className="ml-2 text-sm">
+                      J'accepte les termes et conditions
+                    </label>
+                  </div>
+
+                  <Button type="submit" className="w-full bg-paritel-primary hover:bg-paritel-primary/90" disabled={isSubmitting}>
+                    {isSubmitting ? <>Inscription en cours...</> : <>S'inscrire</>}
+                  </Button>
+                </form>
               </TabsContent>
             </Tabs>
           </CardContent>
