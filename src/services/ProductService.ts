@@ -1,10 +1,26 @@
-import { supabase } from '@/integrations/supabase/client';
-import type { ProductCardProps } from '@/components/products/ProductCard';
-import { v4 as uuidv4 } from 'uuid';
-import { useToast } from '@/hooks/use-toast'; // Assurez-vous d'avoir un hook pour afficher des toasts
 
-export class ProductService {
-  static async getAllProducts(): Promise<ProductCardProps[]> {
+import { supabase } from '@/integrations/supabase/client';
+import { v4 as uuidv4 } from 'uuid';
+import { ProductCardProps } from '@/components/products/ExtendedProductType';
+
+// Convert database product to ProductCardProps format
+const mapDbProductToProductCardProps = (dbProduct: any): ProductCardProps => {
+  return {
+    id: dbProduct.id,
+    name: dbProduct.name,
+    description: dbProduct.description || '',
+    image: dbProduct.image_url || '',
+    category: dbProduct.category,
+    subcategory: dbProduct.subcategory || '',
+    tags: dbProduct.tags || [],
+    partner: '',  // Default value as it might not be in the database
+    specs: dbProduct.specs ? Array.isArray(dbProduct.specs) ? dbProduct.specs : [dbProduct.specs] : [],
+  };
+};
+
+// Fetch products from Supabase
+export const fetchProducts = async (): Promise<ProductCardProps[]> => {
+  try {
     const { data, error } = await supabase
       .from('products')
       .select('*');
@@ -14,159 +30,135 @@ export class ProductService {
       return [];
     }
 
-    return data.map((product) => ({
-      id: parseInt(product.id),
-      name: product.name,
-      description: product.description || '',
-      image: product.image_url || '',
-      category: product.category,
-      subcategory: product.subcategory || '',
-      tags: product.tags || [],
-      partner: '',
-      specs: Array.isArray(product.specs) ? product.specs : []
-    }));
+    // Map database products to ProductCardProps format
+    return data.map(mapDbProductToProductCardProps);
+  } catch (error) {
+    console.error('Error fetching products:', error);
+    return [];
   }
+};
 
-  static async saveProduct(product: Partial<ProductCardProps>): Promise<string | null> {
-    const { toast } = useToast();
-    let imageUrl = product.image;
+// Create a new product in Supabase
+export const createProduct = async (product: Partial<ProductCardProps>, imageFile?: File): Promise<ProductCardProps | null> => {
+  try {
+    let imageUrl = product.image || '';
 
-    if (typeof imageUrl === 'string' && imageUrl.startsWith('data:image')) {
-      const imageId = uuidv4();
+    // Upload image if provided
+    if (imageFile) {
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('images')
-        .upload(`products/${imageId}`, this.convertBase64ToFile(imageUrl), {
-          contentType: this.getContentTypeFromBase64(imageUrl),
-        });
+        .upload(`products/${uuidv4()}`, imageFile);
 
       if (uploadError) {
         console.error('Error uploading image:', uploadError);
-        toast({
-          title: 'Erreur de téléchargement',
-          description: 'Une erreur est survenue lors du téléchargement de l\'image.',
-          variant: 'destructive',
-        });
-        return null;
+      } else if (uploadData) {
+        const { data: { publicUrl } } = supabase.storage
+          .from('images')
+          .getPublicUrl(uploadData.path);
+        
+        imageUrl = publicUrl;
       }
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('images')
-        .getPublicUrl(`products/${imageId}`);
-
-      imageUrl = publicUrl;
     }
 
-    const { data, error } = await supabase.from('products').insert({
+    // Prepare product data for database
+    const productData = {
       name: product.name,
       description: product.description,
       image_url: imageUrl,
       category: product.category,
       subcategory: product.subcategory,
       tags: product.tags,
-      specs: product.specs || []
-    }).select();
+      specs: product.specs
+    };
+
+    // Insert product into database
+    const { data, error } = await supabase
+      .from('products')
+      .insert(productData)
+      .select()
+      .single();
 
     if (error) {
-      console.error('Error saving product:', error);
-      toast({
-        title: 'Erreur de sauvegarde',
-        description: 'Une erreur est survenue lors de la sauvegarde du produit.',
-        variant: 'destructive',
-      });
+      console.error('Error creating product:', error);
       return null;
     }
 
-    return data[0].id;
+    return mapDbProductToProductCardProps(data);
+  } catch (error) {
+    console.error('Error creating product:', error);
+    return null;
   }
+};
 
-  static async updateProduct(id: number, product: Partial<ProductCardProps>): Promise<boolean> {
-    const { toast } = useToast();
-    let imageUrl = product.image;
+// Update an existing product in Supabase
+export const updateProduct = async (productId: string, product: Partial<ProductCardProps>, imageFile?: File): Promise<ProductCardProps | null> => {
+  try {
+    let imageUrl = product.image || '';
 
-    if (typeof imageUrl === 'string' && imageUrl.startsWith('data:image')) {
-      const imageId = uuidv4();
+    // Upload image if provided
+    if (imageFile) {
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('images')
-        .upload(`products/${imageId}`, this.convertBase64ToFile(imageUrl), {
-          contentType: this.getContentTypeFromBase64(imageUrl),
-        });
+        .upload(`products/${uuidv4()}`, imageFile);
 
       if (uploadError) {
         console.error('Error uploading image:', uploadError);
-        toast({
-          title: 'Erreur de téléchargement',
-          description: 'Une erreur est survenue lors du téléchargement de l\'image.',
-          variant: 'destructive',
-        });
-        return false;
+      } else if (uploadData) {
+        const { data: { publicUrl } } = supabase.storage
+          .from('images')
+          .getPublicUrl(uploadData.path);
+        
+        imageUrl = publicUrl;
       }
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('images')
-        .getPublicUrl(`products/${imageId}`);
-
-      imageUrl = publicUrl;
     }
 
-    const { error } = await supabase
+    // Prepare product data for database
+    const productData = {
+      name: product.name,
+      description: product.description,
+      image_url: imageUrl,
+      category: product.category,
+      subcategory: product.subcategory,
+      tags: product.tags,
+      specs: product.specs
+    };
+
+    // Update product in database
+    const { data, error } = await supabase
       .from('products')
-      .update({
-        name: product.name,
-        description: product.description,
-        image_url: imageUrl,
-        category: product.category,
-        subcategory: product.subcategory,
-        tags: product.tags,
-        specs: product.specs || []
-      })
-      .eq('id', id.toString());
+      .update(productData)
+      .eq('id', productId)
+      .select()
+      .single();
 
     if (error) {
       console.error('Error updating product:', error);
-      toast({
-        title: 'Erreur de mise à jour',
-        description: 'Une erreur est survenue lors de la mise à jour du produit.',
-        variant: 'destructive',
-      });
-      return false;
+      return null;
     }
 
-    return true;
+    return mapDbProductToProductCardProps(data);
+  } catch (error) {
+    console.error('Error updating product:', error);
+    return null;
   }
+};
 
-  static async deleteProduct(id: number): Promise<boolean> {
-    const { toast } = useToast();
+// Delete a product from Supabase
+export const deleteProduct = async (productId: string): Promise<boolean> => {
+  try {
     const { error } = await supabase
       .from('products')
       .delete()
-      .eq('id', id.toString());
+      .eq('id', productId);
 
     if (error) {
       console.error('Error deleting product:', error);
-      toast({
-        title: 'Erreur de suppression',
-        description: 'Une erreur est survenue lors de la suppression du produit.',
-        variant: 'destructive',
-      });
       return false;
     }
 
     return true;
+  } catch (error) {
+    console.error('Error deleting product:', error);
+    return false;
   }
-
-  private static convertBase64ToFile(base64String: string): Blob {
-    const arr = base64String.split(',');
-    const mime = arr[0].match(/:(.*?);/)?.[1] || 'image/jpeg';
-    const bstr = atob(arr[1]);
-    let n = bstr.length;
-    const u8arr = new Uint8Array(n);
-    while (n--) {
-      u8arr[n] = bstr.charCodeAt(n);
-    }
-    return new Blob([u8arr], { type: mime });
-  }
-
-  private static getContentTypeFromBase64(base64String: string): string {
-    return base64String.match(/:(.*?);/)?.[1] || 'image/jpeg';
-  }
-}
+};

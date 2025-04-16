@@ -1,5 +1,7 @@
+
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { Loader2 } from 'lucide-react';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -8,35 +10,35 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute = ({ children, allowedRoles = [] }: ProtectedRouteProps) => {
   const location = useLocation();
-  const { isAuthenticated, userProfile, isLoading } = useAuth();
+  const { isAuthenticated, isReady, checkRouteAccess } = useAuth();
   
-  // While authentication is being checked, show nothing
-  if (isLoading) {
-    return <div className="flex items-center justify-center min-h-screen">
-      <p>Chargement...</p>
-    </div>;
+  // Show loading indicator while auth state is being determined
+  if (!isReady) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="flex flex-col items-center space-y-4">
+          <Loader2 className="h-12 w-12 text-paritel-primary animate-spin" />
+          <p className="text-lg font-medium text-gray-700">Chargement de votre session...</p>
+        </div>
+      </div>
+    );
   }
 
-  // Check if user has required role(s)
-  const hasRequiredRole = (): boolean => {
-    if (!allowedRoles.length) return true; // Allow access if no roles are required
-    
-    if (!userProfile) return false; // If no userProfile, deny access
-
-    // Check if the user has any of the allowed roles
-    return allowedRoles.some(role => userProfile.roles.includes(role));
-  };
-
+  // If not authenticated, redirect to login
   if (!isAuthenticated) {
-    // Redirect to login page with return url
+    console.log('Redirection vers la page de connexion - Utilisateur non authentifié');
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (allowedRoles.length > 0 && !hasRequiredRole()) {
-    // Redirect to unauthorized page if the user doesn't have required roles
+  // Check if the user has the required roles
+  const hasAccess = checkRouteAccess(allowedRoles);
+  
+  if (!hasAccess) {
+    console.log('Redirection vers la page non autorisée - Rôles insuffisants', { allowedRoles });
     return <Navigate to="/unauthorized" state={{ from: location }} replace />;
   }
 
+  // User is authenticated and has the required roles, render the protected content
   return <>{children}</>;
 };
 
