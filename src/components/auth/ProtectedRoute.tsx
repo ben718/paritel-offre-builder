@@ -24,18 +24,18 @@ const ProtectedRoute = ({ children, allowedRoles = [] }: ProtectedRouteProps) =>
     );
   }
 
-  // If not authenticated, redirect to login
+  // If not authenticated, redirect to login with current location
   if (!isAuthenticated) {
-    console.log('Redirection vers la page de connexion - Utilisateur non authentifié');
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    console.log('Redirection vers la page de connexion - Utilisateur non authentifié', { from: location.pathname });
+    return <Navigate to="/login" state={{ from: location.pathname }} replace />;
   }
 
   // Check if the user has the required roles
   const hasAccess = checkRouteAccess(allowedRoles);
   
   if (!hasAccess) {
-    console.log('Redirection vers la page non autorisée - Rôles insuffisants', { allowedRoles });
-    return <Navigate to="/unauthorized" state={{ from: location }} replace />;
+    console.log('Redirection vers la page non autorisée - Rôles insuffisants', { allowedRoles, from: location.pathname });
+    return <Navigate to="/unauthorized" replace />;
   }
 
   // User is authenticated and has the required roles, render the protected content
