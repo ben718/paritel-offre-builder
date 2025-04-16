@@ -1,7 +1,7 @@
 
 import { ProductCardProps } from "./ProductCard";
 
-export { ProductCardProps }; // Export this to make it available to other modules
+export type { ProductCardProps }; // Changed from export { ProductCardProps } to export type
 
 export interface ComparisonProduct {
   id: string;
