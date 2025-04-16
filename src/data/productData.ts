@@ -1,5 +1,5 @@
 
-import { ProductCardProps } from "@/components/products/ProductCard";
+import { ProductCardProps } from "@/components/products/ExtendedProductType";
 import { fetchProducts } from "@/services/ProductService";
 
 // Products are now managed via Supabase
