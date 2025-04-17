@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import { ShieldAlert, Home, LogOut } from "lucide-react";
+import { ShieldAlert, Home, LogOut, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const Unauthorized = () => {
@@ -23,6 +23,10 @@ const Unauthorized = () => {
       });
       navigate("/login");
     }
+  };
+
+  const refreshSession = () => {
+    window.location.reload();
   };
 
   return (
@@ -57,6 +61,15 @@ const Unauthorized = () => {
           >
             <Home className="mr-2 h-4 w-4" />
             Retour à l'accueil
+          </Button>
+          
+          <Button 
+            variant="outline" 
+            className="w-full sm:w-auto bg-blue-50 hover:bg-blue-100"
+            onClick={refreshSession}
+          >
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Actualiser la session
           </Button>
           
           <Button 
