@@ -38,22 +38,28 @@ const ProtectedRoute = ({ children, allowedRoles = [] }: ProtectedRouteProps) =>
     return <>{children}</>;
   }
 
-  // Vérifier directement si l'utilisateur a les rôles requis
+  // Vérifier si l'utilisateur a les rôles requis
   const userRoles = userProfile?.roles || [];
   console.log('Vérification des rôles:', { userRoles, allowedRoles });
   
-  // Ensure proper role comparison with detailed logging
   let hasAccess = false;
   
-  for (const userRole of userRoles) {
-    for (const allowedRole of allowedRoles) {
-      if (userRole.toLowerCase() === allowedRole.toLowerCase()) {
-        console.log(`Rôle correspondant trouvé: ${userRole} = ${allowedRole}`);
-        hasAccess = true;
-        break;
-      }
-    }
-    if (hasAccess) break;
+  // Convert all roles to lowercase for case-insensitive comparison
+  const normalizedUserRoles = userRoles.map(role => role.toLowerCase());
+  const normalizedAllowedRoles = allowedRoles.map(role => role.toLowerCase());
+  
+  console.log('Rôles normalisés:', { normalizedUserRoles, normalizedAllowedRoles });
+  
+  // Check if any user role matches any allowed role
+  hasAccess = normalizedUserRoles.some(userRole => 
+    normalizedAllowedRoles.includes(userRole)
+  );
+  
+  // Detailed role matching log
+  if (hasAccess) {
+    console.log('Accès autorisé: rôle correspondant trouvé');
+  } else {
+    console.log('Accès refusé: aucun rôle correspondant trouvé');
   }
   
   if (!hasAccess) {
