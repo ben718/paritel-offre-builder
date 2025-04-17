@@ -10,7 +10,7 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute = ({ children, allowedRoles = [] }: ProtectedRouteProps) => {
   const location = useLocation();
-  const { isAuthenticated, isReady, checkRouteAccess } = useAuth();
+  const { isAuthenticated, isReady, userProfile } = useAuth();
   
   // Show loading indicator while auth state is being determined
   if (!isReady) {
@@ -30,11 +30,23 @@ const ProtectedRoute = ({ children, allowedRoles = [] }: ProtectedRouteProps) =>
     return <Navigate to="/login" state={{ from: location.pathname }} replace />;
   }
 
-  // Check if the user has the required roles
-  const hasAccess = checkRouteAccess(allowedRoles);
+  // Si aucun rôle n'est requis, autoriser l'accès
+  if (!allowedRoles || allowedRoles.length === 0) {
+    return <>{children}</>;
+  }
+
+  // Vérifier directement si l'utilisateur a les rôles requis
+  const userRoles = userProfile?.roles || [];
+  console.log('Vérification des rôles:', { userRoles, allowedRoles });
+  
+  const hasAccess = userRoles.some(role => allowedRoles.includes(role));
   
   if (!hasAccess) {
-    console.log('Redirection vers la page non autorisée - Rôles insuffisants', { allowedRoles, from: location.pathname });
+    console.log('Redirection vers la page non autorisée - Rôles insuffisants', { 
+      userRoles, 
+      allowedRoles, 
+      from: location.pathname 
+    });
     return <Navigate to="/unauthorized" replace />;
   }
 
