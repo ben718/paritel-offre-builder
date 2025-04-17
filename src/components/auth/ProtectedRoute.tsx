@@ -30,8 +30,11 @@ const ProtectedRoute = ({ children, allowedRoles = [] }: ProtectedRouteProps) =>
     return <Navigate to="/login" state={{ from: location.pathname }} replace />;
   }
 
+  console.log('User profile in ProtectedRoute:', userProfile);
+  
   // Si aucun rôle n'est requis ou si la liste est vide, autoriser l'accès
   if (!allowedRoles || allowedRoles.length === 0) {
+    console.log('Aucun rôle requis, accès autorisé');
     return <>{children}</>;
   }
 
@@ -39,12 +42,19 @@ const ProtectedRoute = ({ children, allowedRoles = [] }: ProtectedRouteProps) =>
   const userRoles = userProfile?.roles || [];
   console.log('Vérification des rôles:', { userRoles, allowedRoles });
   
-  // Fix: Check each role properly, normalize case for comparison
-  const hasAccess = userRoles.some(userRole => 
-    allowedRoles.some(allowedRole => 
-      userRole.toLowerCase() === allowedRole.toLowerCase()
-    )
-  );
+  // Ensure proper role comparison with detailed logging
+  let hasAccess = false;
+  
+  for (const userRole of userRoles) {
+    for (const allowedRole of allowedRoles) {
+      if (userRole.toLowerCase() === allowedRole.toLowerCase()) {
+        console.log(`Rôle correspondant trouvé: ${userRole} = ${allowedRole}`);
+        hasAccess = true;
+        break;
+      }
+    }
+    if (hasAccess) break;
+  }
   
   if (!hasAccess) {
     console.log('Redirection vers la page non autorisée - Rôles insuffisants', { 
@@ -56,6 +66,7 @@ const ProtectedRoute = ({ children, allowedRoles = [] }: ProtectedRouteProps) =>
   }
 
   // User is authenticated and has the required roles, render the protected content
+  console.log('Accès autorisé pour l\'utilisateur avec les rôles:', userRoles);
   return <>{children}</>;
 };
 

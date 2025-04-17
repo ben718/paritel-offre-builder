@@ -7,6 +7,7 @@ export const products: ProductCardProps[] = [];
 
 // Helper function to load products
 export const loadProducts = async (): Promise<ProductCardProps[]> => {
+  console.log("Loading products from database...");
   return await fetchProducts();
 };
 

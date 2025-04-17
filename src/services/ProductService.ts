@@ -21,6 +21,7 @@ const mapDbProductToProductCardProps = (dbProduct: any): ProductCardProps => {
 // Fetch products from Supabase
 export const fetchProducts = async (): Promise<ProductCardProps[]> => {
   try {
+    console.log('Fetching products from database...');
     const { data, error } = await supabase
       .from('products')
       .select('*');
@@ -30,6 +31,8 @@ export const fetchProducts = async (): Promise<ProductCardProps[]> => {
       return [];
     }
 
+    console.log('Products fetched:', data.length);
+    
     // Map database products to ProductCardProps format
     return data.map(mapDbProductToProductCardProps);
   } catch (error) {
@@ -71,6 +74,8 @@ export const createProduct = async (product: Partial<ProductCardProps>, imageFil
       specs: product.specs
     };
 
+    console.log('Creating product in database:', productData);
+
     // Insert product into database
     const { data, error } = await supabase
       .from('products')
@@ -83,6 +88,7 @@ export const createProduct = async (product: Partial<ProductCardProps>, imageFil
       return null;
     }
 
+    console.log('Product created:', data);
     return mapDbProductToProductCardProps(data);
   } catch (error) {
     console.error('Error creating product:', error);
@@ -123,6 +129,8 @@ export const updateProduct = async (productId: string, product: Partial<ProductC
       specs: product.specs
     };
 
+    console.log('Updating product in database:', productId, productData);
+
     // Update product in database
     const { data, error } = await supabase
       .from('products')
@@ -136,6 +144,7 @@ export const updateProduct = async (productId: string, product: Partial<ProductC
       return null;
     }
 
+    console.log('Product updated:', data);
     return mapDbProductToProductCardProps(data);
   } catch (error) {
     console.error('Error updating product:', error);
@@ -146,6 +155,7 @@ export const updateProduct = async (productId: string, product: Partial<ProductC
 // Delete a product from Supabase
 export const deleteProduct = async (productId: string): Promise<boolean> => {
   try {
+    console.log('Deleting product from database:', productId);
     const { error } = await supabase
       .from('products')
       .delete()
@@ -156,6 +166,7 @@ export const deleteProduct = async (productId: string): Promise<boolean> => {
       return false;
     }
 
+    console.log('Product deleted successfully');
     return true;
   } catch (error) {
     console.error('Error deleting product:', error);

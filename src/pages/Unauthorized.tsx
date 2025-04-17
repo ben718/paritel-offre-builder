@@ -7,7 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 
 const Unauthorized = () => {
   const navigate = useNavigate();
-  const { logout, userProfile } = useAuth();
+  const { logout, userProfile, session } = useAuth();
   const { toast } = useToast();
 
   const handleLogout = async () => {
@@ -50,8 +50,15 @@ const Unauthorized = () => {
             <p className="text-sm">Nom: {userProfile.full_name || "Non défini"}</p>
             <p className="text-sm">Email: {userProfile.email}</p>
             <p className="text-sm">Rôles: {userProfile.roles?.join(", ") || "Aucun rôle défini"}</p>
+            <p className="text-sm">ID utilisateur: {userProfile.id}</p>
           </div>
         )}
+        
+        <div className="mt-2 p-3 bg-yellow-50 rounded-md">
+          <p className="text-sm font-medium">Informations de débogage:</p>
+          <p className="text-sm">Session active: {session ? "Oui" : "Non"}</p>
+          <p className="text-sm">Rôles détectés: {JSON.stringify(userProfile?.roles)}</p>
+        </div>
         
         <div className="pt-6 flex flex-col sm:flex-row gap-3 justify-center">
           <Button 
