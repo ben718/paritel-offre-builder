@@ -21,7 +21,7 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { OfferService } from "@/services/OfferService";
+import { getAllOffers, updateOfferStatus } from "@/services/OfferService"; // Fixed imports
 import type { Database } from "@/integrations/supabase/types";
 
 type OfferStatus = Database["public"]["Enums"]["offer_status"];
@@ -45,7 +45,7 @@ const MyOffers = () => {
   // Mutation pour mettre à jour le statut de l'offre
   const updateStatusMutation = useMutation({
     mutationFn: ({offerId, newStatus}: {offerId: string, newStatus: OfferStatus}) => 
-      OfferService.updateOfferStatus(offerId, newStatus),
+      updateOfferStatus(offerId, newStatus), // Fixed function call
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['offers'] });
       toast({
@@ -65,7 +65,7 @@ const MyOffers = () => {
   const { data: allOffers = [], isLoading } = useQuery({
     queryKey: ['offers'],
     queryFn: async () => {
-      const offers = await OfferService.getAllOffers();
+      const offers = await getAllOffers(); // Fixed function call
       return offers.map(offer => ({
         id: offer.id,
         customer_name: offer.customer_name,

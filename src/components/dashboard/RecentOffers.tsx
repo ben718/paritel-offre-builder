@@ -6,7 +6,7 @@ import { Calendar, Building } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import type { Database } from "@/integrations/supabase/types";
-import { OfferService } from "@/services/OfferService";
+import { getRecentOffers } from "@/services/OfferService"; // Fixed import
 
 type OfferStatus = Database["public"]["Enums"]["offer_status"];
 
@@ -84,7 +84,7 @@ const RecentOffers = () => {
   const { data: offers = [], isLoading } = useQuery({
     queryKey: ['recent-offers'],
     queryFn: async () => {
-      const recentOffers = await OfferService.getRecentOffers(4);
+      const recentOffers = await getRecentOffers(4); // Fixed function call
       return recentOffers.map(offer => ({
         id: offer.id,
         clientName: offer.customer_name,

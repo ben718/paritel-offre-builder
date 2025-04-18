@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import type { Database } from "@/integrations/supabase/types";
 
@@ -28,7 +27,7 @@ export type OfferProduct = {
   created_at: string;
 }
 
-// Récupérer toutes les offres
+// Export all functions individually
 export const getAllOffers = async (): Promise<Offer[]> => {
   try {
     const { data: userData } = await supabase.auth.getUser();
@@ -57,7 +56,6 @@ export const getAllOffers = async (): Promise<Offer[]> => {
   }
 };
 
-// Récupérer une offre par ID
 export const getOfferById = async (offerId: string): Promise<Offer | null> => {
   try {
     const { data, error } = await supabase
@@ -78,8 +76,8 @@ export const getOfferById = async (offerId: string): Promise<Offer | null> => {
   }
 };
 
-// Créer une nouvelle offre
-export const createOffer = async (offerData: Partial<Offer>): Promise<Offer | null> => {
+// Créer une nouvelle offre - FIX: Make customer_id required
+export const createOffer = async (offerData: Partial<Offer> & { customer_id: string }): Promise<Offer | null> => {
   try {
     const { data: userData } = await supabase.auth.getUser();
     const userId = userData.user?.id;
@@ -113,7 +111,6 @@ export const createOffer = async (offerData: Partial<Offer>): Promise<Offer | nu
   }
 };
 
-// Mettre à jour une offre existante
 export const updateOffer = async (offerId: string, offerData: Partial<Offer>): Promise<Offer | null> => {
   try {
     const { data, error } = await supabase
@@ -135,7 +132,6 @@ export const updateOffer = async (offerId: string, offerData: Partial<Offer>): P
   }
 };
 
-// Mettre à jour le statut d'une offre
 export const updateOfferStatus = async (offerId: string, status: OfferStatus): Promise<boolean> => {
   try {
     const { error } = await supabase
@@ -155,7 +151,6 @@ export const updateOfferStatus = async (offerId: string, status: OfferStatus): P
   }
 };
 
-// Supprimer une offre
 export const deleteOffer = async (offerId: string): Promise<boolean> => {
   try {
     const { error } = await supabase
@@ -175,7 +170,6 @@ export const deleteOffer = async (offerId: string): Promise<boolean> => {
   }
 };
 
-// Ajouter un produit à une offre
 export const addProductToOffer = async (offerId: string, productId: string, quantity: number, unitPrice?: number): Promise<OfferProduct | null> => {
   try {
     const offerProduct = {
@@ -203,7 +197,6 @@ export const addProductToOffer = async (offerId: string, productId: string, quan
   }
 };
 
-// Récupérer les produits d'une offre
 export const getOfferProducts = async (offerId: string): Promise<OfferProduct[]> => {
   try {
     const { data, error } = await supabase
@@ -223,7 +216,6 @@ export const getOfferProducts = async (offerId: string): Promise<OfferProduct[]>
   }
 };
 
-// Supprimer un produit d'une offre
 export const removeProductFromOffer = async (offerProductId: string): Promise<boolean> => {
   try {
     const { error } = await supabase
@@ -243,7 +235,6 @@ export const removeProductFromOffer = async (offerProductId: string): Promise<bo
   }
 };
 
-// Compter les produits dans une offre
 export const countOfferProducts = async (offerId: string): Promise<number> => {
   try {
     const { count, error } = await supabase
@@ -260,5 +251,35 @@ export const countOfferProducts = async (offerId: string): Promise<number> => {
   } catch (error) {
     console.error('Error in countOfferProducts:', error);
     return 0;
+  }
+};
+
+// For compatibility with existing code, export a function to get recent offers
+export const getRecentOffers = async (limit: number = 4): Promise<Offer[]> => {
+  try {
+    const { data: userData } = await supabase.auth.getUser();
+    const userId = userData.user?.id;
+    
+    if (!userId) {
+      console.error('User not authenticated');
+      return [];
+    }
+    
+    const { data, error } = await supabase
+      .from('offers')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .eq('created_by', userId)
+      .limit(limit);
+
+    if (error) {
+      console.error('Error fetching recent offers:', error);
+      return [];
+    }
+
+    return data || [];
+  } catch (error) {
+    console.error('Error in getRecentOffers:', error);
+    return [];
   }
 };

@@ -437,7 +437,7 @@ const Partners = () => {
   });
   
   const partners = partnersData.map(partner => ({
-    id: partner.id,
+    id: String(partner.id),
     name: partner.name,
     description: partner.description,
     type: (partner.industry || "Technologique") as PartnerType,

@@ -12,6 +12,7 @@ export type UserData = {
   last_login?: string;
   created_at?: string;
   updated_at?: string;
+  status?: string;  // Added status field
 }
 
 // Récupérer tous les utilisateurs
@@ -55,13 +56,10 @@ export const fetchUserById = async (userId: string): Promise<UserData | null> =>
   }
 };
 
-// Créer un nouvel utilisateur
-export const createUser = async (userData: Omit<UserData, 'id' | 'created_at' | 'updated_at'>): Promise<UserData | null> => {
+// Créer un nouvel utilisateur - FIX: Ensure ID is provided
+export const createUser = async (userData: Omit<UserData, 'created_at' | 'updated_at'> & { id: string }): Promise<UserData | null> => {
   try {
-    // Créer un nouvel utilisateur dans auth.users (nécessite des droits admin)
-    // Dans un environnement de production, cela devrait être fait via une fonction dédiée
-
-    // Ensuite, on insère les données utilisateur
+    // Insert user data with required id field
     const { data, error } = await supabase
       .from('app_users')
       .insert(userData)
@@ -126,9 +124,10 @@ export const deleteUser = async (userId: string): Promise<boolean> => {
 // Mettre à jour le statut d'un utilisateur (actif, inactif, en attente)
 export const updateUserStatus = async (userId: string, status: 'active' | 'inactive' | 'pending'): Promise<boolean> => {
   try {
+    // Update user with status field
     const { error } = await supabase
       .from('app_users')
-      .update({ status })
+      .update({ status }) // Status is now properly defined in UserData
       .eq('id', userId);
 
     if (error) {

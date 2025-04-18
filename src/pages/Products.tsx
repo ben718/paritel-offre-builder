@@ -5,11 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Search, Plus, Filter, X } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import ProductCard, { ProductCardProps } from "@/components/products/ProductCard";
+import { ProductCard } from "@/components/products/ProductCard";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import ProductDetails from "@/components/products/ProductDetails";
-import CategoryFilters from "@/components/products/CategoryFilters";
+import { CategoryFilters } from "@/components/products/CategoryFilters";
 import { useToast } from "@/components/ui/use-toast";
 import ProductForm from "@/components/products/ProductForm";
 import { Badge } from "@/components/ui/badge";
@@ -27,14 +27,13 @@ import {
 import { fetchProducts, createProduct, updateProduct, deleteProduct } from "@/services/ProductService";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
-// Fonction pour charger les produits avec React Query
 const loadProducts = async () => {
   return await fetchProducts();
 };
 
 const Products = () => {
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<ProductCardProps | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
@@ -50,7 +49,7 @@ const Products = () => {
   });
   
   const createProductMutation = useMutation({
-    mutationFn: (data: { formData: Partial<ProductCardProps>, imageFile?: File | null }) => 
+    mutationFn: (data: { formData: Partial<any>, imageFile?: File | null }) => 
       createProduct(data.formData, data.imageFile),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
@@ -71,7 +70,7 @@ const Products = () => {
   });
   
   const updateProductMutation = useMutation({
-    mutationFn: (data: { formData: Partial<ProductCardProps>, imageFile?: File | null }) => 
+    mutationFn: (data: { formData: Partial<any>, imageFile?: File | null }) => 
       updateProduct(String(data.formData.id), data.formData, data.imageFile),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
@@ -111,14 +110,12 @@ const Products = () => {
     }
   });
   
-  // Reset search and filters
   const resetFilters = () => {
     setSearchTerm("");
     setSelectedCategory(null);
     setSelectedSubcategory(null);
   };
   
-  // Filter products based on search term and category
   const filteredProducts = products.filter(product => {
     const matchesSearch = 
       searchTerm === "" ||
@@ -137,19 +134,19 @@ const Products = () => {
     return matchesSearch && matchesCategory && matchesSubcategory;
   });
   
-  const handleAddProduct = (formData: Partial<ProductCardProps>, imageFile?: File | null) => {
+  const handleAddProduct = (formData: Partial<any>, imageFile?: File | null) => {
     createProductMutation.mutate({ formData, imageFile });
   };
   
   const handleEditProduct = (id: string) => {
-    const product = products.find(p => p.id === id);
+    const product = products.find(p => String(p.id) === id);
     if (product) {
       setSelectedProduct(product);
       setIsEditDialogOpen(true);
     }
   };
   
-  const handleUpdateProduct = (formData: Partial<ProductCardProps>, imageFile?: File | null) => {
+  const handleUpdateProduct = (formData: Partial<any>, imageFile?: File | null) => {
     updateProductMutation.mutate({ formData, imageFile });
   };
   
@@ -158,7 +155,7 @@ const Products = () => {
   };
   
   const handleViewProductDetails = (id: string) => {
-    const product = products.find(p => p.id === id);
+    const product = products.find(p => String(p.id) === id);
     if (product) {
       setSelectedProduct(product);
       setIsDetailsDialogOpen(true);
@@ -229,15 +226,16 @@ const Products = () => {
                   <div className="animate-spin h-8 w-8 border-2 border-paritel-primary border-t-transparent rounded-full"></div>
                 </div>
               ) : error ? (
-                <div className="text-red-500">Error: {error.message}</div>
+                <div className="text-red-500">Error: {(error as Error).message}</div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                   {filteredProducts.map(product => (
                     <ProductCard
                       key={product.id}
                       {...product}
-                      onViewDetails={() => handleViewProductDetails(product.id)}
-                      onEdit={() => handleEditProduct(product.id)}
+                      onViewDetails={() => handleViewProductDetails(String(product.id))}
+                      onEdit={() => handleEditProduct(String(product.id))}
+                      onDelete={() => handleDeleteProduct(String(product.id))}
                     />
                   ))}
                 </div>
@@ -275,18 +273,6 @@ const Products = () => {
               <ProductDetails 
                 product={selectedProduct} 
                 onBack={() => setIsDetailsDialogOpen(false)}
-                onDelete={() => {
-                  if (selectedProduct.id) {
-                    handleDeleteProduct(selectedProduct.id);
-                    setIsDetailsDialogOpen(false);
-                  }
-                }}
-                onEdit={() => {
-                  if (selectedProduct.id) {
-                    handleEditProduct(selectedProduct.id);
-                    setIsDetailsDialogOpen(false);
-                  }
-                }}
               />
             )}
           </DialogContent>
