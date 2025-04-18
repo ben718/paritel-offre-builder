@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -54,11 +53,21 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { useToast } from "@/components/ui/use-toast";
+import { 
+  Partner, 
+  fetchPartners, 
+  createPartner, 
+  updatePartner, 
+  deletePartner,
+  fetchPartnerProducts
+} from "@/services/PartnerService";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 type PartnerType = "Fournisseur" | "Revendeur" | "Technologique" | "Stratégique";
 
 type PartnerCardProps = {
-  id: number;
+  id: string;
   name: string;
   description: string;
   type: PartnerType;
@@ -71,9 +80,9 @@ type PartnerCardProps = {
   };
   products: string[];
   featured?: boolean;
-  onEdit: (id: number) => void;
-  onDelete: (id: number) => void;
-  onViewDetails?: (id: number) => void;
+  onEdit: (id: string) => void;
+  onDelete: (id: string) => void;
+  onViewDetails?: (id: string) => void;
 };
 
 const PartnerCard = ({
@@ -211,7 +220,7 @@ const PartnerForm = ({
   onCancel 
 }: { 
   partner?: Partial<PartnerCardProps>, 
-  onSubmit: (data: Partial<PartnerCardProps>) => void,
+  onSubmit: (data: Partial<PartnerCardProps>, logoFile?: File | null) => void,
   onCancel: () => void
 }) => {
   const [formData, setFormData] = useState<Partial<PartnerCardProps>>(
@@ -230,6 +239,7 @@ const PartnerForm = ({
       featured: false
     }
   );
+  const [logoFile, setLogoFile] = useState<File | null>(null);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -257,9 +267,21 @@ const PartnerForm = ({
     setFormData({ ...formData, featured: e.target.checked });
   };
   
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setLogoFile(e.target.files[0]);
+      
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData({ ...formData, logo: reader.result as string });
+      };
+      reader.readAsDataURL(e.target.files[0]);
+    }
+  };
+  
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    onSubmit(formData, logoFile);
   };
   
   return (
@@ -402,136 +424,129 @@ const Partners = () => {
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
   const [selectedPartner, setSelectedPartner] = useState<PartnerCardProps | null>(null);
   const isMobile = useIsMobile();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   
-  const [partners, setPartners] = useState<PartnerCardProps[]>([
-    {
-      id: 1,
-      name: "Cisco Systems",
-      description: "Leader mondial des équipements réseau et de la cybersécurité pour les entreprises.",
-      type: "Technologique",
-      logo: "https://placehold.co/600x400/0057b8/ffffff?text=Cisco",
-      website: "https://www.cisco.com",
-      contact: {
-        email: "contact@cisco.com",
-        phone: "+33 1 23 45 67 89",
-        address: "Paris, France",
-      },
-      products: ["Routeurs", "Firewall", "Switching", "Sécurité"],
-      featured: true,
-      onEdit: () => {},
-      onDelete: () => {},
-    },
-    {
-      id: 2,
-      name: "Microsoft",
-      description: "Fournisseur de solutions cloud, de logiciels et de services pour les entreprises.",
-      type: "Stratégique",
-      logo: "https://placehold.co/600x400/00a4ef/ffffff?text=Microsoft",
-      website: "https://www.microsoft.com",
-      contact: {
-        email: "contact@microsoft.com",
-        phone: "+33 1 23 45 67 89",
-        address: "Paris, France",
-      },
-      products: ["Office 365", "Azure", "Teams", "Windows"],
-      featured: true,
-      onEdit: () => {},
-      onDelete: () => {},
-    },
-    {
-      id: 3,
-      name: "Orange Business Services",
-      description: "Opérateur télécom et fournisseur de services numériques pour les entreprises.",
-      type: "Fournisseur",
-      logo: "https://placehold.co/600x400/ff7900/ffffff?text=Orange",
-      website: "https://www.orange-business.com",
-      contact: {
-        email: "contact@orange.com",
-        phone: "+33 1 23 45 67 89",
-        address: "Paris, France",
-      },
-      products: ["Fibre optique", "VoIP", "Services Cloud", "IoT"],
-      featured: false,
-      onEdit: () => {},
-      onDelete: () => {},
-    },
-    {
-      id: 4,
-      name: "ASUS",
-      description: "Fabricant d'équipements informatiques, de smartphones et de solutions réseau.",
-      type: "Fournisseur",
-      logo: "https://placehold.co/600x400/000000/ffffff?text=ASUS",
-      website: "https://www.asus.com",
-      contact: {
-        email: "contact@asus.com",
-        phone: "+33 1 23 45 67 89",
-        address: "Paris, France",
-      },
-      products: ["Routeurs WiFi", "Ordinateurs", "Serveurs", "Moniteurs"],
-      featured: false,
-      onEdit: () => {},
-      onDelete: () => {},
-    },
-    {
-      id: 5,
-      name: "Dell Technologies",
-      description: "Fournisseur de solutions informatiques pour les entreprises et les particuliers.",
-      type: "Fournisseur",
-      logo: "https://placehold.co/600x400/007db8/ffffff?text=Dell",
-      website: "https://www.dell.com",
-      contact: {
-        email: "contact@dell.com",
-        phone: "+33 1 23 45 67 89",
-        address: "Paris, France",
-      },
-      products: ["Serveurs", "Stockage", "PCs", "Solutions Cloud"],
-      featured: false,
-      onEdit: () => {},
-      onDelete: () => {},
-    },
-    {
-      id: 6,
-      name: "ITS Group",
-      description: "Entreprise de services numériques spécialisée dans l'infrastructure IT et la cybersécurité.",
-      type: "Revendeur",
-      logo: "https://placehold.co/600x400/1a5336/ffffff?text=ITS+Group",
-      website: "https://www.itsgroup.com",
-      contact: {
-        email: "contact@itsgroup.com",
-        phone: "+33 1 23 45 67 89",
-        address: "Paris, France",
-      },
-      products: ["Services managés", "Cloud", "Infogérance", "Consulting"],
-      featured: false,
-      onEdit: () => {},
-      onDelete: () => {},
-    },
-  ]);
-  
-  const [editingPartner, setEditingPartner] = useState<Partial<PartnerCardProps> | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingPartner, setEditingPartner] = useState<Partial<PartnerCardProps> | null>(null);
   
-  // Set the edit and delete functions for each partner
-  const partnersWithCallbacks = partners.map(partner => ({
-    ...partner,
-    onEdit: (id: number) => handleEditPartner(id),
-    onDelete: (id: number) => handleDeletePartner(id)
+  const { data: partnersData = [], isLoading } = useQuery({
+    queryKey: ['partners'],
+    queryFn: fetchPartners
+  });
+  
+  const partners = partnersData.map(partner => ({
+    id: partner.id,
+    name: partner.name,
+    description: partner.description,
+    type: (partner.industry || "Technologique") as PartnerType,
+    logo: partner.logo_url || "https://placehold.co/400x200/e2e8f0/64748b?text=Logo",
+    website: partner.website_url || "#",
+    contact: {
+      email: "contact@" + partner.name.toLowerCase().replace(/\s+/g, '') + ".com",
+      phone: "+33 1 23 45 67 89",
+      address: "Paris, France",
+    },
+    products: [],
+    featured: partner.industry === "Stratégique",
+    onEdit: () => {},
+    onDelete: () => {},
+    onViewDetails: () => {}
   }));
   
-  const handleAddPartner = (data: Partial<PartnerCardProps>) => {
-    const newPartner = {
-      ...data,
-      id: partners.length > 0 ? Math.max(...partners.map(p => p.id)) + 1 : 1,
-      onEdit: () => {},
-      onDelete: () => {},
-    } as PartnerCardProps;
-    
-    setPartners([...partners, newPartner]);
-    setIsAddDialogOpen(false);
+  const createPartnerMutation = useMutation({
+    mutationFn: (data: { formData: Partial<PartnerCardProps>, logoFile?: File | null }) => {
+      return createPartner({
+        name: data.formData.name || "",
+        description: data.formData.description || "",
+        industry: data.formData.type,
+        website_url: data.formData.website,
+        logo_url: typeof data.formData.logo === 'string' && !data.formData.logo.startsWith('data:') 
+          ? data.formData.logo 
+          : null
+      }, data.logoFile);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['partners'] });
+      toast({
+        title: "Partenaire ajouté",
+        description: "Le partenaire a été ajouté avec succès.",
+      });
+      setIsAddDialogOpen(false);
+    },
+    onError: (error) => {
+      console.error('Error creating partner:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible d'ajouter le partenaire.",
+        variant: "destructive",
+      });
+    }
+  });
+  
+  const updatePartnerMutation = useMutation({
+    mutationFn: (data: { partnerId: string, formData: Partial<PartnerCardProps>, logoFile?: File | null }) => {
+      return updatePartner(data.partnerId, {
+        name: data.formData.name || "",
+        description: data.formData.description || "",
+        industry: data.formData.type,
+        website_url: data.formData.website,
+        logo_url: typeof data.formData.logo === 'string' && !data.formData.logo.startsWith('data:') 
+          ? data.formData.logo 
+          : null
+      }, data.logoFile);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['partners'] });
+      toast({
+        title: "Partenaire mis à jour",
+        description: "Le partenaire a été mis à jour avec succès.",
+      });
+      setIsEditDialogOpen(false);
+      setEditingPartner(null);
+    },
+    onError: (error) => {
+      console.error('Error updating partner:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de mettre à jour le partenaire.",
+        variant: "destructive",
+      });
+    }
+  });
+  
+  const deletePartnerMutation = useMutation({
+    mutationFn: (partnerId: string) => deletePartner(partnerId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['partners'] });
+      toast({
+        title: "Partenaire supprimé",
+        description: "Le partenaire a été supprimé avec succès.",
+      });
+    },
+    onError: (error) => {
+      console.error('Error deleting partner:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de supprimer le partenaire.",
+        variant: "destructive",
+      });
+    }
+  });
+  
+  const partnersWithCallbacks = partners.map(partner => ({
+    ...partner,
+    onEdit: (id: string) => handleEditPartner(id),
+    onDelete: (id: string) => handleDeletePartner(id),
+    onViewDetails: (id: string) => handleViewPartnerDetails(id)
+  }));
+  
+  const handleAddPartner = (formData: Partial<PartnerCardProps>, logoFile?: File | null) => {
+    createPartnerMutation.mutate({ formData, logoFile });
   };
   
-  const handleEditPartner = (id: number) => {
+  const handleEditPartner = (id: string) => {
     const partner = partners.find(p => p.id === id);
     if (partner) {
       setEditingPartner(partner);
@@ -539,31 +554,41 @@ const Partners = () => {
     }
   };
   
-  const handleUpdatePartner = (data: Partial<PartnerCardProps>) => {
-    setPartners(partners.map(partner => 
-      partner.id === data.id ? { ...partner, ...data } : partner
-    ));
-    setEditingPartner(null);
-    setIsEditDialogOpen(false);
-  };
-  
-  const handleDeletePartner = (id: number) => {
-    setPartners(partners.filter(partner => partner.id !== id));
-  };
-  
-  const handleViewPartnerDetails = (id: number) => {
-    const partner = partners.find(p => p.id === id);
-    if (partner) {
-      setSelectedPartner(partner);
-      setIsDetailsDialogOpen(true);
+  const handleUpdatePartner = (formData: Partial<PartnerCardProps>, logoFile?: File | null) => {
+    if (editingPartner && editingPartner.id) {
+      updatePartnerMutation.mutate({ 
+        partnerId: editingPartner.id,
+        formData,
+        logoFile
+      });
     }
   };
   
-  // Add view details callback to partners
-  const partnersWithViewDetails = partnersWithCallbacks.map(partner => ({
-    ...partner,
-    onViewDetails: handleViewPartnerDetails
-  }));
+  const handleDeletePartner = (id: string) => {
+    deletePartnerMutation.mutate(id);
+  };
+  
+  const handleViewPartnerDetails = async (id: string) => {
+    try {
+      const partner = partners.find(p => p.id === id);
+      if (partner) {
+        const products = await fetchPartnerProducts(id);
+        const partnerWithProducts = {
+          ...partner,
+          products: products.map(p => p.name)
+        };
+        setSelectedPartner(partnerWithProducts);
+        setIsDetailsDialogOpen(true);
+      }
+    } catch (error) {
+      console.error('Error fetching partner details:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de récupérer les détails du partenaire.",
+        variant: "destructive",
+      });
+    }
+  };
   
   return (
     <MainLayout>
@@ -631,14 +656,14 @@ const Partners = () => {
           </div>
           <TabsContent value="all" className="mt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {partnersWithViewDetails.map((partner) => (
+              {partnersWithCallbacks.map((partner) => (
                 <PartnerCard key={partner.id} {...partner} />
               ))}
             </div>
           </TabsContent>
           <TabsContent value="fournisseur" className="mt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {partnersWithViewDetails
+              {partnersWithCallbacks
                 .filter((p) => p.type === "Fournisseur")
                 .map((partner) => (
                   <PartnerCard key={partner.id} {...partner} />
@@ -647,7 +672,7 @@ const Partners = () => {
           </TabsContent>
           <TabsContent value="revendeur" className="mt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {partnersWithViewDetails
+              {partnersWithCallbacks
                 .filter((p) => p.type === "Revendeur")
                 .map((partner) => (
                   <PartnerCard key={partner.id} {...partner} />
@@ -656,7 +681,7 @@ const Partners = () => {
           </TabsContent>
           <TabsContent value="technologique" className="mt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {partnersWithViewDetails
+              {partnersWithCallbacks
                 .filter((p) => p.type === "Technologique")
                 .map((partner) => (
                   <PartnerCard key={partner.id} {...partner} />
@@ -665,7 +690,7 @@ const Partners = () => {
           </TabsContent>
           <TabsContent value="strategique" className="mt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {partnersWithViewDetails
+              {partnersWithCallbacks
                 .filter((p) => p.type === "Stratégique")
                 .map((partner) => (
                   <PartnerCard key={partner.id} {...partner} />
@@ -674,7 +699,7 @@ const Partners = () => {
           </TabsContent>
           <TabsContent value="premium" className="mt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {partnersWithViewDetails
+              {partnersWithCallbacks
                 .filter((p) => p.featured)
                 .map((partner) => (
                   <PartnerCard key={partner.id} {...partner} />
