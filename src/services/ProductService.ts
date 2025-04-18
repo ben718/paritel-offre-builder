@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { v4 as uuidv4 } from 'uuid';
 import { ProductCardProps } from '@/components/products/ProductCard';
@@ -42,7 +41,7 @@ export const fetchProducts = async (): Promise<ProductCardProps[]> => {
 };
 
 // Create a new product in Supabase
-export const createProduct = async (product: Partial<ProductCardProps>, imageFile?: File): Promise<ProductCardProps | null> => {
+export const createProduct = async (product: Partial<ProductCardProps>, imageFile?: File | null): Promise<ProductCardProps | null> => {
   try {
     let imageUrl = product.image || '';
 
@@ -97,7 +96,7 @@ export const createProduct = async (product: Partial<ProductCardProps>, imageFil
 };
 
 // Update an existing product in Supabase
-export const updateProduct = async (productId: string, product: Partial<ProductCardProps>, imageFile?: File): Promise<ProductCardProps | null> => {
+export const updateProduct = async (productId: string, product: Partial<ProductCardProps>, imageFile?: File | null): Promise<ProductCardProps | null> => {
   try {
     let imageUrl = product.image || '';
 

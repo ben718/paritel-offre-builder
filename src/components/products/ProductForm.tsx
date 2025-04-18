@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { ProductCardProps } from "./ProductCard";
 import { Button } from "@/components/ui/button";
@@ -20,7 +19,7 @@ import { useQuery } from "@tanstack/react-query";
 
 type ProductFormProps = {
   product?: Partial<ProductCardProps>;
-  onSubmit: (data: Partial<ProductCardProps>) => void;
+  onSubmit: (data: Partial<ProductCardProps>, imageFile?: File | null) => void;
   onCancel: () => void;
 };
 
@@ -196,8 +195,8 @@ const ProductForm = ({ product, onSubmit, onCancel }: ProductFormProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Pass the image file along with the form data
-    onSubmit({ ...formData, imageFile });
+    // Pass the image file as a separate parameter
+    onSubmit(formData, imageFile);
   };
   
   // Map category names to their display names for the dropdown

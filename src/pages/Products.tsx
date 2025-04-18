@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
@@ -46,15 +45,14 @@ const Products = () => {
   const isMobile = useIsMobile();
   const queryClient = useQueryClient();
   
-  // Fetch products using React Query
   const { data: products = [], isLoading, error } = useQuery({
     queryKey: ['products'],
     queryFn: loadProducts
   });
   
-  // Mutations for CRUD operations
   const createProductMutation = useMutation({
-    mutationFn: (data: Partial<ProductCardProps>) => createProduct(data),
+    mutationFn: (data: { formData: Partial<ProductCardProps>, imageFile?: File | null }) => 
+      createProduct(data.formData, data.imageFile),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
       toast({
@@ -73,8 +71,8 @@ const Products = () => {
   });
   
   const updateProductMutation = useMutation({
-    mutationFn: (data: Partial<ProductCardProps>) => 
-      updateProduct(data.id as string, data),
+    mutationFn: (data: { formData: Partial<ProductCardProps>, imageFile?: File | null }) => 
+      updateProduct(String(data.formData.id), data.formData, data.imageFile),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
       toast({
@@ -94,7 +92,7 @@ const Products = () => {
   });
   
   const deleteProductMutation = useMutation({
-    mutationFn: (id: string) => deleteProduct(id),
+    mutationFn: (id: number) => deleteProduct(String(id)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
       toast({
@@ -144,8 +142,8 @@ const Products = () => {
     return matchesSearch && matchesCategory && matchesSubcategory;
   });
   
-  const handleAddProduct = (data: Partial<ProductCardProps>) => {
-    createProductMutation.mutate(data);
+  const handleAddProduct = (formData: Partial<ProductCardProps>, imageFile?: File | null) => {
+    createProductMutation.mutate({ formData, imageFile });
   };
   
   const handleEditProduct = (id: number) => {
@@ -156,8 +154,8 @@ const Products = () => {
     }
   };
   
-  const handleUpdateProduct = (data: Partial<ProductCardProps>) => {
-    updateProductMutation.mutate(data);
+  const handleUpdateProduct = (formData: Partial<ProductCardProps>, imageFile?: File | null) => {
+    updateProductMutation.mutate({ formData, imageFile });
   };
   
   const handleDeleteProduct = (id: number) => {
