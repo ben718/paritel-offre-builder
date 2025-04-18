@@ -9,6 +9,78 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      app_users: {
+        Row: {
+          created_at: string | null
+          department: string | null
+          email: string
+          full_name: string
+          id: string
+          last_login: string | null
+          phone: string | null
+          position: string | null
+          role: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          department?: string | null
+          email: string
+          full_name: string
+          id: string
+          last_login?: string | null
+          phone?: string | null
+          position?: string | null
+          role: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          department?: string | null
+          email?: string
+          full_name?: string
+          id?: string
+          last_login?: string | null
+          phone?: string | null
+          position?: string | null
+          role?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      business_solutions: {
+        Row: {
+          created_at: string | null
+          description: string
+          id: string
+          image_url: string
+          industry: string
+          name: string
+          recommended: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          id?: string
+          image_url: string
+          industry: string
+          name: string
+          recommended?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          id?: string
+          image_url?: string
+          industry?: string
+          name?: string
+          recommended?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           created_at: string | null
@@ -43,38 +115,50 @@ export type Database = {
         Row: {
           address: string | null
           company_name: string
+          company_size: string | null
           contact_email: string | null
           contact_name: string | null
           contact_phone: string | null
           created_at: string
           created_by: string | null
+          creation_date: string | null
           id: string
           industry: Database["public"]["Enums"]["industry_type"]
+          logo_url: string | null
           updated_at: string
+          website: string | null
         }
         Insert: {
           address?: string | null
           company_name: string
+          company_size?: string | null
           contact_email?: string | null
           contact_name?: string | null
           contact_phone?: string | null
           created_at?: string
           created_by?: string | null
+          creation_date?: string | null
           id?: string
           industry?: Database["public"]["Enums"]["industry_type"]
+          logo_url?: string | null
           updated_at?: string
+          website?: string | null
         }
         Update: {
           address?: string | null
           company_name?: string
+          company_size?: string | null
           contact_email?: string | null
           contact_name?: string | null
           contact_phone?: string | null
           created_at?: string
           created_by?: string | null
+          creation_date?: string | null
           id?: string
           industry?: Database["public"]["Enums"]["industry_type"]
+          logo_url?: string | null
           updated_at?: string
+          website?: string | null
         }
         Relationships: []
       }
@@ -122,9 +206,12 @@ export type Database = {
       }
       offers: {
         Row: {
+          contact_name: string | null
           created_at: string
           created_by: string
           customer_id: string
+          customer_industry: string | null
+          customer_name: string | null
           id: string
           notes: string | null
           status: Database["public"]["Enums"]["offer_status"]
@@ -133,9 +220,12 @@ export type Database = {
           valid_until: string | null
         }
         Insert: {
+          contact_name?: string | null
           created_at?: string
           created_by: string
           customer_id: string
+          customer_industry?: string | null
+          customer_name?: string | null
           id?: string
           notes?: string | null
           status?: Database["public"]["Enums"]["offer_status"]
@@ -144,9 +234,12 @@ export type Database = {
           valid_until?: string | null
         }
         Update: {
+          contact_name?: string | null
           created_at?: string
           created_by?: string
           customer_id?: string
+          customer_industry?: string | null
+          customer_name?: string | null
           id?: string
           notes?: string | null
           status?: Database["public"]["Enums"]["offer_status"]
@@ -301,6 +394,75 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      reporting_data: {
+        Row: {
+          category: string
+          created_at: string | null
+          created_by: string | null
+          id: string
+          report_date: string
+          subcategory: string | null
+          unit: string | null
+          value: number
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          report_date: string
+          subcategory?: string | null
+          unit?: string | null
+          value: number
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          report_date?: string
+          subcategory?: string | null
+          unit?: string | null
+          value?: number
+        }
+        Relationships: []
+      }
+      solution_products: {
+        Row: {
+          created_at: string | null
+          id: string
+          product_id: string | null
+          solution_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          product_id?: string | null
+          solution_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          product_id?: string | null
+          solution_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "solution_products_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "solution_products_solution_id_fkey"
+            columns: ["solution_id"]
+            isOneToOne: false
+            referencedRelation: "business_solutions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       subcategories: {
         Row: {

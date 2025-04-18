@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,11 +14,11 @@ import { X, Check, Upload, Plus, Trash2 } from "lucide-react";
 import { DialogFooter } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
-import { loadProducts } from "@/data/productData";
 import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 type ProductItem = {
-  id: number;
+  id: string;
   name: string;
   category: string;
 }
@@ -30,7 +29,7 @@ type SolutionProps = {
   description: string;
   industry: string;
   products: ProductItem[];
-  image: string;
+  image_url: string;
   recommended?: boolean;
 };
 
@@ -48,23 +47,30 @@ const SolutionForm = ({
   const { toast } = useToast();
   const [formData, setFormData] = useState<Partial<SolutionProps>>(
     solution || {
-      id: Date.now().toString(),
+      id: crypto.randomUUID(),
       name: "",
       description: "",
       industry: "Entreprise",
       products: [],
-      image: "https://placehold.co/600x400/1e40af/ffffff?text=Solution",
+      image_url: "https://placehold.co/600x400/1e40af/ffffff?text=Solution",
       recommended: false
     }
   );
 
-  const [selectedProductId, setSelectedProductId] = useState<number | "">("");
+  const [selectedProductId, setSelectedProductId] = useState<string>("");
   const [imageFile, setImageFile] = useState<File | null>(null);
 
   // Fetch available products from the database
   const { data: availableProducts = [], isLoading } = useQuery({
     queryKey: ['products'],
-    queryFn: loadProducts
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('products')
+        .select('id, name, category');
+      
+      if (error) throw error;
+      return data || [];
+    }
   });
 
   const industries = [
@@ -89,11 +95,11 @@ const SolutionForm = ({
   };
 
   const handleProductSelect = (value: string) => {
-    setSelectedProductId(Number(value));
+    setSelectedProductId(value);
   };
 
   const handleAddProduct = () => {
-    if (selectedProductId && typeof selectedProductId === "number") {
+    if (selectedProductId) {
       const product = availableProducts.find(p => p.id === selectedProductId);
       if (product) {
         // Check if the product is already added
@@ -119,7 +125,7 @@ const SolutionForm = ({
     }
   };
 
-  const handleRemoveProduct = (productId: number) => {
+  const handleRemoveProduct = (productId: string) => {
     const newProducts = formData.products?.filter(p => p.id !== productId) || [];
     setFormData({ ...formData, products: newProducts });
   };
@@ -135,38 +141,36 @@ const SolutionForm = ({
       // Create a preview URL
       const reader = new FileReader();
       reader.onloadend = () => {
-        setFormData({ ...formData, image: reader.result as string });
+        setFormData({ ...formData, image_url: reader.result as string });
       };
       reader.readAsDataURL(e.target.files[0]);
     }
   };
-  
-  const handleSubmit = (e: React.FormEvent) => {
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Make sure the solution has an ID
-    if (!formData.id) {
-      formData.id = Date.now().toString();
-    }
-    
-    // Save to localStorage
-    const existingSolutions = JSON.parse(localStorage.getItem('businessSolutions') || '[]');
-    
-    // Check if we're updating an existing solution
-    if (solution?.id) {
-      const index = existingSolutions.findIndex((s: any) => s.id === solution.id);
-      if (index !== -1) {
-        existingSolutions[index] = formData;
-      } else {
-        existingSolutions.push(formData);
+    // Save to database
+    if (imageFile) {
+      const fileExt = imageFile.name.split('.').pop();
+      const filePath = `${crypto.randomUUID()}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('solutions')
+        .upload(filePath, imageFile);
+        
+      if (uploadError) {
+        toast({
+          title: "Erreur",
+          description: "Impossible d'uploader l'image",
+          variant: "destructive"
+        });
+        return;
       }
-    } else {
-      existingSolutions.push(formData);
+      
+      formData.image_url = `${process.env.SUPABASE_URL}/storage/v1/object/public/solutions/${filePath}`;
     }
     
-    localStorage.setItem('businessSolutions', JSON.stringify(existingSolutions));
-    
-    // Call the original onSubmit
     onSubmit(formData);
   };
   
@@ -216,13 +220,13 @@ const SolutionForm = ({
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="image">Image</Label>
+          <Label htmlFor="image_url">Image</Label>
           <div className="flex items-center space-x-4">
             <Input
-              id="imageUrl"
-              name="image"
-              value={typeof formData.image === 'string' && !formData.image.startsWith('data:') 
-                ? formData.image 
+              id="image_url"
+              name="image_url"
+              value={typeof formData.image_url === 'string' && !formData.image_url.startsWith('data:') 
+                ? formData.image_url 
                 : ''}
               onChange={handleChange}
               placeholder="URL de l'image"
@@ -249,7 +253,7 @@ const SolutionForm = ({
           </div>
           <div className="h-24 bg-gray-100 flex items-center justify-center rounded-md overflow-hidden">
             <img 
-              src={formData.image} 
+              src={formData.image_url} 
               alt="Image preview" 
               className="max-h-full max-w-full object-contain"
               onError={(e) => {
@@ -269,7 +273,7 @@ const SolutionForm = ({
           ) : (
             <div className="flex space-x-2">
               <Select 
-                value={selectedProductId ? String(selectedProductId) : ""} 
+                value={selectedProductId} 
                 onValueChange={handleProductSelect}
               >
                 <SelectTrigger className="flex-1">
@@ -277,7 +281,7 @@ const SolutionForm = ({
                 </SelectTrigger>
                 <SelectContent>
                   {availableProducts.map(product => (
-                    <SelectItem key={product.id} value={String(product.id)}>
+                    <SelectItem key={product.id} value={product.id}>
                       {product.name} ({product.category})
                     </SelectItem>
                   ))}
