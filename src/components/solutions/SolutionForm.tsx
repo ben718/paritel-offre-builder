@@ -15,6 +15,8 @@ import { X, Check, Upload, Plus, Trash2 } from "lucide-react";
 import { DialogFooter } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
+import { loadProducts } from "@/data/productData";
+import { useQuery } from "@tanstack/react-query";
 
 type ProductItem = {
   id: number;
@@ -36,14 +38,12 @@ type SolutionFormProps = {
   solution?: Partial<SolutionProps>;
   onSubmit: (data: Partial<SolutionProps>) => void;
   onCancel: () => void;
-  availableProducts: ProductItem[];
 };
 
 const SolutionForm = ({ 
   solution, 
   onSubmit, 
-  onCancel,
-  availableProducts 
+  onCancel
 }: SolutionFormProps) => {
   const { toast } = useToast();
   const [formData, setFormData] = useState<Partial<SolutionProps>>(
@@ -59,6 +59,13 @@ const SolutionForm = ({
   );
 
   const [selectedProductId, setSelectedProductId] = useState<number | "">("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
+
+  // Fetch available products from the database
+  const { data: availableProducts = [], isLoading } = useQuery({
+    queryKey: ['products'],
+    queryFn: loadProducts
+  });
 
   const industries = [
     "Entreprise",
@@ -119,6 +126,19 @@ const SolutionForm = ({
 
   const handleRecommendedChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, recommended: e.target.checked });
+  };
+  
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setImageFile(e.target.files[0]);
+      
+      // Create a preview URL
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData({ ...formData, image: reader.result as string });
+      };
+      reader.readAsDataURL(e.target.files[0]);
+    }
   };
   
   const handleSubmit = (e: React.FormEvent) => {
@@ -196,19 +216,36 @@ const SolutionForm = ({
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="image">Image URL</Label>
+          <Label htmlFor="image">Image</Label>
           <div className="flex items-center space-x-4">
             <Input
-              id="image"
+              id="imageUrl"
               name="image"
-              value={formData.image}
+              value={typeof formData.image === 'string' && !formData.image.startsWith('data:') 
+                ? formData.image 
+                : ''}
               onChange={handleChange}
               placeholder="URL de l'image"
+              className="flex-1"
             />
-            <Button type="button" variant="outline" size="sm">
-              <Upload className="h-4 w-4 mr-2" />
-              Upload
-            </Button>
+            <div className="relative">
+              <input
+                type="file"
+                id="solutionImageFile"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="hidden"
+              />
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => document.getElementById('solutionImageFile')?.click()}
+                className="flex-shrink-0"
+              >
+                <Upload className="h-4 w-4 mr-2" />
+                Upload
+              </Button>
+            </div>
           </div>
           <div className="h-24 bg-gray-100 flex items-center justify-center rounded-md overflow-hidden">
             <img 
@@ -224,32 +261,39 @@ const SolutionForm = ({
         
         <div className="space-y-2">
           <Label>Produits inclus</Label>
-          <div className="flex space-x-2">
-            <Select 
-              value={selectedProductId ? String(selectedProductId) : ""} 
-              onValueChange={handleProductSelect}
-            >
-              <SelectTrigger className="flex-1">
-                <SelectValue placeholder="Sélectionner un produit" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableProducts.map(product => (
-                  <SelectItem key={product.id} value={String(product.id)}>
-                    {product.name} ({product.category})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={handleAddProduct}
-              disabled={!selectedProductId}
-              className="flex-shrink-0"
-            >
-              <Plus className="h-4 w-4" />
-            </Button>
-          </div>
+          {isLoading ? (
+            <div className="flex space-x-2">
+              <div className="flex-1 h-10 bg-gray-100 animate-pulse rounded"></div>
+              <div className="h-10 w-10 bg-gray-100 animate-pulse rounded"></div>
+            </div>
+          ) : (
+            <div className="flex space-x-2">
+              <Select 
+                value={selectedProductId ? String(selectedProductId) : ""} 
+                onValueChange={handleProductSelect}
+              >
+                <SelectTrigger className="flex-1">
+                  <SelectValue placeholder="Sélectionner un produit" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableProducts.map(product => (
+                    <SelectItem key={product.id} value={String(product.id)}>
+                      {product.name} ({product.category})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={handleAddProduct}
+                disabled={!selectedProductId}
+                className="flex-shrink-0"
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
           
           <div className="space-y-2 mt-2">
             {formData.products?.map(product => (

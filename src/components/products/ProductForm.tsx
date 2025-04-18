@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ProductCardProps } from "./ProductCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,9 @@ import {
 } from "@/components/ui/select";
 import { X, Check, Upload, Plus, Trash2 } from "lucide-react";
 import { DialogFooter } from "@/components/ui/dialog";
+import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 
 type ProductFormProps = {
   product?: Partial<ProductCardProps>;
@@ -21,7 +24,27 @@ type ProductFormProps = {
   onCancel: () => void;
 };
 
+type Category = {
+  id: string;
+  name: string;
+  display_name: string;
+}
+
+type Subcategory = {
+  id: string;
+  name: string;
+  display_name: string;
+  category_id: string;
+}
+
+type Partner = {
+  id: string;
+  name: string;
+  industry: string | null;
+}
+
 const ProductForm = ({ product, onSubmit, onCancel }: ProductFormProps) => {
+  const { toast } = useToast();
   const [formData, setFormData] = useState<Partial<ProductCardProps>>(
     product || {
       name: "",
@@ -37,6 +60,62 @@ const ProductForm = ({ product, onSubmit, onCancel }: ProductFormProps) => {
 
   const [tagInput, setTagInput] = useState("");
   const [specInput, setSpecInput] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  
+  // Fetch categories from database
+  const { data: categories = [] } = useQuery<Category[]>({
+    queryKey: ['categories'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('id, name, display_name');
+      
+      if (error) {
+        console.error('Error fetching categories:', error);
+        return [];
+      }
+      
+      return data || [];
+    }
+  });
+  
+  // Fetch subcategories from database
+  const { data: allSubcategories = [] } = useQuery<Subcategory[]>({
+    queryKey: ['subcategories'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('subcategories')
+        .select('id, name, display_name, category_id');
+      
+      if (error) {
+        console.error('Error fetching subcategories:', error);
+        return [];
+      }
+      
+      return data || [];
+    }
+  });
+  
+  // Fetch partners from database
+  const { data: partners = [] } = useQuery<Partner[]>({
+    queryKey: ['partners'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('partners')
+        .select('id, name, industry');
+      
+      if (error) {
+        console.error('Error fetching partners:', error);
+        return [];
+      }
+      
+      return data || [];
+    }
+  });
+  
+  // Filter subcategories based on selected category
+  const currentCategoryId = categories.find(cat => cat.display_name === formData.category)?.id;
+  const subcategories = allSubcategories.filter(sub => sub.category_id === currentCategoryId);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -46,11 +125,23 @@ const ProductForm = ({ product, onSubmit, onCancel }: ProductFormProps) => {
   };
 
   const handleCategoryChange = (value: string) => {
-    setFormData({ ...formData, category: value });
+    // Find the display name from the selected value
+    const category = categories.find(cat => cat.name === value);
+    if (category) {
+      setFormData({ 
+        ...formData, 
+        category: category.display_name,
+        subcategory: "" // Reset subcategory when category changes
+      });
+    }
   };
 
   const handleSubcategoryChange = (value: string) => {
-    setFormData({ ...formData, subcategory: value });
+    // Find the display name from the selected value
+    const subcategory = subcategories.find(sub => sub.name === value);
+    if (subcategory) {
+      setFormData({ ...formData, subcategory: subcategory.display_name });
+    }
   };
 
   const handlePartnerChange = (value: string) => {
@@ -89,89 +180,37 @@ const ProductForm = ({ product, onSubmit, onCancel }: ProductFormProps) => {
     setFormData({ ...formData, specs: newSpecs });
   };
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setImageFile(e.target.files[0]);
+      
+      // Create a preview URL
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData({ ...formData, image: reader.result as string });
+      };
+      reader.readAsDataURL(e.target.files[0]);
+    }
+  };
+  
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    
+    // Pass the image file along with the form data
+    onSubmit({ ...formData, imageFile });
   };
-
-  // Categories and subcategories mapping
-  const categories = [
-    "Téléphonie d'entreprise",
-    "Internet Très Haut Débit",
-    "Wi-Fi public & privé indoor outdoor",
-    "Cybersécurité",
-    "Infogérance",
-    "Sécurisation du poste de travail",
-    "Solutions collaboratives",
-    "TVCast Téléviseur connecté",
-    "Mobiles",
-    "Monétique",
-    "Surveillance"
-  ];
-
-  const subcategories: Record<string, string[]> = {
-    "Téléphonie d'entreprise": [
-      "UCaaS", 
-      "PBX On Premise", 
-      "Cloud PBX", 
-      "Trunk SIP",
-      "Number Hosting",
-      "Yealink",
-      "Telephone IP WiFi",
-      "DECT Unify",
-      "Telephone IP Fixe",
-      "Matériel téléphonie",
-      "Accessoires"
-    ],
-    "Internet Très Haut Débit": [
-      "Fibre optique (Actif/Passif)",
-      "4G/5G",
-      "Cuivre (xDSL)",
-      "Satellite",
-      "Mikrotik",
-      "TP-Link 5G",
-      "TP-Link 4G",
-      "Switch"
-    ],
-    "Wi-Fi public & privé indoor outdoor": [
-      "Wifi Privé",
-      "Wifi Public"
-    ],
-    "Cybersécurité": [
-      "Firewall",
-      "Advanced Adware Protection"
-    ],
-    "Infogérance": [
-      "Sauvegarde"
-    ],
-    "Mobiles": [
-      "Tout type de forfait mobile",
-      "Enveloppe DATA"
-    ],
-    "Surveillance": [
-      "NVR",
-      "Caméras"
-    ]
-  };
-
-  // List of partners for dropdown
-  const partners = [
-    "Cisco Systems",
-    "Microsoft",
-    "Orange Business Services",
-    "ASUS",
-    "Dell Technologies",
-    "ITS Group",
-    "Fortinet",
-    "TP-Link",
-    "Bitdefender",
-    "BEEMO",
-    "Cambium Networks",
-    "Yealink",
-    "Grandstream",
-    "Unify",
-    "StarLink"
-  ];
+  
+  // Map category names to their display names for the dropdown
+  const categoryOptions = categories.map(cat => ({
+    value: cat.name,
+    label: cat.display_name
+  }));
+  
+  // Map subcategory names to their display names for the dropdown
+  const subcategoryOptions = subcategories.map(sub => ({
+    value: sub.name,
+    label: sub.display_name
+  }));
   
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -203,16 +242,16 @@ const ProductForm = ({ product, onSubmit, onCancel }: ProductFormProps) => {
           <div className="space-y-2">
             <Label htmlFor="category">Catégorie*</Label>
             <Select 
-              value={formData.category} 
+              value={categoryOptions.find(opt => opt.label === formData.category)?.value || ""}
               onValueChange={handleCategoryChange}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Sélectionner une catégorie" />
               </SelectTrigger>
               <SelectContent>
-                {categories.map(category => (
-                  <SelectItem key={category} value={category}>
-                    {category}
+                {categoryOptions.map(category => (
+                  <SelectItem key={category.value} value={category.value}>
+                    {category.label}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -222,21 +261,24 @@ const ProductForm = ({ product, onSubmit, onCancel }: ProductFormProps) => {
           <div className="space-y-2">
             <Label htmlFor="subcategory">Sous-catégorie</Label>
             <Select 
-              value={formData.subcategory || ""}
+              value={subcategoryOptions.find(opt => opt.label === formData.subcategory)?.value || ""}
               onValueChange={handleSubcategoryChange}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Sélectionner une sous-catégorie" />
               </SelectTrigger>
               <SelectContent>
-                {(formData.category && subcategories[formData.category]) 
-                  ? subcategories[formData.category].map(subcat => (
-                      <SelectItem key={subcat} value={subcat}>
-                        {subcat}
-                      </SelectItem>
-                    ))
-                  : <SelectItem value="none-available">Aucune sous-catégorie disponible</SelectItem>
-                }
+                {subcategoryOptions.length > 0 ? (
+                  subcategoryOptions.map(subcategory => (
+                    <SelectItem key={subcategory.value} value={subcategory.value}>
+                      {subcategory.label}
+                    </SelectItem>
+                  ))
+                ) : (
+                  <SelectItem value="none-available" disabled>
+                    Aucune sous-catégorie disponible
+                  </SelectItem>
+                )}
               </SelectContent>
             </Select>
           </div>
@@ -254,30 +296,45 @@ const ProductForm = ({ product, onSubmit, onCancel }: ProductFormProps) => {
             <SelectContent>
               <SelectItem value="no-partner">Aucun partenaire</SelectItem>
               {partners.map(partner => (
-                <SelectItem key={partner} value={partner}>
-                  {partner}
+                <SelectItem key={partner.id} value={partner.name}>
+                  {partner.name}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
         
-        {/* Price field removed */}
-        
         <div className="space-y-2">
-          <Label htmlFor="image">Image URL</Label>
+          <Label htmlFor="image">Image</Label>
           <div className="flex items-center space-x-4">
             <Input
-              id="image"
+              id="imageUrl"
               name="image"
-              value={formData.image}
+              value={typeof formData.image === 'string' && !formData.image.startsWith('data:') 
+                ? formData.image 
+                : ''}
               onChange={handleChange}
               placeholder="URL de l'image"
+              className="flex-1"
             />
-            <Button type="button" variant="outline" size="sm">
-              <Upload className="h-4 w-4 mr-2" />
-              Upload
-            </Button>
+            <div className="relative">
+              <input
+                type="file"
+                id="imageFile"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="hidden"
+              />
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => document.getElementById('imageFile')?.click()}
+                className="flex-shrink-0"
+              >
+                <Upload className="h-4 w-4 mr-2" />
+                Upload
+              </Button>
+            </div>
           </div>
           <div className="h-24 bg-gray-100 flex items-center justify-center rounded-md overflow-hidden">
             <img 

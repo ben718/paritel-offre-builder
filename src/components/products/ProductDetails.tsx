@@ -5,6 +5,8 @@ import { Separator } from "@/components/ui/separator";
 import { ProductCardProps } from "./ProductCard";
 import { ArrowLeft, Package, Tag, Info, Star } from "lucide-react";
 import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 import { 
   Dialog, 
   DialogContent, 
@@ -56,47 +58,54 @@ const ProductDetails = ({ product, onBack, onAddToOffer }: ProductDetailsProps) 
 
   const [isAddToSolutionOpen, setIsAddToSolutionOpen] = useState(false);
   const [selectedSolution, setSelectedSolution] = useState("");
-  const [availableSolutions, setAvailableSolutions] = useState<BusinessSolution[]>([]);
   const { toast } = useToast();
   
-  // Load solutions from localStorage
-  useEffect(() => {
-    // Get solutions from localStorage or use empty array if none exist
-    const storedSolutions = localStorage.getItem('businessSolutions');
-    if (storedSolutions) {
+  // Fetch business solutions from database
+  const { data: availableSolutions = [], isLoading } = useQuery<BusinessSolution[]>({
+    queryKey: ['business-solutions'],
+    queryFn: async () => {
       try {
-        const parsedSolutions = JSON.parse(storedSolutions);
-        setAvailableSolutions(parsedSolutions);
-      } catch (error) {
-        console.error("Error parsing stored solutions:", error);
-        setAvailableSolutions([]);
-      }
-    } else {
-      // Fallback to example solutions only if no solutions exist in localStorage
-      const exampleSolutions: BusinessSolution[] = [
-        { 
-          id: "1", 
-          name: "Solution PME", 
-          description: "Solution complète pour les PME",
-          products: []
-        },
-        { 
-          id: "2", 
-          name: "Solution Hôtellerie", 
-          description: "Solution pour l'hôtellerie",
-          products: []
-        },
-        { 
-          id: "3", 
-          name: "Solution Santé", 
-          description: "Solution pour le secteur de la santé",
-          products: []
+        // Try to get solutions from localStorage first as fallback
+        const storedSolutions = localStorage.getItem('businessSolutions');
+        if (storedSolutions) {
+          try {
+            return JSON.parse(storedSolutions);
+          } catch (error) {
+            console.error("Error parsing stored solutions:", error);
+          }
         }
-      ];
-      setAvailableSolutions(exampleSolutions);
-      localStorage.setItem('businessSolutions', JSON.stringify(exampleSolutions));
+        
+        // If we eventually add a business_solutions table to Supabase, we'd fetch from there
+        // For now, return empty array or fallback data
+        return [];
+      } catch (error) {
+        console.error("Error fetching business solutions:", error);
+        return [];
+      }
     }
-  }, []);
+  });
+  
+  // Check for partner info from the database if partner name is provided
+  const { data: partnerInfo } = useQuery({
+    queryKey: ['partner', partner],
+    queryFn: async () => {
+      if (!partner) return null;
+      
+      const { data, error } = await supabase
+        .from('partners')
+        .select('*')
+        .eq('name', partner)
+        .single();
+      
+      if (error) {
+        console.error('Error fetching partner info:', error);
+        return null;
+      }
+      
+      return data;
+    },
+    enabled: !!partner
+  });
 
   const handleAddToSolution = () => {
     if (!selectedSolution) {
@@ -144,7 +153,6 @@ const ProductDetails = ({ product, onBack, onAddToOffer }: ProductDetailsProps) 
     
     // Save to localStorage
     localStorage.setItem('businessSolutions', JSON.stringify(updatedSolutions));
-    setAvailableSolutions(updatedSolutions);
     
     toast({
       title: "Produit ajouté",
@@ -251,7 +259,26 @@ const ProductDetails = ({ product, onBack, onAddToOffer }: ProductDetailsProps) 
                 <Package className="h-5 w-5 text-paritel-primary mr-2" />
                 <h2 className="text-xl font-semibold">Partenaire</h2>
               </div>
-              <p className="text-gray-700">{partner}</p>
+              {partnerInfo ? (
+                <div>
+                  <p className="text-gray-700">{partner}</p>
+                  {partnerInfo.description && (
+                    <p className="text-sm text-gray-600 mt-1">{partnerInfo.description}</p>
+                  )}
+                  {partnerInfo.website_url && (
+                    <a 
+                      href={partnerInfo.website_url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-sm text-paritel-primary hover:underline mt-1 inline-block"
+                    >
+                      Visiter le site web
+                    </a>
+                  )}
+                </div>
+              ) : (
+                <p className="text-gray-700">{partner}</p>
+              )}
             </div>
           )}
         </div>
@@ -268,29 +295,37 @@ const ProductDetails = ({ product, onBack, onAddToOffer }: ProductDetailsProps) 
           </DialogHeader>
           
           <div className="py-4">
-            <Select value={selectedSolution} onValueChange={setSelectedSolution}>
-              <SelectTrigger>
-                <SelectValue placeholder="Sélectionner une solution métier" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableSolutions.length > 0 ? (
-                  availableSolutions.map(solution => (
+            {isLoading ? (
+              <div className="h-10 bg-gray-100 animate-pulse rounded"></div>
+            ) : availableSolutions.length > 0 ? (
+              <Select value={selectedSolution} onValueChange={setSelectedSolution}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionner une solution métier" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableSolutions.map(solution => (
                     <SelectItem key={solution.id} value={solution.id}>
                       {solution.name}
                     </SelectItem>
-                  ))
-                ) : (
-                  <SelectItem value="no-solutions">Aucune solution disponible</SelectItem>
-                )}
-              </SelectContent>
-            </Select>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <p className="text-gray-500 text-center py-2">
+                Aucune solution disponible. Veuillez créer une solution métier d'abord.
+              </p>
+            )}
           </div>
           
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsAddToSolutionOpen(false)}>
               Annuler
             </Button>
-            <Button onClick={handleAddToSolution} className="bg-paritel-primary">
+            <Button 
+              onClick={handleAddToSolution} 
+              className="bg-paritel-primary"
+              disabled={!selectedSolution || availableSolutions.length === 0}
+            >
               Ajouter
             </Button>
           </DialogFooter>

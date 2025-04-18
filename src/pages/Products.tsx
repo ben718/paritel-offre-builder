@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
@@ -8,12 +9,18 @@ import { SelectableProductCard } from "@/components/products/SelectableProductCa
 import { GlobalOfferingCircle } from "@/components/products/GlobalOfferingCircle";
 import { CategoryFilters, CategoryTabsList } from "@/components/products/CategoryFilters";
 import { DownloadMenu } from "@/components/products/DownloadMenu";
-import { products as initialProducts } from "@/data/productData";
+import { loadProducts } from "@/data/productData";
 import ProductForm from "@/components/products/ProductForm";
 import ProductDetails from "@/components/products/ProductDetails";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
+import { 
+  createProduct, 
+  updateProduct, 
+  deleteProduct 
+} from "@/services/ProductService";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { 
   Dialog, 
   DialogContent, 
@@ -26,7 +33,6 @@ import {
 const Products = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [products, setProducts] = useState<ProductCardProps[]>(initialProducts);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedSubcategory, setSelectedSubcategory] = useState("all");
@@ -38,6 +44,72 @@ const Products = () => {
   const [selectedProductIds, setSelectedProductIds] = useState<number[]>([]);
   const [selectionMode, setSelectionMode] = useState(false);
   const isMobile = useIsMobile();
+  const queryClient = useQueryClient();
+  
+  // Fetch products using React Query
+  const { data: products = [], isLoading, error } = useQuery({
+    queryKey: ['products'],
+    queryFn: loadProducts
+  });
+  
+  // Mutations for CRUD operations
+  const createProductMutation = useMutation({
+    mutationFn: (data: Partial<ProductCardProps>) => createProduct(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      toast({
+        title: "Produit créé",
+        description: "Le produit a été créé avec succès.",
+      });
+      setIsAddDialogOpen(false);
+    },
+    onError: (error) => {
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: `Erreur lors de la création du produit: ${error.message}`,
+      });
+    }
+  });
+  
+  const updateProductMutation = useMutation({
+    mutationFn: (data: Partial<ProductCardProps>) => 
+      updateProduct(data.id as string, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      toast({
+        title: "Produit mis à jour",
+        description: "Le produit a été mis à jour avec succès.",
+      });
+      setIsEditDialogOpen(false);
+      setEditingProduct(null);
+    },
+    onError: (error) => {
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: `Erreur lors de la mise à jour du produit: ${error.message}`,
+      });
+    }
+  });
+  
+  const deleteProductMutation = useMutation({
+    mutationFn: (id: string) => deleteProduct(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      toast({
+        title: "Produit supprimé",
+        description: "Le produit a été supprimé avec succès.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: `Erreur lors de la suppression du produit: ${error.message}`,
+      });
+    }
+  });
   
   const handleCategoryChange = (value: string) => {
     setSelectedCategory(value);
@@ -73,14 +145,7 @@ const Products = () => {
   });
   
   const handleAddProduct = (data: Partial<ProductCardProps>) => {
-    const newProduct = {
-      ...data,
-      id: products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1,
-      tags: data.tags || [],
-    } as ProductCardProps;
-    
-    setProducts([...products, newProduct]);
-    setIsAddDialogOpen(false);
+    createProductMutation.mutate(data);
   };
   
   const handleEditProduct = (id: number) => {
@@ -92,15 +157,13 @@ const Products = () => {
   };
   
   const handleUpdateProduct = (data: Partial<ProductCardProps>) => {
-    setProducts(products.map(product => 
-      product.id === data.id ? { ...product, ...data } as ProductCardProps : product
-    ));
-    setEditingProduct(null);
-    setIsEditDialogOpen(false);
+    updateProductMutation.mutate(data);
   };
   
   const handleDeleteProduct = (id: number) => {
-    setProducts(products.filter(product => product.id !== id));
+    if (confirm("Êtes-vous sûr de vouloir supprimer ce produit ?")) {
+      deleteProductMutation.mutate(id.toString());
+    }
   };
   
   const handleViewProductDetails = (id: number) => {
@@ -172,6 +235,30 @@ const Products = () => {
     localStorage.setItem('productsToExport', JSON.stringify(selectedProductsToExport));
     navigate('/product-export');
   };
+
+  if (isLoading) {
+    return (
+      <MainLayout>
+        <div className="flex justify-center items-center h-[60vh]">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-paritel-primary"></div>
+        </div>
+      </MainLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <MainLayout>
+        <div className="flex flex-col justify-center items-center h-[60vh] space-y-4">
+          <h2 className="text-xl font-bold text-red-600">Erreur lors du chargement des produits</h2>
+          <p className="text-gray-600">Veuillez réessayer plus tard ou contacter le support.</p>
+          <Button onClick={() => queryClient.invalidateQueries({ queryKey: ['products'] })}>
+            Réessayer
+          </Button>
+        </div>
+      </MainLayout>
+    );
+  }
   
   return (
     <MainLayout>
@@ -321,7 +408,11 @@ const Products = () => {
           
           <TabsContent value="all" className="mt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {selectionMode ? (
+              {filteredProducts.length === 0 ? (
+                <div className="col-span-3 text-center py-12">
+                  <p className="text-gray-500">Aucun produit ne correspond à votre recherche.</p>
+                </div>
+              ) : selectionMode ? (
                 filteredProducts.map((product) => (
                   <SelectableProductCard 
                     key={product.id}
@@ -349,7 +440,11 @@ const Products = () => {
             "monétique", "surveillance"].map(category => (
             <TabsContent value={category} key={category} className="mt-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {selectionMode ? (
+                {filteredProducts.length === 0 ? (
+                  <div className="col-span-3 text-center py-12">
+                    <p className="text-gray-500">Aucun produit ne correspond à votre recherche.</p>
+                  </div>
+                ) : selectionMode ? (
                   filteredProducts.map((product) => (
                     <SelectableProductCard 
                       key={product.id}
