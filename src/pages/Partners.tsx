@@ -66,7 +66,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 type PartnerType = "Fournisseur" | "Revendeur" | "Technologique" | "Stratégique";
 
-type PartnerCardProps = {
+interface PartnerCardProps {
   id: string;
   name: string;
   description: string;
@@ -83,7 +83,7 @@ type PartnerCardProps = {
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
   onViewDetails?: (id: string) => void;
-};
+}
 
 const PartnerCard = ({
   id,

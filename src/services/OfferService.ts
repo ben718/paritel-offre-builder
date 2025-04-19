@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -47,6 +46,11 @@ export const fetchOffers = async (): Promise<OfferData[]> => {
     console.error('Error in fetchOffers:', error);
     return [];
   }
+};
+
+// Get all offers (alias for fetchOffers with a more descriptive name)
+export const getAllOffers = async (): Promise<OfferData[]> => {
+  return fetchOffers();
 };
 
 // Récupérer les offres récentes (limité à un nombre spécifique)

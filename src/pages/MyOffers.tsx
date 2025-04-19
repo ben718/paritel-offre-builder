@@ -21,7 +21,7 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getAllOffers, updateOfferStatus } from "@/services/OfferService"; // Fixed imports
+import { fetchOffers, updateOfferStatus } from "@/services/OfferService"; // Using fetchOffers instead of getAllOffers
 import type { Database } from "@/integrations/supabase/types";
 
 type OfferStatus = Database["public"]["Enums"]["offer_status"];
@@ -65,7 +65,7 @@ const MyOffers = () => {
   const { data: allOffers = [], isLoading } = useQuery({
     queryKey: ['offers'],
     queryFn: async () => {
-      const offers = await getAllOffers(); // Fixed function call
+      const offers = await fetchOffers(); // Using fetchOffers instead of getAllOffers
       return offers.map(offer => ({
         id: offer.id,
         customer_name: offer.customer_name,

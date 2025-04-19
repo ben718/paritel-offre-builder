@@ -12,7 +12,7 @@ export type UserData = {
   last_login?: string;
   created_at?: string;
   updated_at?: string;
-  status?: string;  // Définition explicite du champ status
+  status?: string;  // Added to match table schema
 }
 
 // Récupérer tous les utilisateurs
@@ -127,7 +127,7 @@ export const updateUserStatus = async (userId: string, status: 'active' | 'inact
     // Update user with status field
     const { error } = await supabase
       .from('app_users')
-      .update({ status }) // Status est maintenant correctement défini dans UserData
+      .update({ status }) // Status field is now in the UserData type
       .eq('id', userId);
 
     if (error) {

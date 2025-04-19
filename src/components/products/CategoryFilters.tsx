@@ -1,7 +1,8 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Radio } from "@/components/ui/radio-group";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Filter, Check } from "lucide-react";
@@ -51,32 +52,33 @@ export const CategoryFilters = ({
           </div>
         ) : (
           <ScrollArea className="h-[200px] w-full">
-            <div className="space-y-2">
-              {categories.map(category => (
-                <div key={category.id} className="flex items-center space-x-2">
-                  <Radio
-                    id={category.id}
-                    value={category.id}
-                    checked={selectedCategory === category.id}
-                    onChange={() => handleCategoryChange(category.id)}
+            <RadioGroup 
+              value={selectedCategory || ""} 
+              onValueChange={(value) => handleCategoryChange(value === "" ? null : value)}
+            >
+              <div className="space-y-2">
+                {categories.map(category => (
+                  <div key={category.id} className="flex items-center space-x-2">
+                    <RadioGroupItem
+                      id={category.id}
+                      value={category.id}
+                    />
+                    <Label htmlFor={category.id} className="cursor-pointer">
+                      {category.display_name}
+                    </Label>
+                  </div>
+                ))}
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem
+                    id="all"
+                    value=""
                   />
-                  <Label htmlFor={category.id} className="cursor-pointer">
-                    {category.display_name}
+                  <Label htmlFor="all" className="cursor-pointer">
+                    Toutes les catégories
                   </Label>
                 </div>
-              ))}
-              <div className="flex items-center space-x-2">
-                <Radio
-                  id="all"
-                  value="all"
-                  checked={selectedCategory === null}
-                  onChange={() => handleCategoryChange(null)}
-                />
-                <Label htmlFor="all" className="cursor-pointer">
-                  Toutes les catégories
-                </Label>
               </div>
-            </div>
+            </RadioGroup>
           </ScrollArea>
         )}
 
