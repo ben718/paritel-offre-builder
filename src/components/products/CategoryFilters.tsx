@@ -1,161 +1,117 @@
-
-import { useEffect, useState } from "react";
-import { TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { supabase } from "@/integrations/supabase/client";
+import { useState, useEffect } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Radio } from "@/components/ui/radio-group";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Filter, Check } from "lucide-react";
+import { fetchCategories, fetchSubcategories } from "@/services/CategoryService";
 import { useQuery } from "@tanstack/react-query";
 
-type CategoryProps = {
-  id: string;
-  name: string;
-  display_name: string;
+export interface CategoryFiltersProps {
+  selectedCategory: string | null;
+  selectedSubcategory: string | null;
+  onCategoryChange: (category: string | null) => void;
+  onSubcategoryChange: (subcategory: string | null) => void;
 }
-
-type SubcategoryProps = {
-  id: string;
-  name: string;
-  display_name: string;
-  category_id: string;
-}
-
-export const CategoryTabsList = () => {
-  // Fetch categories from database
-  const { data: categories = [], isLoading } = useQuery<CategoryProps[]>({
-    queryKey: ['categories'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('categories')
-        .select('id, name, display_name');
-      
-      if (error) {
-        console.error('Error fetching categories:', error);
-        return [];
-      }
-      
-      return data || [];
-    }
-  });
-
-  if (isLoading) {
-    return (
-      <TabsList className="w-full justify-start">
-        <div className="flex space-x-2 p-4">
-          <div className="h-6 w-20 animate-pulse bg-gray-200 rounded"></div>
-          <div className="h-6 w-20 animate-pulse bg-gray-200 rounded"></div>
-          <div className="h-6 w-20 animate-pulse bg-gray-200 rounded"></div>
-        </div>
-      </TabsList>
-    );
-  }
-
-  return (
-    <TabsList className="w-full justify-start">
-      <TabsTrigger value="all" className="px-3 py-1.5">Tous</TabsTrigger>
-      
-      {categories.map((category) => (
-        <TabsTrigger 
-          key={category.id} 
-          value={category.name}
-          className="px-3 py-1.5"
-        >
-          {category.display_name}
-        </TabsTrigger>
-      ))}
-    </TabsList>
-  );
-};
-
-type CategoryFiltersProps = {
-  selectedCategory: string;
-  selectedSubcategory: string;
-  setSelectedSubcategory: (value: string) => void;
-};
 
 export const CategoryFilters = ({
   selectedCategory,
   selectedSubcategory,
-  setSelectedSubcategory
+  onCategoryChange,
+  onSubcategoryChange
 }: CategoryFiltersProps) => {
-  // Fetch subcategories from database
-  const { data: allSubcategories = [], isLoading } = useQuery<SubcategoryProps[]>({
-    queryKey: ['subcategories'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('subcategories')
-        .select('id, name, display_name, category_id');
-      
-      if (error) {
-        console.error('Error fetching subcategories:', error);
-        return [];
-      }
-      
-      return data || [];
-    }
-  });
-
-  // Fetch categories to find the current category id
-  const { data: categories = [] } = useQuery<CategoryProps[]>({
+  const { data: categories = [], isLoading: isLoadingCategories } = useQuery({
     queryKey: ['categories'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('categories')
-        .select('id, name, display_name');
-      
-      if (error) {
-        console.error('Error fetching categories:', error);
-        return [];
-      }
-      
-      return data || [];
-    }
+    queryFn: () => fetchCategories(),
   });
 
-  // Find the current category id
-  const currentCategoryId = categories.find(cat => cat.name === selectedCategory)?.id;
-  
-  // Filter subcategories for the current category
-  const subcategories = currentCategoryId
-    ? allSubcategories.filter(sub => sub.category_id === currentCategoryId)
-    : [];
+  const { data: subcategories = [], isLoading: isLoadingSubcategories } = useQuery({
+    queryKey: ['subcategories', selectedCategory],
+    queryFn: () => selectedCategory ? fetchSubcategories() : [],
+    enabled: !!selectedCategory,
+  });
 
-  if (selectedCategory === "all" || subcategories.length === 0) {
-    return null;
-  }
-
-  if (isLoading) {
-    return (
-      <div className="flex space-x-2 mt-2 overflow-x-auto pb-2">
-        <div className="h-8 w-24 animate-pulse bg-gray-200 rounded"></div>
-        <div className="h-8 w-24 animate-pulse bg-gray-200 rounded"></div>
-      </div>
-    );
-  }
+  const handleCategoryChange = (category: string | null) => {
+    onCategoryChange(category);
+    onSubcategoryChange(null); // Reset subcategory when category changes
+  };
 
   return (
-    <div className="flex space-x-2 mt-2 overflow-x-auto pb-2">
-      <button
-        onClick={() => setSelectedSubcategory("all")}
-        className={`px-3 py-1 text-sm border rounded-full transition-colors ${
-          selectedSubcategory === "all"
-            ? "bg-paritel-primary text-white border-paritel-primary"
-            : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
-        }`}
-      >
-        Toutes les sous-catégories
-      </button>
-      
-      {subcategories.map((subcategory) => (
-        <button
-          key={subcategory.id}
-          onClick={() => setSelectedSubcategory(subcategory.display_name)}
-          className={`px-3 py-1 text-sm border rounded-full whitespace-nowrap transition-colors ${
-            selectedSubcategory === subcategory.display_name
-              ? "bg-paritel-primary text-white border-paritel-primary"
-              : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
-          }`}
-        >
-          {subcategory.display_name}
-        </button>
-      ))}
-    </div>
+    <Card className="w-full">
+      <CardContent className="p-4 space-y-4">
+        <div className="flex items-center space-x-2">
+          <Filter className="h-4 w-4" />
+          <Label htmlFor="category">Catégories</Label>
+        </div>
+        
+        {isLoadingCategories ? (
+          <div className="flex justify-center">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-500"></div>
+          </div>
+        ) : (
+          <ScrollArea className="h-[200px] w-full">
+            <div className="space-y-2">
+              {categories.map(category => (
+                <div key={category.id} className="flex items-center space-x-2">
+                  <Radio
+                    id={category.id}
+                    value={category.id}
+                    checked={selectedCategory === category.id}
+                    onChange={() => handleCategoryChange(category.id)}
+                  />
+                  <Label htmlFor={category.id} className="cursor-pointer">
+                    {category.display_name}
+                  </Label>
+                </div>
+              ))}
+              <div className="flex items-center space-x-2">
+                <Radio
+                  id="all"
+                  value="all"
+                  checked={selectedCategory === null}
+                  onChange={() => handleCategoryChange(null)}
+                />
+                <Label htmlFor="all" className="cursor-pointer">
+                  Toutes les catégories
+                </Label>
+              </div>
+            </div>
+          </ScrollArea>
+        )}
+
+        <div className="flex items-center space-x-2">
+          <Filter className="h-4 w-4" />
+          <Label htmlFor="subcategory">Sous-catégories</Label>
+        </div>
+
+        {isLoadingSubcategories ? (
+          <div className="flex justify-center">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-500"></div>
+          </div>
+        ) : (
+          <ScrollArea className="h-[200px] w-full">
+            <div className="space-y-2">
+              {subcategories.map(subcategory => (
+                <div key={subcategory.id} className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id={subcategory.id}
+                      checked={selectedSubcategory === subcategory.id}
+                      onCheckedChange={(checked) => {
+                        onSubcategoryChange(checked ? subcategory.id : null);
+                      }}
+                    />
+                    <Label htmlFor={subcategory.id} className="cursor-pointer">
+                      {subcategory.display_name}
+                    </Label>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
+        )}
+      </CardContent>
+    </Card>
   );
 };

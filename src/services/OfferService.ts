@@ -1,9 +1,11 @@
+
 import { supabase } from '@/integrations/supabase/client';
-import type { Database } from "@/integrations/supabase/types";
+import { v4 as uuidv4 } from 'uuid';
 
-type OfferStatus = Database["public"]["Enums"]["offer_status"];
+// Types pour les offres et produits d'offre
+export type OfferStatus = 'draft' | 'sent' | 'in_progress' | 'accepted' | 'rejected' | 'expired';
 
-export type Offer = {
+export type OfferData = {
   id: string;
   customer_id: string;
   customer_name?: string;
@@ -12,37 +14,28 @@ export type Offer = {
   total_amount?: number;
   valid_until?: string;
   notes?: string;
-  status: OfferStatus;
-  created_at: string;
-  updated_at: string;
   created_by: string;
+  created_at?: string;
+  updated_at?: string;
+  status: OfferStatus;
 }
 
-export type OfferProduct = {
+export type OfferProductData = {
   id: string;
   offer_id: string;
   product_id: string;
   quantity: number;
   unit_price?: number;
-  created_at: string;
+  created_at?: string;
 }
 
-// Export all functions individually
-export const getAllOffers = async (): Promise<Offer[]> => {
+// Récupérer toutes les offres
+export const fetchOffers = async (): Promise<OfferData[]> => {
   try {
-    const { data: userData } = await supabase.auth.getUser();
-    const userId = userData.user?.id;
-    
-    if (!userId) {
-      console.error('User not authenticated');
-      return [];
-    }
-    
     const { data, error } = await supabase
       .from('offers')
       .select('*')
-      .order('created_at', { ascending: false })
-      .eq('created_by', userId);
+      .order('created_at', { ascending: false });
 
     if (error) {
       console.error('Error fetching offers:', error);
@@ -51,12 +44,34 @@ export const getAllOffers = async (): Promise<Offer[]> => {
 
     return data || [];
   } catch (error) {
-    console.error('Error in getAllOffers:', error);
+    console.error('Error in fetchOffers:', error);
     return [];
   }
 };
 
-export const getOfferById = async (offerId: string): Promise<Offer | null> => {
+// Récupérer les offres récentes (limité à un nombre spécifique)
+export const getRecentOffers = async (limit: number = 5): Promise<OfferData[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('offers')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      console.error('Error fetching recent offers:', error);
+      return [];
+    }
+
+    return data || [];
+  } catch (error) {
+    console.error('Error in getRecentOffers:', error);
+    return [];
+  }
+};
+
+// Récupérer une offre par ID
+export const fetchOfferById = async (offerId: string): Promise<OfferData | null> => {
   try {
     const { data, error } = await supabase
       .from('offers')
@@ -71,28 +86,39 @@ export const getOfferById = async (offerId: string): Promise<Offer | null> => {
 
     return data;
   } catch (error) {
-    console.error('Error in getOfferById:', error);
+    console.error('Error in fetchOfferById:', error);
     return null;
   }
 };
 
-// Créer une nouvelle offre - FIX: Make customer_id required
-export const createOffer = async (offerData: Partial<Offer> & { customer_id: string }): Promise<Offer | null> => {
+// Récupérer les produits d'une offre
+export const fetchOfferProducts = async (offerId: string): Promise<OfferProductData[]> => {
   try {
-    const { data: userData } = await supabase.auth.getUser();
-    const userId = userData.user?.id;
-    
-    if (!userId) {
-      console.error('User not authenticated');
-      return null;
+    const { data, error } = await supabase
+      .from('offer_products')
+      .select('*')
+      .eq('offer_id', offerId);
+
+    if (error) {
+      console.error('Error fetching offer products:', error);
+      return [];
     }
-    
+
+    return data || [];
+  } catch (error) {
+    console.error('Error in fetchOfferProducts:', error);
+    return [];
+  }
+};
+
+// Créer une nouvelle offre
+export const createOffer = async (offerData: Omit<OfferData, 'id' | 'created_at' | 'updated_at'> & { customer_id: string }): Promise<OfferData | null> => {
+  try {
     const newOffer = {
       ...offerData,
-      created_by: userId,
-      status: offerData.status || 'draft',
+      id: uuidv4(),
     };
-    
+
     const { data, error } = await supabase
       .from('offers')
       .insert(newOffer)
@@ -111,7 +137,32 @@ export const createOffer = async (offerData: Partial<Offer> & { customer_id: str
   }
 };
 
-export const updateOffer = async (offerId: string, offerData: Partial<Offer>): Promise<Offer | null> => {
+// Ajouter un produit à une offre
+export const addProductToOffer = async (productData: Omit<OfferProductData, 'id' | 'created_at'>): Promise<OfferProductData | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('offer_products')
+      .insert({
+        ...productData,
+        id: uuidv4()
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error adding product to offer:', error);
+      return null;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error in addProductToOffer:', error);
+    return null;
+  }
+};
+
+// Mettre à jour une offre existante
+export const updateOffer = async (offerId: string, offerData: Partial<Omit<OfferData, 'id' | 'created_at' | 'updated_at'>>): Promise<OfferData | null> => {
   try {
     const { data, error } = await supabase
       .from('offers')
@@ -132,6 +183,7 @@ export const updateOffer = async (offerId: string, offerData: Partial<Offer>): P
   }
 };
 
+// Mettre à jour le statut d'une offre
 export const updateOfferStatus = async (offerId: string, status: OfferStatus): Promise<boolean> => {
   try {
     const { error } = await supabase
@@ -151,8 +203,21 @@ export const updateOfferStatus = async (offerId: string, status: OfferStatus): P
   }
 };
 
+// Supprimer une offre
 export const deleteOffer = async (offerId: string): Promise<boolean> => {
   try {
+    // Supprimer les produits associés à l'offre d'abord
+    const { error: productsError } = await supabase
+      .from('offer_products')
+      .delete()
+      .eq('offer_id', offerId);
+
+    if (productsError) {
+      console.error('Error deleting offer products:', productsError);
+      return false;
+    }
+
+    // Ensuite supprimer l'offre
     const { error } = await supabase
       .from('offers')
       .delete()
@@ -170,116 +235,26 @@ export const deleteOffer = async (offerId: string): Promise<boolean> => {
   }
 };
 
-export const addProductToOffer = async (offerId: string, productId: string, quantity: number, unitPrice?: number): Promise<OfferProduct | null> => {
-  try {
-    const offerProduct = {
-      offer_id: offerId,
-      product_id: productId,
-      quantity,
-      unit_price: unitPrice
-    };
-    
-    const { data, error } = await supabase
-      .from('offer_products')
-      .insert(offerProduct)
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error adding product to offer:', error);
-      return null;
-    }
-
-    return data;
-  } catch (error) {
-    console.error('Error in addProductToOffer:', error);
-    return null;
-  }
-};
-
-export const getOfferProducts = async (offerId: string): Promise<OfferProduct[]> => {
+// Calculer le montant total d'une offre
+export const calculateOfferTotal = async (offerId: string): Promise<number> => {
   try {
     const { data, error } = await supabase
       .from('offer_products')
-      .select('*')
+      .select('quantity, unit_price')
       .eq('offer_id', offerId);
 
     if (error) {
-      console.error('Error fetching offer products:', error);
-      return [];
-    }
-
-    return data || [];
-  } catch (error) {
-    console.error('Error in getOfferProducts:', error);
-    return [];
-  }
-};
-
-export const removeProductFromOffer = async (offerProductId: string): Promise<boolean> => {
-  try {
-    const { error } = await supabase
-      .from('offer_products')
-      .delete()
-      .eq('id', offerProductId);
-
-    if (error) {
-      console.error('Error removing product from offer:', error);
-      return false;
-    }
-
-    return true;
-  } catch (error) {
-    console.error('Error in removeProductFromOffer:', error);
-    return false;
-  }
-};
-
-export const countOfferProducts = async (offerId: string): Promise<number> => {
-  try {
-    const { count, error } = await supabase
-      .from('offer_products')
-      .select('*', { count: 'exact', head: true })
-      .eq('offer_id', offerId);
-
-    if (error) {
-      console.error('Error counting offer products:', error);
+      console.error('Error calculating offer total:', error);
       return 0;
     }
 
-    return count || 0;
+    const total = (data || []).reduce((sum, product) => {
+      return sum + (product.quantity * (product.unit_price || 0));
+    }, 0);
+
+    return total;
   } catch (error) {
-    console.error('Error in countOfferProducts:', error);
+    console.error('Error in calculateOfferTotal:', error);
     return 0;
-  }
-};
-
-// For compatibility with existing code, export a function to get recent offers
-export const getRecentOffers = async (limit: number = 4): Promise<Offer[]> => {
-  try {
-    const { data: userData } = await supabase.auth.getUser();
-    const userId = userData.user?.id;
-    
-    if (!userId) {
-      console.error('User not authenticated');
-      return [];
-    }
-    
-    const { data, error } = await supabase
-      .from('offers')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .eq('created_by', userId)
-      .limit(limit);
-
-    if (error) {
-      console.error('Error fetching recent offers:', error);
-      return [];
-    }
-
-    return data || [];
-  } catch (error) {
-    console.error('Error in getRecentOffers:', error);
-    return [];
   }
 };

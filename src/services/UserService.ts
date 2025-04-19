@@ -12,7 +12,7 @@ export type UserData = {
   last_login?: string;
   created_at?: string;
   updated_at?: string;
-  status?: string;  // Added status field
+  status?: string;  // Définition explicite du champ status
 }
 
 // Récupérer tous les utilisateurs
@@ -56,10 +56,10 @@ export const fetchUserById = async (userId: string): Promise<UserData | null> =>
   }
 };
 
-// Créer un nouvel utilisateur - FIX: Ensure ID is provided
+// Créer un nouvel utilisateur - Assurons-nous que l'ID est fourni
 export const createUser = async (userData: Omit<UserData, 'created_at' | 'updated_at'> & { id: string }): Promise<UserData | null> => {
   try {
-    // Insert user data with required id field
+    // Insérer les données de l'utilisateur avec le champ ID requis
     const { data, error } = await supabase
       .from('app_users')
       .insert(userData)
@@ -127,7 +127,7 @@ export const updateUserStatus = async (userId: string, status: 'active' | 'inact
     // Update user with status field
     const { error } = await supabase
       .from('app_users')
-      .update({ status }) // Status is now properly defined in UserData
+      .update({ status }) // Status est maintenant correctement défini dans UserData
       .eq('id', userId);
 
     if (error) {
