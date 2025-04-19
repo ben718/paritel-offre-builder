@@ -12,7 +12,7 @@ export type UserData = {
   last_login?: string;
   created_at?: string;
   updated_at?: string;
-  status?: string;  // Added to match table schema
+  status?: string;  // Ajout du champ status manquant
 }
 
 // Récupérer tous les utilisateurs

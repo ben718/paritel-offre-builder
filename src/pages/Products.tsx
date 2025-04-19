@@ -213,23 +213,29 @@ const Products = () => {
             </div>
           </div>
           
-          <div className="flex flex-col md:flex-row gap-4">
-            <CategoryFilters 
-              selectedCategory={selectedCategory}
-              selectedSubcategory={selectedSubcategory}
-              onCategoryChange={setSelectedCategory}
-              onSubcategoryChange={setSelectedSubcategory}
-            />
+          <div className="flex flex-col md:flex-row gap-4 mt-4">
+            <div className="w-full md:w-1/4">
+              <CategoryFilters 
+                selectedCategory={selectedCategory}
+                selectedSubcategory={selectedSubcategory}
+                onCategoryChange={setSelectedCategory}
+                onSubcategoryChange={setSelectedSubcategory}
+              />
+            </div>
 
-            <TabsContent value="all" className="mt-6 w-full">
+            <TabsContent value="all" className="mt-0 w-full md:w-3/4">
               {isLoading ? (
                 <div className="flex justify-center p-8">
                   <div className="animate-spin h-8 w-8 border-2 border-paritel-primary border-t-transparent rounded-full"></div>
                 </div>
               ) : error ? (
                 <div className="text-red-500">Error: {(error as Error).message}</div>
+              ) : filteredProducts.length === 0 ? (
+                <div className="bg-gray-50 rounded-lg p-8 text-center">
+                  <p className="text-gray-500">Aucun produit ne correspond à vos critères</p>
+                </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {filteredProducts.map(product => (
                     <ProductCard
                       key={product.id}
@@ -238,6 +244,72 @@ const Products = () => {
                       onEdit={() => handleEditProduct(String(product.id))}
                       onDelete={() => handleDeleteProduct(String(product.id))}
                     />
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+            
+            <TabsContent value="telephonie" className="mt-0 w-full md:w-3/4">
+              {isLoading ? (
+                <div className="flex justify-center p-8">
+                  <div className="animate-spin h-8 w-8 border-2 border-paritel-primary border-t-transparent rounded-full"></div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {filteredProducts
+                    .filter(product => product.category === "Téléphonie d'entreprise")
+                    .map(product => (
+                      <ProductCard
+                        key={product.id}
+                        {...product}
+                        onViewDetails={() => handleViewProductDetails(String(product.id))}
+                        onEdit={() => handleEditProduct(String(product.id))}
+                        onDelete={() => handleDeleteProduct(String(product.id))}
+                      />
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+            
+            <TabsContent value="reseau" className="mt-0 w-full md:w-3/4">
+              {isLoading ? (
+                <div className="flex justify-center p-8">
+                  <div className="animate-spin h-8 w-8 border-2 border-paritel-primary border-t-transparent rounded-full"></div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {filteredProducts
+                    .filter(product => product.category === "Réseau")
+                    .map(product => (
+                      <ProductCard
+                        key={product.id}
+                        {...product}
+                        onViewDetails={() => handleViewProductDetails(String(product.id))}
+                        onEdit={() => handleEditProduct(String(product.id))}
+                        onDelete={() => handleDeleteProduct(String(product.id))}
+                      />
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+            
+            <TabsContent value="securite" className="mt-0 w-full md:w-3/4">
+              {isLoading ? (
+                <div className="flex justify-center p-8">
+                  <div className="animate-spin h-8 w-8 border-2 border-paritel-primary border-t-transparent rounded-full"></div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {filteredProducts
+                    .filter(product => product.category === "Sécurité")
+                    .map(product => (
+                      <ProductCard
+                        key={product.id}
+                        {...product}
+                        onViewDetails={() => handleViewProductDetails(String(product.id))}
+                        onEdit={() => handleEditProduct(String(product.id))}
+                        onDelete={() => handleDeleteProduct(String(product.id))}
+                      />
                   ))}
                 </div>
               )}

@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { v4 as uuidv4 } from 'uuid';
 import { ProductCardProps } from '@/components/products/ProductCard';
@@ -5,7 +6,7 @@ import { ProductCardProps } from '@/components/products/ProductCard';
 // Convert database product to ProductCardProps format
 const mapDbProductToProductCardProps = (dbProduct: any): ProductCardProps => {
   return {
-    id: dbProduct.id,
+    id: String(dbProduct.id), // Convertir explicitement en string
     name: dbProduct.name,
     description: dbProduct.description || '',
     image: dbProduct.image_url || '',
@@ -14,6 +15,7 @@ const mapDbProductToProductCardProps = (dbProduct: any): ProductCardProps => {
     tags: dbProduct.tags || [],
     partner: '',  // Default value as it might not be in the database
     specs: dbProduct.specs ? Array.isArray(dbProduct.specs) ? dbProduct.specs : [dbProduct.specs] : [],
+    rating: dbProduct.rating,
   };
 };
 
@@ -70,7 +72,8 @@ export const createProduct = async (product: Partial<ProductCardProps>, imageFil
       category: product.category,
       subcategory: product.subcategory,
       tags: product.tags,
-      specs: product.specs
+      specs: product.specs,
+      rating: product.rating
     };
 
     console.log('Creating product in database:', productData);
@@ -125,7 +128,8 @@ export const updateProduct = async (productId: string, product: Partial<ProductC
       category: product.category,
       subcategory: product.subcategory,
       tags: product.tags,
-      specs: product.specs
+      specs: product.specs,
+      rating: product.rating
     };
 
     console.log('Updating product in database:', productId, productData);

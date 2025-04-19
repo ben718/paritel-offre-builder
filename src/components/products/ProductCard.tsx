@@ -1,3 +1,4 @@
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,7 +16,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export type ProductCardProps = {
-  id: number;
+  id: string; // Changé en string pour être cohérent
   name: string;
   description: string;
   category: string;
@@ -28,11 +29,11 @@ export type ProductCardProps = {
 };
 
 type ProductCardComponentProps = ProductCardProps & {
-  onEdit?: (id: number) => void;
-  onDelete?: (id: number) => void;
-  onViewDetails?: (id: number) => void;
+  onEdit?: (id: string) => void; // Changé en string
+  onDelete?: (id: string) => void; // Changé en string
+  onViewDetails?: (id: string) => void; // Changé en string
   isSelected?: boolean;
-  onSelectionChange?: (id: number, isSelected: boolean) => void;
+  onSelectionChange?: (id: string, isSelected: boolean) => void; // Changé en string
 };
 
 export const ProductCard = ({
@@ -119,8 +120,6 @@ export const ProductCard = ({
             </Badge>
           )}
         </div>
-        
-        {/* Pricing section removed */}
         
         <div className="flex justify-between mt-auto pt-2 sm:pt-3">
           {onEdit && onDelete ? (
