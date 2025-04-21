@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 export type UserData = {
@@ -12,7 +11,7 @@ export type UserData = {
   last_login?: string;
   created_at?: string;
   updated_at?: string;
-  status?: string;  // Ajout du champ status manquant
+  status?: string;
 }
 
 // Récupérer tous les utilisateurs
@@ -127,7 +126,7 @@ export const updateUserStatus = async (userId: string, status: 'active' | 'inact
     // Update user with status field
     const { error } = await supabase
       .from('app_users')
-      .update({ status }) // Status field is now in the UserData type
+      .update({ status })
       .eq('id', userId);
 
     if (error) {

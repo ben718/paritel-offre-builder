@@ -36,7 +36,7 @@ type BusinessSolution = {
   name: string;
   description: string;
   products: {
-    id: number;
+    id: string; // Changed to string for consistency
     name: string;
     category: string;
     quantity?: number;
@@ -123,8 +123,8 @@ const ProductDetails = ({ product, onBack, onAddToOffer }: ProductDetailsProps) 
     
     const solution = availableSolutions[solutionIndex];
     
-    // Check if product is already in the solution
-    if (solution.products.some(p => p.id === product.id)) {
+    // Check if product is already in the solution - using String conversion for safe comparison
+    if (solution.products.some(p => String(p.id) === String(product.id))) {
       toast({
         variant: "destructive",
         title: "Produit déjà ajouté",
@@ -134,12 +134,12 @@ const ProductDetails = ({ product, onBack, onAddToOffer }: ProductDetailsProps) 
     }
     
     // Add product to solution
-    const updatedSolution = {
+    const updatedSolution: BusinessSolution = {
       ...solution,
       products: [
         ...solution.products,
         { 
-          id: product.id || 0, 
+          id: String(product.id), // Ensure ID is stored as string 
           name: product.name,
           category: product.category,
           quantity: 1

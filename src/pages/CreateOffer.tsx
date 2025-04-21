@@ -1,920 +1,417 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { 
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormMessage,
-} from "@/components/ui/form";
-import { CustomLabel } from "@/components/ui/custom-label";
-import { 
-  Tabs,
-  TabsContent, 
-  TabsList, 
-  TabsTrigger 
-} from "@/components/ui/tabs";
-import {
-  ArrowLeft,
-  ArrowRight,
-  Save,
-  Building,
-  FileText,
-  User,
-  Phone,
-  Mail,
-  Package,
-  FileCheck,
-  Download,
-  X,
-  Plus,
-  Check
+  ArrowLeft, 
+  Plus, 
+  Trash2, 
+  Check, 
+  Package, 
+  Building
 } from "lucide-react";
-import { products } from "@/data/productData";
+import { useNavigate } from "react-router-dom";
+import { SelectableProductCard } from "@/components/products/SelectableProductCard";
+import { fetchProducts } from "@/services/ProductService";
+import { createOffer, addProductToOffer } from "@/services/OfferService";
+import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/use-toast";
+import { Separator } from "@/components/ui/separator";
 
-type OfferCustomer = {
-  companyName: string;
-  industry: string;
-  address: string;
-  contactName: string;
-  contactPhone: string;
-  contactEmail: string;
-  contactRole: string;
-};
-
-type OfferNeeds = {
-  context: string;
-  needs: string;
-  constraints: string;
-  budget: string;
-  deadline: string;
-};
-
-type OfferProduct = {
-  id: number;
-  name: string;
-  category: string;
-  quantity?: number;
-  price?: string;
-  notes?: string;
-  showQuantity?: boolean;
-  showPrice?: boolean;
-};
-
-type BusinessSolution = {
-  id: string;
-  name: string;
-  description: string;
-  products: OfferProduct[];
-};
-
-type Offer = {
-  id?: number;
-  customer: OfferCustomer;
-  needs: OfferNeeds;
-  products: OfferProduct[];
-  solutions: BusinessSolution[];
-  date: string;
-  status: "draft" | "final";
-};
-
-const CreateOffer = () => {
-  const { toast } = useToast();
-  const [currentStep, setCurrentStep] = useState(1);
-  const totalSteps = 6; // Increased to include solution selection
-  const [searchTerm, setSearchTerm] = useState("");
-  const [availableSolutions, setAvailableSolutions] = useState<BusinessSolution[]>([]);
-  const [offer, setOffer] = useState<Offer>({
-    customer: {
-      companyName: "",
-      industry: "business",
-      address: "",
-      contactName: "",
-      contactPhone: "",
-      contactEmail: "",
-      contactRole: "",
-    },
-    needs: {
-      context: "",
-      needs: "",
-      constraints: "",
-      budget: "",
-      deadline: "",
-    },
-    products: [],
-    solutions: [],
-    date: new Date().toISOString().split('T')[0],
-    status: "draft",
-  });
-
-  useEffect(() => {
-    const storedSolutions = localStorage.getItem('businessSolutions');
-    if (storedSolutions) {
-      try {
-        const parsedSolutions = JSON.parse(storedSolutions);
-        setAvailableSolutions(parsedSolutions);
-      } catch (error) {
-        console.error("Error parsing stored solutions:", error);
-        
-        const fallbackSolutions: BusinessSolution[] = [
-          {
-            id: "1",
-            name: "Solution PME",
-            description: "Solution complète pour les PME incluant téléphonie et internet.",
-            products: [
-              { id: 1, name: "UCaaS", category: "Téléphonie d'entreprise", quantity: 1 },
-              { id: 28, name: "Mikrotik", category: "Internet Très Haut Débit", quantity: 1 }
-            ]
-          },
-          {
-            id: "2",
-            name: "Solution Hôtellerie",
-            description: "Ensemble de produits adaptés au secteur de l'hôtellerie.",
-            products: [
-              { id: 22, name: "FTTO", category: "Internet Très Haut Débit", quantity: 1 },
-              { id: 38, name: "Fortigate", category: "Cybersécurité", quantity: 1 }
-            ]
-          }
-        ];
-        
-        setAvailableSolutions(fallbackSolutions);
-        localStorage.setItem('businessSolutions', JSON.stringify(fallbackSolutions));
-      }
-    } else {
-      const defaultSolutions: BusinessSolution[] = [
-        {
-          id: "1",
-          name: "Solution PME",
-          description: "Solution complète pour les PME incluant téléphonie et internet.",
-          products: [
-            { id: 1, name: "UCaaS", category: "Téléphonie d'entreprise", quantity: 1 },
-            { id: 28, name: "Mikrotik", category: "Internet Très Haut Débit", quantity: 1 }
-          ]
-        },
-        {
-          id: "2",
-          name: "Solution Hôtellerie",
-          description: "Ensemble de produits adaptés au secteur de l'hôtellerie.",
-          products: [
-            { id: 22, name: "FTTO", category: "Internet Très Haut Débit", quantity: 1 },
-            { id: 38, name: "Fortigate", category: "Cybersécurité", quantity: 1 }
-          ]
-        }
-      ];
-      
-      setAvailableSolutions(defaultSolutions);
-      localStorage.setItem('businessSolutions', JSON.stringify(defaultSolutions));
-    }
-  }, []);
-
-  const goToPreviousStep = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
+// Step 1: Customer Selection Component
+const CustomerSelection = ({ onSelectCustomer, onNext }) => {
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
+  
+  // Mock customer data - will be replaced with a real API call
+  const customers = [
+    { id: "cust-001", name: "Entreprise ABC", industry: "Technologie" },
+    { id: "cust-002", name: "Société XYZ", industry: "Finance" },
+    { id: "cust-003", name: "Groupe 123", industry: "Manufacturing" },
+  ];
+  
+  const handleSelectCustomer = (customer) => {
+    setSelectedCustomer(customer);
+    if (onSelectCustomer) {
+      onSelectCustomer(customer);
     }
   };
-
-  const goToNextStep = () => {
-    if (currentStep < totalSteps) {
-      setCurrentStep(currentStep + 1);
-    }
-  };
-
-  const handleCustomerChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setOffer({
-      ...offer,
-      customer: {
-        ...offer.customer,
-        [name]: value
-      }
-    });
-  };
-
-  const handleIndustryChange = (value: string) => {
-    setOffer({
-      ...offer,
-      customer: {
-        ...offer.customer,
-        industry: value
-      }
-    });
-  };
-
-  const handleNeedsChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setOffer({
-      ...offer,
-      needs: {
-        ...offer.needs,
-        [name]: value
-      }
-    });
-  };
-
-  const addProduct = (productId: number) => {
-    const productToAdd = products.find(p => p.id === productId);
-    if (productToAdd) {
-      if (!offer.products.some(p => p.id === productId)) {
-        const newProduct: OfferProduct = {
-          id: productToAdd.id,
-          name: productToAdd.name,
-          category: productToAdd.category,
-          quantity: 1,
-          price: "0",
-          showQuantity: true,
-          showPrice: true
-        };
-        
-        setOffer({
-          ...offer,
-          products: [...offer.products, newProduct]
-        });
-        
-        toast({
-          title: "Produit ajouté",
-          description: `${productToAdd.name} a été ajouté à l'offre`,
-        });
-      } else {
-        toast({
-          title: "Produit déjà ajouté",
-          description: "Ce produit est déjà présent dans l'offre",
-          variant: "destructive"
-        });
-      }
-    }
-  };
-
-  const removeProduct = (productId: number) => {
-    setOffer({
-      ...offer,
-      products: offer.products.filter(p => p.id !== productId)
-    });
-    
-    toast({
-      title: "Produit retiré",
-      description: "Le produit a été retiré de l'offre",
-    });
-  };
-
-  const updateProductQuantity = (productId: number, quantity: number) => {
-    setOffer({
-      ...offer,
-      products: offer.products.map(p => 
-        p.id === productId ? { ...p, quantity } : p
-      )
-    });
-  };
-
-  const updateProductNotes = (productId: number, notes: string) => {
-    setOffer({
-      ...offer,
-      products: offer.products.map(p => 
-        p.id === productId ? { ...p, notes } : p
-      )
-    });
-  };
-
-  const saveAsDraft = () => {
-    const drafts = JSON.parse(localStorage.getItem('offerDrafts') || '[]');
-    const newDraft = {
-      ...offer,
-      id: Date.now(),
-      status: "draft",
-      date: new Date().toISOString()
-    };
-    
-    localStorage.setItem('offerDrafts', JSON.stringify([...drafts, newDraft]));
-    
-    toast({
-      title: "Brouillon enregistré",
-      description: "Votre offre a été enregistrée en tant que brouillon",
-    });
-  };
-
-  const finalizOffer = () => {
-    const offers = JSON.parse(localStorage.getItem('offers') || '[]');
-    const finalOffer = {
-      ...offer,
-      id: Date.now(),
-      status: "final",
-      date: new Date().toISOString()
-    };
-    
-    localStorage.setItem('offers', JSON.stringify([...offers, finalOffer]));
-    
-    toast({
-      title: "Offre finalisée",
-      description: "Votre offre a été finalisée et enregistrée",
-    });
-  };
-
-  const downloadOffer = () => {
-    import('html2pdf.js').then(html2pdf => {
-      const pdfContainer = document.createElement('div');
-      pdfContainer.className = 'pdf-container';
-      pdfContainer.style.width = '210mm';
-      pdfContainer.style.padding = '15mm';
-      pdfContainer.style.fontFamily = 'Arial, sans-serif';
+  
+  return (
+    <div className="space-y-6">
+      <h2 className="text-xl font-semibold">Sélectionner un client</h2>
       
-      const header = document.createElement('div');
-      header.style.borderBottom = '1px solid #ddd';
-      header.style.paddingBottom = '10mm';
-      header.style.marginBottom = '10mm';
-      header.style.display = 'flex';
-      header.style.justifyContent = 'space-between';
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {customers.map((customer) => (
+          <div 
+            key={customer.id}
+            className={`border rounded-lg p-4 cursor-pointer transition-all ${
+              selectedCustomer?.id === customer.id 
+                ? "border-2 border-paritel-primary bg-paritel-light" 
+                : "hover:border-gray-400"
+            }`}
+            onClick={() => handleSelectCustomer(customer)}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+                  <Building className="h-5 w-5 text-gray-600" />
+                </div>
+                <div>
+                  <h3 className="font-medium">{customer.name}</h3>
+                  <p className="text-sm text-gray-500">{customer.industry}</p>
+                </div>
+              </div>
+              
+              {selectedCustomer?.id === customer.id && (
+                <div className="w-6 h-6 bg-paritel-primary rounded-full flex items-center justify-center">
+                  <Check className="h-4 w-4 text-white" />
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
       
-      const companyInfo = document.createElement('div');
-      companyInfo.innerHTML = `
-        <h1 style="color: #6048b8; font-size: 24px; margin-bottom: 5px;">Offre commerciale</h1>
-        <h2 style="font-size: 18px; margin-top: 0; color: #444;">Paritel Solutions</h2>
-        <p style="color: #666; margin: 2px 0;">12 rue Henri Becquerel<br>77500 Chelles</p>
-        <p style="color: #666; margin: 2px 0;">Tel: 01.64.11.41.50</p>
-      `;
-      
-      const offerInfo = document.createElement('div');
-      offerInfo.style.textAlign = 'right';
-      offerInfo.innerHTML = `
-        <p style="margin: 2px 0;">Référence: OFF-${Date.now().toString().slice(-6)}</p>
-        <p style="margin: 2px 0;">Date: ${new Date().toLocaleDateString('fr-FR')}</p>
-        <p style="margin: 2px 0; font-weight: bold;">${offer.status === 'draft' ? 'BROUILLON' : 'PROPOSITION FINALE'}</p>
-      `;
-      
-      header.appendChild(companyInfo);
-      header.appendChild(offerInfo);
-      pdfContainer.appendChild(header);
-      
-      const clientSection = document.createElement('div');
-      clientSection.style.marginBottom = '10mm';
-      clientSection.style.padding = '5mm';
-      clientSection.style.backgroundColor = '#f9f9f9';
-      clientSection.style.borderRadius = '4px';
-      
-      clientSection.innerHTML = `
-        <h3 style="margin-top: 0; color: #6048b8;">Informations client</h3>
-        <table style="width: 100%; border-collapse: collapse;">
-          <tr>
-            <td style="width: 50%; padding: 4px;"><strong>Société:</strong> ${offer.customer.companyName || "Non spécifié"}</td>
-            <td style="width: 50%; padding: 4px;"><strong>Contact:</strong> ${offer.customer.contactName || "Non spécifié"}</td>
-          </tr>
-          <tr>
-            <td style="padding: 4px;"><strong>Secteur:</strong> ${
-              offer.customer.industry === "business" ? "Entreprise / PME" :
-              offer.customer.industry === "hotel" ? "Hôtellerie" :
-              offer.customer.industry === "health" ? "Santé" :
-              offer.customer.industry === "education" ? "Éducation" :
-              offer.customer.industry === "public" ? "Secteur Public" : "Autre"
-            }</td>
-            <td style="padding: 4px;"><strong>Fonction:</strong> ${offer.customer.contactRole || "Non spécifiée"}</td>
-          </tr>
-          <tr>
-            <td style="padding: 4px;"><strong>Adresse:</strong> ${offer.customer.address || "Non spécifiée"}</td>
-            <td style="padding: 4px;"><strong>Email:</strong> ${offer.customer.contactEmail || "Non spécifié"}</td>
-          </tr>
-          <tr>
-            <td colspan="2" style="padding: 4px;"><strong>Téléphone:</strong> ${offer.customer.contactPhone || "Non spécifié"}</td>
-          </tr>
-        </table>
-      `;
-      
-      pdfContainer.appendChild(clientSection);
-      
-      if (offer.needs.context || offer.needs.needs || offer.needs.constraints) {
-        const needsSection = document.createElement('div');
-        needsSection.style.marginBottom = '10mm';
-        
-        needsSection.innerHTML = `
-          <h3 style="color: #6048b8;">Expression des besoins</h3>
-          ${offer.needs.context ? `<p><strong>Contexte:</strong> ${offer.needs.context}</p>` : ''}
-          ${offer.needs.needs ? `<p><strong>Besoins:</strong> ${offer.needs.needs}</p>` : ''}
-          ${offer.needs.constraints ? `<p><strong>Contraintes:</strong> ${offer.needs.constraints}</p>` : ''}
-          ${offer.needs.budget ? `<p><strong>Budget estimé:</strong> ${offer.needs.budget}€</p>` : ''}
-          ${offer.needs.deadline ? `<p><strong>Délai souhaité:</strong> ${offer.needs.deadline}</p>` : ''}
-        `;
-        
-        pdfContainer.appendChild(needsSection);
-      }
-      
-      if (offer.products.length > 0) {
-        const productsSection = document.createElement('div');
-        productsSection.style.marginBottom = '10mm';
-        
-        let productsHTML = `
-          <h3 style="color: #6048b8;">Produits et services</h3>
-          <table style="width: 100%; border-collapse: collapse; margin-top: 5mm;">
-            <thead>
-              <tr style="background-color: #6048b8; color: white;">
-                <th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Désignation</th>
-                <th style="padding: 8px; text-align: center; border: 1px solid #ddd;">Quantité</th>
-                <th style="padding: 8px; text-align: right; border: 1px solid #ddd;">Prix</th>
-              </tr>
-            </thead>
-            <tbody>
-        `;
-        
-        let totalAmount = 0;
-        offer.products.forEach(product => {
-          if (product.showPrice !== false && product.price) {
-            const priceValue = parseFloat(product.price.replace(/[^\d.-]/g, '')) || 0;
-            const totalPrice = priceValue * (product.showQuantity !== false && product.quantity ? product.quantity : 1);
-            totalAmount += totalPrice;
-          }
-          
-          const priceValue = product.price ? parseFloat(product.price.replace(/[^\d.-]/g, '')) || 0 : 0;
-          productsHTML += `
-            <tr>
-              <td style="padding: 8px; border: 1px solid #ddd;">
-                <strong>${product.name}</strong><br>
-                <span style="color: #666; font-size: 12px;">${product.category}</span>
-                ${product.notes ? `<br><span style="font-style: italic; font-size: 12px;">${product.notes}</span>` : ''}
-              </td>
-              <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">
-                ${product.showQuantity === false ? '-' : product.quantity}
-              </td>
-              <td style="padding: 8px; text-align: right; border: 1px solid #ddd;">
-                ${product.showPrice === false ? 'Sur devis' : `${priceValue.toFixed(2)}€`}
-              </td>
-            </tr>
-          `;
-        });
-        
-        productsHTML += `
-            </tbody>
-            <tfoot>
-              <tr style="background-color: #f2f2f2;">
-                <td colspan="2" style="padding: 8px; text-align: right; border: 1px solid #ddd;"><strong>Total HT:</strong></td>
-                <td style="padding: 8px; text-align: right; border: 1px solid #ddd;"><strong>${totalAmount.toFixed(2)}€</strong></td>
-              </tr>
-              <tr>
-                <td colspan="2" style="padding: 8px; text-align: right; border: 1px solid #ddd;">TVA (20%):</td>
-                <td style="padding: 8px; text-align: right; border: 1px solid #ddd;">${(totalAmount * 0.2).toFixed(2)}€</td>
-              </tr>
-              <tr style="background-color: #f2f2f2;">
-                <td colspan="2" style="padding: 8px; text-align: right; border: 1px solid #ddd;"><strong>Total TTC:</strong></td>
-                <td style="padding: 8px; text-align: right; border: 1px solid #ddd;"><strong>${(totalAmount * 1.2).toFixed(2)}€</strong></td>
-              </tr>
-            </tfoot>
-          </table>
-        `;
-        
-        productsSection.innerHTML = productsHTML;
-        pdfContainer.appendChild(productsSection);
-      }
-      
-      const footerSection = document.createElement('div');
-      footerSection.style.marginTop = '15mm';
-      footerSection.style.borderTop = '1px solid #ddd';
-      footerSection.style.paddingTop = '5mm';
-      footerSection.style.fontSize = '10px';
-      footerSection.style.color = '#666';
-      footerSection.style.textAlign = 'center';
-      
-      footerSection.innerHTML = `
-        <p>Paritel Solutions - SIRET: 123 456 789 00012 - TVA: FR12 123456789</p>
-        <p>Conditions de vente: Paiement à 30 jours fin de mois. Validité de l'offre: 30 jours.</p>
-      `;
-      
-      pdfContainer.appendChild(footerSection);
-      
-      const pdfOptions = {
-        margin: 0,
-        filename: `Offre_${offer.customer.companyName || 'Client'}_${new Date().toLocaleDateString('fr-FR')}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      };
-      
-      html2pdf.default(pdfContainer, pdfOptions).then(() => {
-        toast({
-          title: "Offre téléchargée",
-          description: "Votre offre a été téléchargée au format PDF",
-        });
-      });
-    });
-  };
-
-  const filteredProducts = products.filter(
-    (product) => 
-      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (product.subcategory && product.subcategory.toLowerCase().includes(searchTerm.toLowerCase()))
+      <div className="flex justify-end">
+        <Button 
+          className="bg-paritel-primary" 
+          onClick={onNext}
+          disabled={!selectedCustomer}
+        >
+          Continuer
+        </Button>
+      </div>
+    </div>
   );
+};
 
-  const addSolution = (solutionId: string) => {
-    const solutionToAdd = availableSolutions.find(s => s.id === solutionId);
-    if (!solutionToAdd) return;
+// Step 2: Product Selection Component
+const ProductSelection = ({ onSelectProducts, onBack, onNext }) => {
+  const [selectedProducts, setSelectedProducts] = useState([]);
+  const [quantities, setQuantities] = useState({});
+  
+  const { data: products = [], isLoading } = useQuery({
+    queryKey: ['products'],
+    queryFn: fetchProducts
+  });
+  
+  const handleProductSelection = (product, isSelected) => {
+    if (isSelected) {
+      setSelectedProducts(prev => [...prev, product]);
+      setQuantities(prev => ({
+        ...prev,
+        [String(product.id)]: 1 // Ensure we convert ID to string for consistency
+      }));
+    } else {
+      setSelectedProducts(prev => prev.filter(p => String(p.id) !== String(product.id)));
+      setQuantities(prev => {
+        const copy = { ...prev };
+        delete copy[String(product.id)];
+        return copy;
+      });
+    }
+  };
+  
+  const handleQuantityChange = (productId, quantity) => {
+    setQuantities(prev => ({
+      ...prev,
+      [String(productId)]: parseInt(quantity) // Ensure we convert ID to string for consistency
+    }));
+  };
+  
+  const handleContinue = () => {
+    // Prepare products with quantities
+    const productsWithQuantities = selectedProducts.map(product => ({
+      ...product,
+      quantity: quantities[String(product.id)] || 1 // Ensure we convert ID to string for consistency
+    }));
+    
+    if (onSelectProducts) {
+      onSelectProducts(productsWithQuantities);
+    }
+    
+    onNext();
+  };
+  
+  return (
+    <div className="space-y-6">
+      <h2 className="text-xl font-semibold">Sélectionner des produits</h2>
+      
+      {isLoading ? (
+        <div className="flex justify-center p-8">
+          <div className="animate-spin h-8 w-8 border-2 border-paritel-primary border-t-transparent rounded-full"></div>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {products.map((product) => (
+              <SelectableProductCard
+                key={product.id}
+                {...product}
+                isSelected={selectedProducts.some(p => String(p.id) === String(product.id))}
+                onSelectionChange={(selected) => handleProductSelection(product, selected)}
+                quantity={quantities[String(product.id)] || 1}
+                onQuantityChange={(qty) => handleQuantityChange(product.id, qty)}
+              />
+            ))}
+          </div>
+          
+          <Separator />
+          
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <h3 className="font-medium mb-2">Produits sélectionnés : {selectedProducts.length}</h3>
+            
+            {selectedProducts.length > 0 ? (
+              <ul className="space-y-2">
+                {selectedProducts.map((product) => (
+                  <li key={product.id} className="flex justify-between items-center">
+                    <div className="flex items-center">
+                      <Package className="h-4 w-4 mr-2 text-gray-500" />
+                      <span>{product.name}</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm text-gray-500">
+                        Quantité: {quantities[String(product.id)] || 1}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 text-red-500"
+                        onClick={() => handleProductSelection(product, false)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-gray-500 text-sm">Aucun produit sélectionné</p>
+            )}
+          </div>
+        </div>
+      )}
+      
+      <div className="flex justify-between">
+        <Button variant="outline" onClick={onBack}>
+          Retour
+        </Button>
+        <Button 
+          className="bg-paritel-primary" 
+          onClick={handleContinue}
+          disabled={selectedProducts.length === 0}
+        >
+          Continuer
+        </Button>
+      </div>
+    </div>
+  );
+};
 
-    if (offer.solutions.some(s => s.id === solutionId)) {
+// Step 3: Offer Details Component
+const OfferDetails = ({ customer, products, onBack, onCreateOffer }) => {
+  const [offerName, setOfferName] = useState("");
+  const [offerNotes, setOfferNotes] = useState("");
+  const [validUntil, setValidUntil] = useState("");
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  
+  const handleCreateOffer = async () => {
+    if (!offerName) {
       toast({
-        title: "Solution déjà ajoutée",
-        description: "Cette solution est déjà présente dans l'offre",
-        variant: "destructive"
+        variant: "destructive",
+        title: "Erreur",
+        description: "Veuillez entrer un nom pour l'offre."
       });
       return;
     }
-
-    setOffer({
-      ...offer,
-      solutions: [...offer.solutions, solutionToAdd]
-    });
-
-    const newProducts = solutionToAdd.products.filter(
-      product => !offer.products.some(p => p.id === product.id)
-    );
-
-    if (newProducts.length > 0) {
-      setOffer(prev => ({
-        ...prev,
-        products: [...prev.products, ...newProducts]
-      }));
-
+    
+    if (!validUntil) {
       toast({
-        title: "Solution ajoutée",
-        description: `${solutionToAdd.name} et ${newProducts.length} produit(s) associés ont été ajoutés à l'offre`,
+        variant: "destructive",
+        title: "Erreur",
+        description: "Veuillez sélectionner une date de validité."
       });
-    } else {
+      return;
+    }
+    
+    // Prepare offer data
+    const offerData = {
+      customer_id: customer.id,
+      customer_name: customer.name,
+      customer_industry: customer.industry,
+      contact_name: "Contact Name", // Replace with actual contact name if available
+      total_amount: products.reduce((sum, product) => sum + (product.quantity * 100), 0), // Replace 100 with actual product price
+      valid_until: validUntil,
+      notes: offerNotes,
+      created_by: "user-001", // Replace with actual user ID
+      status: "draft"
+    };
+    
+    try {
+      // Create offer
+      const newOffer = await createOffer(offerData);
+      
+      if (newOffer) {
+        // Add products to offer
+        for (const product of products) {
+          await addProductToOffer({
+            offer_id: newOffer.id,
+            product_id: product.id,
+            quantity: product.quantity,
+            unit_price: 100 // Replace 100 with actual product price
+          });
+        }
+        
+        toast({
+          title: "Offre créée",
+          description: "L'offre a été créée avec succès."
+        });
+        
+        navigate('/my-offers');
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Erreur",
+          description: "Impossible de créer l'offre."
+        });
+      }
+    } catch (error) {
+      console.error("Error creating offer:", error);
       toast({
-        title: "Solution ajoutée",
-        description: `${solutionToAdd.name} a été ajoutée à l'offre`,
+        variant: "destructive",
+        title: "Erreur",
+        description: "Une erreur s'est produite lors de la création de l'offre."
       });
     }
   };
+  
+  return (
+    <div className="space-y-6">
+      <h2 className="text-xl font-semibold">Détails de l'offre</h2>
+      
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Nom de l'offre</label>
+          <input
+            type="text"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-paritel-primary focus:ring-paritel-primary sm:text-sm"
+            placeholder="Nom de l'offre"
+            value={offerName}
+            onChange={(e) => setOfferName(e.target.value)}
+          />
+        </div>
+        
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Date de validité</label>
+          <input
+            type="date"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-paritel-primary focus:ring-paritel-primary sm:text-sm"
+            value={validUntil}
+            onChange={(e) => setValidUntil(e.target.value)}
+          />
+        </div>
+        
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Notes</label>
+          <textarea
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-paritel-primary focus:ring-paritel-primary sm:text-sm"
+            rows={3}
+            placeholder="Notes"
+            value={offerNotes}
+            onChange={(e) => setOfferNotes(e.target.value)}
+          />
+        </div>
+        
+        <div>
+          <h3 className="font-medium mb-2">Produits sélectionnés :</h3>
+          
+          {products.length > 0 ? (
+            <ul className="space-y-2">
+              {products.map((product) => (
+                <li key={product.id} className="flex justify-between items-center">
+                  <div className="flex items-center">
+                    <Package className="h-4 w-4 mr-2 text-gray-500" />
+                    <span>{product.name}</span>
+                  </div>
+                  <span className="text-sm text-gray-500">
+                    Quantité: {product.quantity}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-gray-500 text-sm">Aucun produit sélectionné</p>
+          )}
+        </div>
+      </div>
+      
+      <div className="flex justify-between">
+        <Button variant="outline" onClick={onBack}>
+          Retour
+        </Button>
+        <Button 
+          className="bg-paritel-primary" 
+          onClick={handleCreateOffer}
+        >
+          Créer l'offre
+        </Button>
+      </div>
+    </div>
+  );
+};
 
-  const removeSolution = (solutionId: string) => {
-    setOffer({
-      ...offer,
-      solutions: offer.solutions.filter(s => s.id !== solutionId)
-    });
-
-    toast({
-      title: "Solution retirée",
-      description: "La solution a été retirée de l'offre",
-    });
+const CreateOffer = () => {
+  const [step, setStep] = useState(1);
+  const [customer, setCustomer] = useState(null);
+  const [products, setProducts] = useState([]);
+  
+  const handleNext = () => {
+    setStep(step + 1);
   };
-
+  
+  const handleBack = () => {
+    setStep(step - 1);
+  };
+  
+  const handleSelectCustomer = (customer) => {
+    setCustomer(customer);
+  };
+  
+  const handleSelectProducts = (products) => {
+    setProducts(products);
+  };
+  
   return (
     <MainLayout>
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">Créer une Offre Sur Mesure</h1>
-            <p className="text-muted-foreground mt-1">
-              Configurez une proposition commerciale personnalisée
-            </p>
-          </div>
-          <div className="flex space-x-2">
-            <Button variant="outline" onClick={saveAsDraft}>
-              <Save className="mr-2 h-4 w-4" />
-              Enregistrer comme brouillon
-            </Button>
-          </div>
-        </div>
-
-        <div className="hidden md:flex justify-between mb-8">
-          {Array.from({ length: totalSteps }).map((_, index) => (
-            <div
-              key={index}
-              className="flex flex-col items-center space-y-2 relative w-full"
-            >
-              <div
-                className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                  currentStep > index + 1
-                    ? "bg-green-500 text-white"
-                    : currentStep === index + 1
-                    ? "bg-paritel-primary text-white"
-                    : "bg-gray-200 text-gray-500"
-                }`}
-              >
-                {currentStep > index + 1 ? (
-                  "✓"
-                ) : (
-                  index + 1
-                )}
-              </div>
-              <div className="text-xs font-medium text-center">
-                {index === 0 && "Informations client"}
-                {index === 1 && "Expression des besoins"}
-                {index === 2 && "Solutions métiers"}
-                {index === 3 && "Sélection produits"}
-                {index === 4 && "Personnalisation"}
-                {index === 5 && "Résumé et finalisation"}
-              </div>
-              {index < totalSteps - 1 && (
-                <div
-                  className={`absolute top-5 w-full h-0.5 left-1/2 ${
-                    currentStep > index + 1 ? "bg-green-500" : "bg-gray-200"
-                  }`}
-                ></div>
-              )}
-            </div>
-          ))}
-        </div>
+        <Button variant="outline" size="sm" onClick={() => window.history.back()}>
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Retour
+        </Button>
         
-        <div className="flex md:hidden justify-between items-center mb-8">
-          <div className="flex items-center">
-            <div
-              className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                "bg-paritel-primary text-white"
-              }`}
-            >
-              {currentStep}
-            </div>
-            <div className="ml-3">
-              <div className="font-medium">
-                {currentStep === 1 && "Informations client"}
-                {currentStep === 2 && "Expression des besoins"}
-                {currentStep === 3 && "Solutions métiers"}
-                {currentStep === 4 && "Sélection produits"}
-                {currentStep === 5 && "Personnalisation"}
-                {currentStep === 6 && "Résumé et finalisation"}
-              </div>
-              <div className="text-xs text-gray-500">Étape {currentStep} sur {totalSteps}</div>
-            </div>
-          </div>
-          <div className="text-xs font-medium bg-gray-100 py-1 px-2 rounded-full">
-            {Math.round((currentStep / totalSteps) * 100)}%
-          </div>
-        </div>
-
-        {currentStep === 1 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Informations client</CardTitle>
-              <CardDescription>
-                Renseignez les informations de base du client et du contact
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div className="space-y-1">
-                    <CustomLabel>Nom de la société</CustomLabel>
-                    <div className="relative">
-                      <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                      <Input 
-                        className="pl-9" 
-                        placeholder="Nom de la société" 
-                        name="companyName"
-                        value={offer.customer.companyName}
-                        onChange={handleCustomerChange}
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-1">
-                    <CustomLabel>Secteur d'activité</CustomLabel>
-                    <Select value={offer.customer.industry} onValueChange={handleIndustryChange}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionnez un secteur" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="business">Entreprise / PME</SelectItem>
-                        <SelectItem value="hotel">Hôtellerie</SelectItem>
-                        <SelectItem value="health">Santé</SelectItem>
-                        <SelectItem value="education">Éducation</SelectItem>
-                        <SelectItem value="public">Secteur Public</SelectItem>
-                        <SelectItem value="other">Autre</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="space-y-1">
-                    <CustomLabel>Adresse</CustomLabel>
-                    <Textarea 
-                      placeholder="Adresse complète" 
-                      name="address"
-                      value={offer.customer.address}
-                      onChange={handleCustomerChange}
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-4">
-                  <div className="space-y-1">
-                    <CustomLabel>Nom du contact</CustomLabel>
-                    <div className="relative">
-                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                      <Input 
-                        className="pl-9" 
-                        placeholder="Nom du contact" 
-                        name="contactName"
-                        value={offer.customer.contactName}
-                        onChange={handleCustomerChange}
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-1">
-                    <CustomLabel>Téléphone</CustomLabel>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                      <Input 
-                        className="pl-9" 
-                        placeholder="Numéro de téléphone" 
-                        name="contactPhone"
-                        value={offer.customer.contactPhone}
-                        onChange={handleCustomerChange}
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-1">
-                    <CustomLabel>Email</CustomLabel>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                      <Input 
-                        className="pl-9" 
-                        placeholder="Adresse email" 
-                        name="contactEmail"
-                        value={offer.customer.contactEmail}
-                        onChange={handleCustomerChange}
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-1">
-                    <CustomLabel>Fonction</CustomLabel>
-                    <Input 
-                      placeholder="Fonction du contact" 
-                      name="contactRole"
-                      value={offer.customer.contactRole}
-                      onChange={handleCustomerChange}
-                    />
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        {step === 1 && (
+          <CustomerSelection 
+            onSelectCustomer={handleSelectCustomer}
+            onNext={handleNext}
+          />
         )}
-
-        {currentStep === 2 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Expression des besoins</CardTitle>
-              <CardDescription>
-                Décrivez les besoins du client et le contexte de la demande
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-1">
-                <CustomLabel>Contexte de la demande</CustomLabel>
-                <Textarea 
-                  placeholder="Décrivez la situation actuelle et le contexte" 
-                  className="min-h-[100px]"
-                  name="context"
-                  value={offer.needs.context}
-                  onChange={handleNeedsChange}
-                />
-              </div>
-              
-              <div className="space-y-1">
-                <CustomLabel>Besoins exprimés</CustomLabel>
-                <Textarea 
-                  placeholder="Listez les besoins exprimés par le client" 
-                  className="min-h-[100px]"
-                  name="needs"
-                  value={offer.needs.needs}
-                  onChange={handleNeedsChange}
-                />
-              </div>
-              
-              <div className="space-y-1">
-                <CustomLabel>Contraintes spécifiques</CustomLabel>
-                <Textarea 
-                  placeholder="Précisez les contraintes à prendre en compte (budget, délais, techniques...)" 
-                  className="min-h-[100px]"
-                  name="constraints"
-                  value={offer.needs.constraints}
-                  onChange={handleNeedsChange}
-                />
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-1">
-                  <CustomLabel>Budget estimé</CustomLabel>
-                  <Input 
-                    placeholder="€" 
-                    type="number" 
-                    name="budget"
-                    value={offer.needs.budget}
-                    onChange={handleNeedsChange}
-                  />
-                </div>
-                
-                <div className="space-y-1">
-                  <CustomLabel>Délai souhaité</CustomLabel>
-                  <Input 
-                    placeholder="Date souhaitée" 
-                    type="date" 
-                    name="deadline"
-                    value={offer.needs.deadline}
-                    onChange={handleNeedsChange}
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        
+        {step === 2 && (
+          <ProductSelection 
+            onSelectProducts={handleSelectProducts}
+            onBack={handleBack}
+            onNext={handleNext}
+          />
         )}
-
-        {currentStep === 3 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Solutions métiers</CardTitle>
-              <CardDescription>
-                Sélectionnez les solutions métiers adaptées aux besoins du client
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
-                {availableSolutions.length === 0 ? (
-                  <div className="text-center py-8">
-                    <p className="text-gray-500">Aucune solution métier disponible.</p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {availableSolutions.map(solution => (
-                      <div 
-                        key={solution.id}
-                        className={`border rounded-lg p-4 hover:border-paritel-primary cursor-pointer transition-colors
-                          ${offer.solutions.some(s => s.id === solution.id) ? 'bg-paritel-accent/10 border-paritel-primary' : ''}
-                        `}
-                        onClick={() => offer.solutions.some(s => s.id === solution.id) 
-                          ? removeSolution(solution.id) 
-                          : addSolution(solution.id)
-                        }
-                      >
-                        <div className="flex justify-between items-start mb-2">
-                          <h3 className="font-medium">{solution.name}</h3>
-                          {offer.solutions.some(s => s.id === solution.id) ? (
-                            <div className="bg-paritel-primary text-white text-xs px-2 py-1 rounded">
-                              Sélectionnée
-                            </div>
-                          ) : null}
-                        </div>
-                        <p className="text-sm text-gray-600 mb-2">{solution.description}</p>
-                        <div className="text-xs text-gray-500">
-                          {solution.products.length} produit{solution.products.length > 1 ? 's' : ''}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+        
+        {step === 3 && customer && (
+          <OfferDetails 
+            customer={customer}
+            products={products}
+            onBack={handleBack}
+            onCreateOffer={() => {}}
+          />
         )}
-
-        <div className="flex justify-between mt-8">
-          {currentStep > 1 ? (
-            <Button
-              variant="outline"
-              onClick={goToPreviousStep}
-              className="flex items-center"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" /> Précédent
-            </Button>
-          ) : (
-            <div></div>
-          )}
-
-          {currentStep < totalSteps ? (
-            <Button
-              onClick={goToNextStep}
-              className="bg-paritel-primary hover:bg-paritel-dark flex items-center"
-            >
-              Suivant <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
-          ) : (
-            <div className="flex space-x-2">
-              <Button
-                variant="default"
-                onClick={finalizOffer}
-                className="bg-paritel-primary hover:bg-paritel-dark flex items-center"
-              >
-                <FileCheck className="w-4 h-4 mr-2" /> Finaliser l'offre
-              </Button>
-              <Button
-                variant="outline"
-                onClick={downloadOffer}
-                className="flex items-center"
-              >
-                <Download className="w-4 h-4 mr-2" /> Télécharger PDF
-              </Button>
-            </div>
-          )}
-        </div>
       </div>
     </MainLayout>
   );

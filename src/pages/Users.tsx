@@ -1,5 +1,4 @@
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -51,22 +50,23 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
+import { fetchUsers, updateUserStatus, createUser, updateUser, deleteUser as apiDeleteUser } from "@/services/UserService";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 // Types definition
 type UserRole = "admin" | "manager" | "user";
-
 type UserStatus = "active" | "inactive" | "pending";
 
 interface UserData {
-  id: number;
-  name: string;
+  id: string;
+  full_name: string;
   email: string;
   phone: string;
   role: UserRole;
   status: UserStatus;
   department: string;
-  createdAt: string;
-  lastLogin?: string;
+  created_at: string;
+  last_login?: string;
 }
 
 // Component implementation
@@ -79,78 +79,17 @@ const Users = () => {
   const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
   const [isEditUserOpen, setIsEditUserOpen] = useState(false);
+  const queryClient = useQueryClient();
   
-  // Mock user data
-  const [users, setUsers] = useState<UserData[]>([
-    {
-      id: 1,
-      name: "Jean Dupont",
-      email: "jean.dupont@paritel.fr",
-      phone: "06 12 34 56 78",
-      role: "admin",
-      status: "active",
-      department: "Direction",
-      createdAt: "2023-02-15",
-      lastLogin: "2024-04-11"
-    },
-    {
-      id: 2,
-      name: "Marie Durand",
-      email: "marie.durand@paritel.fr",
-      phone: "06 23 45 67 89",
-      role: "manager",
-      status: "active",
-      department: "Commercial",
-      createdAt: "2023-05-20",
-      lastLogin: "2024-04-10"
-    },
-    {
-      id: 3,
-      name: "Philippe Martin",
-      email: "philippe.martin@paritel.fr",
-      phone: "07 34 56 78 90",
-      role: "user",
-      status: "active",
-      department: "Technique",
-      createdAt: "2023-08-30",
-      lastLogin: "2024-04-09"
-    },
-    {
-      id: 4,
-      name: "Sophie Petit",
-      email: "sophie.petit@paritel.fr",
-      phone: "06 45 67 89 01",
-      role: "user",
-      status: "inactive",
-      department: "Commercial",
-      createdAt: "2023-10-12"
-    },
-    {
-      id: 5,
-      name: "Lucas Bernard",
-      email: "lucas.bernard@paritel.fr",
-      phone: "07 56 78 90 12",
-      role: "manager",
-      status: "active",
-      department: "Support",
-      createdAt: "2023-12-05",
-      lastLogin: "2024-04-08"
-    },
-    {
-      id: 6,
-      name: "Emma Lefebvre",
-      email: "emma.lefebvre@paritel.fr",
-      phone: "06 67 89 01 23",
-      role: "user",
-      status: "pending",
-      department: "Marketing",
-      createdAt: "2024-02-28"
-    }
-  ]);
+  // Fetch users from the database
+  const { data: users = [], isLoading } = useQuery({
+    queryKey: ['users'],
+    queryFn: fetchUsers
+  });
   
   // Form state for new/edit user
   const [formData, setFormData] = useState({
-    name: "",
+    full_name: "",
     email: "",
     phone: "",
     role: "user" as UserRole,
@@ -158,12 +97,104 @@ const Users = () => {
     status: "active" as UserStatus
   });
   
+  // Create user mutation
+  const createUserMutation = useMutation({
+    mutationFn: (userData: any) => {
+      return createUser({ ...userData, id: crypto.randomUUID() });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      toast({
+        title: "Utilisateur ajouté",
+        description: "Le nouvel utilisateur a été ajouté avec succès"
+      });
+      setIsAddUserOpen(false);
+    },
+    onError: (error) => {
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la création de l'utilisateur"
+      });
+      console.error("Error creating user:", error);
+    }
+  });
+  
+  // Update user mutation
+  const updateUserMutation = useMutation({
+    mutationFn: ({ userId, userData }: { userId: string, userData: any }) => {
+      return updateUser(userId, userData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      toast({
+        title: "Utilisateur mis à jour",
+        description: "Les informations de l'utilisateur ont été mises à jour"
+      });
+      setIsEditUserOpen(false);
+    },
+    onError: (error) => {
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la mise à jour de l'utilisateur"
+      });
+      console.error("Error updating user:", error);
+    }
+  });
+  
+  // Update status mutation
+  const updateStatusMutation = useMutation({
+    mutationFn: ({ userId, status }: { userId: string, status: UserStatus }) => {
+      return updateUserStatus(userId, status);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      toast({
+        title: "Statut mis à jour",
+        description: "Le statut de l'utilisateur a été modifié avec succès"
+      });
+    },
+    onError: (error) => {
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la mise à jour du statut"
+      });
+      console.error("Error updating status:", error);
+    }
+  });
+  
+  // Delete user mutation
+  const deleteUserMutation = useMutation({
+    mutationFn: (userId: string) => {
+      return apiDeleteUser(userId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      toast({
+        title: "Utilisateur supprimé",
+        description: "L'utilisateur a été supprimé avec succès"
+      });
+      setShowDeleteDialog(false);
+      setSelectedUser(null);
+    },
+    onError: (error) => {
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la suppression de l'utilisateur"
+      });
+      console.error("Error deleting user:", error);
+    }
+  });
+  
   // Filter users based on search term and filters
   const filteredUsers = users.filter(user => {
     const matchesSearch = 
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.department.toLowerCase().includes(searchTerm.toLowerCase());
+      (user.department && user.department.toLowerCase().includes(searchTerm.toLowerCase()));
     
     const matchesRole = filterRole === "all" || user.role === filterRole;
     const matchesStatus = filterStatus === "all" || user.status === filterStatus;
@@ -172,54 +203,26 @@ const Users = () => {
   });
   
   // Handle user deletion
-  const deleteUser = (userId: number) => {
-    setUsers(users.filter(user => user.id !== userId));
-    setShowDeleteDialog(false);
-    setSelectedUser(null);
-    
-    toast({
-      title: "Utilisateur supprimé",
-      description: "L'utilisateur a été supprimé avec succès",
-    });
+  const handleDeleteUser = (userId: string) => {
+    deleteUserMutation.mutate(userId);
   };
   
   // Handle user form submission (add/edit)
   const handleFormSubmit = (isEdit: boolean) => {
     if (isEdit && selectedUser) {
       // Update existing user
-      setUsers(users.map(user => 
-        user.id === selectedUser.id ? 
-          { ...user, ...formData } : 
-          user
-      ));
-      
-      toast({
-        title: "Utilisateur mis à jour",
-        description: `Les informations de ${formData.name} ont été mises à jour avec succès`,
+      updateUserMutation.mutate({
+        userId: selectedUser.id,
+        userData: formData
       });
-      
-      setIsEditUserOpen(false);
     } else {
       // Add new user
-      const newUser: UserData = {
-        id: Math.max(...users.map(u => u.id)) + 1,
-        ...formData,
-        createdAt: new Date().toISOString().split('T')[0]
-      };
-      
-      setUsers([...users, newUser]);
-      
-      toast({
-        title: "Utilisateur ajouté",
-        description: `${formData.name} a été ajouté à la liste des utilisateurs`,
-      });
-      
-      setIsAddUserOpen(false);
+      createUserMutation.mutate(formData);
     }
     
     // Reset form
     setFormData({
-      name: "",
+      full_name: "",
       email: "",
       phone: "",
       role: "user",
@@ -234,28 +237,19 @@ const Users = () => {
   const handleEditUser = (user: UserData) => {
     setSelectedUser(user);
     setFormData({
-      name: user.name,
+      full_name: user.full_name,
       email: user.email,
-      phone: user.phone,
-      role: user.role,
-      department: user.department,
-      status: user.status
+      phone: user.phone || "",
+      role: user.role as UserRole,
+      department: user.department || "Commercial",
+      status: user.status as UserStatus
     });
     setIsEditUserOpen(true);
   };
   
   // Handle status change
-  const changeUserStatus = (userId: number, newStatus: UserStatus) => {
-    setUsers(users.map(user => 
-      user.id === userId ? 
-        { ...user, status: newStatus } : 
-        user
-    ));
-    
-    toast({
-      title: "Statut mis à jour",
-      description: `Le statut de l'utilisateur a été modifié avec succès`,
-    });
+  const handleChangeUserStatus = (userId: string, newStatus: UserStatus) => {
+    updateStatusMutation.mutate({ userId, status: newStatus });
   };
   
   // Render role badge
@@ -391,10 +385,10 @@ const Users = () => {
                           <td className="p-3">
                             <div className="flex items-center gap-3">
                               <div className="w-8 h-8 rounded-full bg-paritel-primary text-white flex items-center justify-center font-medium">
-                                {user.name.split(' ').map(n => n[0]).join('')}
+                                {user.full_name.split(' ').map(n => n[0]).join('')}
                               </div>
                               <div>
-                                <div className="font-medium">{user.name}</div>
+                                <div className="font-medium">{user.full_name}</div>
                                 <div className="text-gray-500 text-xs">{user.email}</div>
                               </div>
                             </div>
@@ -418,13 +412,13 @@ const Users = () => {
                                   Modifier
                                 </DropdownMenuItem>
                                 {user.status !== "active" && (
-                                  <DropdownMenuItem onClick={() => changeUserStatus(user.id, "active")}>
+                                  <DropdownMenuItem onClick={() => handleChangeUserStatus(user.id, "active")}>
                                     <CheckCircle className="mr-2 h-4 w-4" />
                                     Activer
                                   </DropdownMenuItem>
                                 )}
                                 {user.status !== "inactive" && (
-                                  <DropdownMenuItem onClick={() => changeUserStatus(user.id, "inactive")}>
+                                  <DropdownMenuItem onClick={() => handleChangeUserStatus(user.id, "inactive")}>
                                     <XCircle className="mr-2 h-4 w-4" />
                                     Désactiver
                                   </DropdownMenuItem>
@@ -478,17 +472,17 @@ const Users = () => {
                           <td className="p-3">
                             <div className="flex items-center gap-3">
                               <div className="w-8 h-8 rounded-full bg-paritel-primary text-white flex items-center justify-center font-medium">
-                                {user.name.split(' ').map(n => n[0]).join('')}
+                                {user.full_name.split(' ').map(n => n[0]).join('')}
                               </div>
                               <div>
-                                <div className="font-medium">{user.name}</div>
+                                <div className="font-medium">{user.full_name}</div>
                                 <div className="text-gray-500 text-xs">{user.email}</div>
                               </div>
                             </div>
                           </td>
                           <td className="p-3 hidden md:table-cell">{user.department}</td>
                           <td className="p-3 text-center">{renderRoleBadge(user.role)}</td>
-                          <td className="p-3 hidden md:table-cell">{user.lastLogin ? new Date(user.lastLogin).toLocaleDateString('fr-FR') : "-"}</td>
+                          <td className="p-3 hidden md:table-cell">{user.last_login ? new Date(user.last_login).toLocaleDateString('fr-FR') : "-"}</td>
                           <td className="p-3 text-right">
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
@@ -501,7 +495,7 @@ const Users = () => {
                                   <PencilLine className="mr-2 h-4 w-4" />
                                   Modifier
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => changeUserStatus(user.id, "inactive")}>
+                                <DropdownMenuItem onClick={() => handleChangeUserStatus(user.id, "inactive")}>
                                   <XCircle className="mr-2 h-4 w-4" />
                                   Désactiver
                                 </DropdownMenuItem>
@@ -542,24 +536,24 @@ const Users = () => {
                           <td className="p-3">
                             <div className="flex items-center gap-3">
                               <div className="w-8 h-8 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center font-medium">
-                                {user.name.split(' ').map(n => n[0]).join('')}
+                                {user.full_name.split(' ').map(n => n[0]).join('')}
                               </div>
                               <div>
-                                <div className="font-medium">{user.name}</div>
+                                <div className="font-medium">{user.full_name}</div>
                                 <div className="text-gray-500 text-xs">{user.email}</div>
                               </div>
                             </div>
                           </td>
                           <td className="p-3">{user.department}</td>
                           <td className="p-3 text-center">{renderRoleBadge(user.role)}</td>
-                          <td className="p-3 text-center">{new Date(user.createdAt).toLocaleDateString('fr-FR')}</td>
+                          <td className="p-3 text-center">{new Date(user.created_at).toLocaleDateString('fr-FR')}</td>
                           <td className="p-3 text-right">
                             <div className="flex gap-2 justify-end">
                               <Button 
                                 size="sm" 
                                 variant="outline" 
                                 className="text-red-600 border-red-200 hover:bg-red-50"
-                                onClick={() => changeUserStatus(user.id, "inactive")}
+                                onClick={() => handleChangeUserStatus(user.id, "inactive")}
                               >
                                 <XCircle className="mr-1 h-3 w-3" />
                                 Refuser
@@ -567,7 +561,7 @@ const Users = () => {
                               <Button 
                                 size="sm" 
                                 className="bg-green-600"
-                                onClick={() => changeUserStatus(user.id, "active")}
+                                onClick={() => handleChangeUserStatus(user.id, "active")}
                               >
                                 <CheckCircle className="mr-1 h-3 w-3" />
                                 Approuver
@@ -607,8 +601,8 @@ const Users = () => {
                 <Input 
                   className="pl-9" 
                   placeholder="Nom et prénom"
-                  value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  value={formData.full_name}
+                  onChange={(e) => setFormData({...formData, full_name: e.target.value})}
                 />
               </div>
             </div>
@@ -705,7 +699,7 @@ const Users = () => {
             <Button 
               onClick={() => handleFormSubmit(false)}
               className="bg-paritel-primary"
-              disabled={!formData.name || !formData.email}
+              disabled={!formData.full_name || !formData.email}
             >
               <UserPlus className="mr-2 h-4 w-4" />
               Ajouter
@@ -732,8 +726,8 @@ const Users = () => {
                 <Input 
                   className="pl-9" 
                   placeholder="Nom et prénom"
-                  value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  value={formData.full_name}
+                  onChange={(e) => setFormData({...formData, full_name: e.target.value})}
                 />
               </div>
             </div>
@@ -830,7 +824,7 @@ const Users = () => {
             <Button 
               onClick={() => handleFormSubmit(true)}
               className="bg-paritel-primary"
-              disabled={!formData.name || !formData.email}
+              disabled={!formData.full_name || !formData.email}
             >
               <UserCog className="mr-2 h-4 w-4" />
               Enregistrer
@@ -846,7 +840,7 @@ const Users = () => {
             <DialogHeader>
               <DialogTitle>Confirmer la suppression</DialogTitle>
               <DialogDescription>
-                Êtes-vous sûr de vouloir supprimer l'utilisateur <span className="font-medium">{selectedUser.name}</span> ?
+                Êtes-vous sûr de vouloir supprimer l'utilisateur <span className="font-medium">{selectedUser.full_name}</span> ?
                 Cette action est irréversible.
               </DialogDescription>
             </DialogHeader>
@@ -859,7 +853,7 @@ const Users = () => {
               </Button>
               <Button 
                 variant="destructive"
-                onClick={() => deleteUser(selectedUser.id)}
+                onClick={() => handleDeleteUser(selectedUser.id)}
               >
                 <Trash className="mr-2 h-4 w-4" />
                 Supprimer
