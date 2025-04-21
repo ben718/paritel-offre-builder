@@ -790,7 +790,8 @@ const MyOffers = () => {
                     </Card>
                   ))}
               </div>
-            </TabsContent>
+            )}
+          </TabsContent>
         </Tabs>
         
         {selectedOffer && (
