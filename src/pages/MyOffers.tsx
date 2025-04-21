@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
@@ -600,9 +599,9 @@ const MyOffers = () => {
                         </div>
                       </CardFooter>
                     </Card>
-                  ))}
-              </div>
-            )}
+                  ))
+                )}
+            </div>
           </TabsContent>
           
           <TabsContent value="accepted">
@@ -747,50 +746,49 @@ const MyOffers = () => {
                                 onClick={() => handleDownloadOffer(offer.id)}
                               >
                                 <Download className="mr-1 h-4 w-4" />
-                                Télécharger
-                              </Button>
-                            </>
-                          )}
-                          
-                          {offer.status === 'in_progress' && (
-                            <>
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                className="flex-1 text-red-600 border-red-200 hover:bg-red-50"
-                                onClick={() => handleUpdateStatus(offer.id, 'rejected')}
-                              >
-                                <XCircle className="mr-1 h-4 w-4" />
-                                Refusée
-                              </Button>
-                              <Button 
-                                size="sm"
-                                className="flex-1 bg-green-600"
-                                onClick={() => handleUpdateStatus(offer.id, 'accepted')}
-                              >
-                                <CheckCircle className="mr-1 h-4 w-4" />
-                                Acceptée
-                              </Button>
-                            </>
-                          )}
-                          
-                          {(offer.status === 'accepted' || offer.status === 'rejected' || offer.status === 'expired') && (
+                              Télécharger
+                            </Button>
+                          </>
+                        )}
+                        
+                        {offer.status === 'in_progress' && (
+                          <>
                             <Button 
                               variant="outline" 
                               size="sm"
-                              className="w-full"
-                              onClick={() => handleViewOffer(offer.id)}
+                              className="flex-1 text-red-600 border-red-200 hover:bg-red-50"
+                              onClick={() => handleUpdateStatus(offer.id, 'rejected')}
                             >
-                              <Eye className="mr-1 h-4 w-4" />
-                              Voir le détail
+                              <XCircle className="mr-1 h-4 w-4" />
+                              Refusée
                             </Button>
-                          )}
-                        </div>
-                      </CardFooter>
-                    </Card>
-                  ))}
-              </div>
-            )}
+                            <Button 
+                              size="sm"
+                              className="flex-1 bg-green-600"
+                              onClick={() => handleUpdateStatus(offer.id, 'accepted')}
+                            >
+                              <CheckCircle className="mr-1 h-4 w-4" />
+                              Acceptée
+                            </Button>
+                          </>
+                        )}
+                        
+                        {(offer.status === 'accepted' || offer.status === 'rejected' || offer.status === 'expired') && (
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            className="w-full"
+                            onClick={() => handleViewOffer(offer.id)}
+                          >
+                            <Eye className="mr-1 h-4 w-4" />
+                            Voir le détail
+                          </Button>
+                        )}
+                      </div>
+                    </CardFooter>
+                  </Card>
+                ))}
+            </div>
           </TabsContent>
         </Tabs>
         
