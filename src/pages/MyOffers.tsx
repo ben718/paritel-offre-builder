@@ -601,8 +601,8 @@ const MyOffers = () => {
                       </CardFooter>
                     </Card>
                   ))}
-              )}
-            </div>
+              </div>
+            )}
           </TabsContent>
           
           <TabsContent value="accepted">
@@ -789,9 +789,8 @@ const MyOffers = () => {
                       </CardFooter>
                     </Card>
                   ))}
-              )}
-            </div>
-          </TabsContent>
+              </div>
+            </TabsContent>
         </Tabs>
         
         {selectedOffer && (
