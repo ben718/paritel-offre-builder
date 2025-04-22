@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, Globe, Mail, Phone, MapPin, Package } from "lucide-react";
-import type { Partner } from "@/services/PartnerService";
 
 export type PartnerCardProps = {
   id: string;

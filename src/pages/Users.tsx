@@ -397,8 +397,8 @@ const Users = () => {
                           </td>
                           <td className="p-3 hidden md:table-cell">{user.department}</td>
                           <td className="p-3 hidden md:table-cell">{user.phone}</td>
-                          <td className="p-3 text-center">{renderRoleBadge(user.role)}</td>
-                          <td className="p-3 text-center">{renderStatusBadge(user.status)}</td>
+                          <td className="p-3 text-center">{renderRoleBadge(user.role as UserRole)}</td>
+                          <td className="p-3 text-center">{renderStatusBadge(user.status as UserStatus)}</td>
                           <td className="p-3 text-right">
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
@@ -414,13 +414,13 @@ const Users = () => {
                                   Modifier
                                 </DropdownMenuItem>
                                 {user.status !== "active" && (
-                                  <DropdownMenuItem onClick={() => handleChangeUserStatus(user.id, "active")}>
+                                  <DropdownMenuItem onClick={() => handleChangeUserStatus(user.id, "active" as UserStatus)}>
                                     <CheckCircle className="mr-2 h-4 w-4" />
                                     Activer
                                   </DropdownMenuItem>
                                 )}
                                 {user.status !== "inactive" && (
-                                  <DropdownMenuItem onClick={() => handleChangeUserStatus(user.id, "inactive")}>
+                                  <DropdownMenuItem onClick={() => handleChangeUserStatus(user.id, "inactive" as UserStatus)}>
                                     <XCircle className="mr-2 h-4 w-4" />
                                     Désactiver
                                   </DropdownMenuItem>
@@ -483,7 +483,7 @@ const Users = () => {
                             </div>
                           </td>
                           <td className="p-3 hidden md:table-cell">{user.department}</td>
-                          <td className="p-3 text-center">{renderRoleBadge(user.role)}</td>
+                          <td className="p-3 text-center">{renderRoleBadge(user.role as UserRole)}</td>
                           <td className="p-3 hidden md:table-cell">{user.last_login ? new Date(user.last_login).toLocaleDateString('fr-FR') : "-"}</td>
                           <td className="p-3 text-right">
                             <DropdownMenu>
@@ -547,7 +547,7 @@ const Users = () => {
                             </div>
                           </td>
                           <td className="p-3">{user.department}</td>
-                          <td className="p-3 text-center">{renderRoleBadge(user.role)}</td>
+                          <td className="p-3 text-center">{renderRoleBadge(user.role as UserRole)}</td>
                           <td className="p-3 text-center">{new Date(user.created_at).toLocaleDateString('fr-FR')}</td>
                           <td className="p-3 text-right">
                             <div className="flex gap-2 justify-end">
@@ -641,7 +641,7 @@ const Users = () => {
                 <CustomLabel>Rôle</CustomLabel>
                 <Select 
                   value={formData.role} 
-                  onValueChange={(value: UserRole) => setFormData({...formData, role: value})}
+                  onValueChange={(value) => setFormData({...formData, role: value as UserRole})}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Sélectionner un rôle" />
@@ -680,7 +680,7 @@ const Users = () => {
               <CustomLabel>Statut initial</CustomLabel>
               <Select 
                 value={formData.status} 
-                onValueChange={(value: UserStatus) => setFormData({...formData, status: value})}
+                onValueChange={(value) => setFormData({...formData, status: value as UserStatus})}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Sélectionner un statut" />
@@ -766,7 +766,7 @@ const Users = () => {
                 <CustomLabel>Rôle</CustomLabel>
                 <Select 
                   value={formData.role} 
-                  onValueChange={(value: UserRole) => setFormData({...formData, role: value})}
+                  onValueChange={(value) => setFormData({...formData, role: value as UserRole})}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Sélectionner un rôle" />
@@ -805,7 +805,7 @@ const Users = () => {
               <CustomLabel>Statut</CustomLabel>
               <Select 
                 value={formData.status} 
-                onValueChange={(value: UserStatus) => setFormData({...formData, status: value})}
+                onValueChange={(value) => setFormData({...formData, status: value as UserStatus})}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Sélectionner un statut" />
