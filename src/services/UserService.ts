@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 export type UserData = {
@@ -12,7 +11,7 @@ export type UserData = {
   last_login?: string;
   created_at?: string;
   updated_at?: string;
-  status?: string;
+  status?: 'active' | 'inactive' | 'pending';
 }
 
 // Récupérer tous les utilisateurs
@@ -62,7 +61,10 @@ export const createUser = async (userData: Omit<UserData, 'created_at' | 'update
     // Insérer les données de l'utilisateur avec le champ ID requis
     const { data, error } = await supabase
       .from('app_users')
-      .insert(userData)
+      .insert({
+        ...userData,
+        status: userData.status || 'pending'
+      })
       .select()
       .single();
 
@@ -83,7 +85,10 @@ export const updateUser = async (userId: string, userData: Partial<Omit<UserData
   try {
     const { data, error } = await supabase
       .from('app_users')
-      .update(userData)
+      .update({
+        ...userData,
+        status: userData.status
+      })
       .eq('id', userId)
       .select()
       .single();
