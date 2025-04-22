@@ -42,18 +42,21 @@ const ProtectedRoute = ({ children, allowedRoles = [] }: ProtectedRouteProps) =>
   const userRoles = userProfile?.roles || [];
   console.log('Vérification des rôles:', { userRoles, allowedRoles });
   
+  // Correction importante : vérification simplifiée des rôles
   let hasAccess = false;
   
-  // Convert all roles to lowercase for case-insensitive comparison
-  const normalizedUserRoles = userRoles.map(role => role.toLowerCase());
-  const normalizedAllowedRoles = allowedRoles.map(role => role.toLowerCase());
-  
-  console.log('Rôles normalisés:', { normalizedUserRoles, normalizedAllowedRoles });
-  
-  // Check if any user role matches any allowed role
-  hasAccess = normalizedUserRoles.some(userRole => 
-    normalizedAllowedRoles.includes(userRole)
-  );
+  // Si l'utilisateur a un rôle admin, toujours autoriser l'accès
+  if (userRoles.some(role => role.toLowerCase() === 'admin' || role.toLowerCase() === 'superadmin')) {
+    console.log('Accès autorisé: utilisateur admin');
+    hasAccess = true;
+  } else {
+    // Pour les autres rôles, vérifier si l'un des rôles de l'utilisateur figure dans les rôles autorisés
+    hasAccess = userRoles.some(userRole => 
+      allowedRoles.some(allowedRole => 
+        userRole.toLowerCase() === allowedRole.toLowerCase()
+      )
+    );
+  }
   
   // Detailed role matching log
   if (hasAccess) {

@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 export type UserData = {
@@ -59,17 +58,12 @@ export const fetchUserById = async (userId: string): Promise<UserData | null> =>
 // Créer un nouvel utilisateur - Assurons-nous que l'ID est fourni
 export const createUser = async (userData: Omit<UserData, 'created_at' | 'updated_at'> & { id: string }): Promise<UserData | null> => {
   try {
-    // Préparons les données à insérer
-    const userDataToInsert: any = {
-      ...userData
+    // Préparons les données à insérer avec cast explicite pour éviter les problèmes de type
+    const userDataToInsert = {
+      ...userData,
+      // Assurons-nous que le statut est défini
+      status: userData.status || 'pending'
     };
-    
-    // Ajout du statut par défaut si non fourni
-    if (userData.status) {
-      userDataToInsert.status = userData.status;
-    } else {
-      userDataToInsert.status = 'pending';
-    }
     
     // Insérer les données de l'utilisateur avec le champ ID requis
     const { data, error } = await supabase
@@ -93,8 +87,10 @@ export const createUser = async (userData: Omit<UserData, 'created_at' | 'update
 // Mettre à jour un utilisateur existant
 export const updateUser = async (userId: string, userData: Partial<Omit<UserData, 'id' | 'created_at' | 'updated_at'>>): Promise<UserData | null> => {
   try {
-    // Préparons les données à mettre à jour
-    const userDataToUpdate: any = { ...userData };
+    // Cast explicite pour s'assurer que tous les champs sont acceptés
+    const userDataToUpdate = {
+      ...userData
+    };
     
     // Insérer les données mises à jour
     const { data, error } = await supabase
