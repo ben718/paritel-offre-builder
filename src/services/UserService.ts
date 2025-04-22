@@ -13,7 +13,6 @@ export type UserData = {
   last_login?: string;
   created_at?: string;
   updated_at?: string;
-  status?: UserStatus;
 };
 
 // Récupérer tous les utilisateurs
@@ -54,14 +53,9 @@ export const createUser = async (
   userData: Omit<UserData, 'created_at' | 'updated_at'> & { id: string }
 ): Promise<UserData | null> => {
   try {
-    const userDataToInsert = {
-      ...userData,
-      status: userData.status || 'pending'
-    };
-
     const { data, error } = await supabase
       .from('app_users')
-      .insert([userDataToInsert])
+      .insert([userData])
       .select()
       .single();
 

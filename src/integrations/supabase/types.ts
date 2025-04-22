@@ -111,6 +111,45 @@ export type Database = {
         }
         Relationships: []
       }
+      company_settings: {
+        Row: {
+          address: string | null
+          created_at: string | null
+          description: string | null
+          email: string
+          id: string
+          logo_url: string | null
+          name: string
+          phone: string | null
+          updated_at: string | null
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string | null
+          description?: string | null
+          email: string
+          id?: string
+          logo_url?: string | null
+          name: string
+          phone?: string | null
+          updated_at?: string | null
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          created_at?: string | null
+          description?: string | null
+          email?: string
+          id?: string
+          logo_url?: string | null
+          name?: string
+          phone?: string | null
+          updated_at?: string | null
+          website?: string | null
+        }
+        Relationships: []
+      }
       customers: {
         Row: {
           address: string | null
@@ -502,6 +541,48 @@ export type Database = {
           },
         ]
       }
+      user_notification_preferences: {
+        Row: {
+          created_at: string | null
+          daily_digest: boolean | null
+          email_notifications: boolean | null
+          id: string
+          new_comment: boolean | null
+          offer_accepted: boolean | null
+          offer_created: boolean | null
+          offer_rejected: boolean | null
+          updated_at: string | null
+          user_id: string | null
+          weekly_report: boolean | null
+        }
+        Insert: {
+          created_at?: string | null
+          daily_digest?: boolean | null
+          email_notifications?: boolean | null
+          id?: string
+          new_comment?: boolean | null
+          offer_accepted?: boolean | null
+          offer_created?: boolean | null
+          offer_rejected?: boolean | null
+          updated_at?: string | null
+          user_id?: string | null
+          weekly_report?: boolean | null
+        }
+        Update: {
+          created_at?: string | null
+          daily_digest?: boolean | null
+          email_notifications?: boolean | null
+          id?: string
+          new_comment?: boolean | null
+          offer_accepted?: boolean | null
+          offer_created?: boolean | null
+          offer_rejected?: boolean | null
+          updated_at?: string | null
+          user_id?: string | null
+          weekly_report?: boolean | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -520,6 +601,42 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      user_system_preferences: {
+        Row: {
+          auto_logout: number | null
+          auto_save: boolean | null
+          created_at: string | null
+          dark_mode: boolean | null
+          data_retention: number | null
+          id: string
+          language: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          auto_logout?: number | null
+          auto_save?: boolean | null
+          created_at?: string | null
+          dark_mode?: boolean | null
+          data_retention?: number | null
+          id?: string
+          language?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          auto_logout?: number | null
+          auto_save?: boolean | null
+          created_at?: string | null
+          dark_mode?: boolean | null
+          data_retention?: number | null
+          id?: string
+          language?: string | null
+          updated_at?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }

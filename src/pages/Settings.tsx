@@ -1,5 +1,5 @@
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useAuth } from "@/context/AuthContext";
 import MainLayout from "@/components/layout/MainLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,130 +9,159 @@ import { CustomLabel } from "@/components/ui/custom-label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/components/ui/use-toast";
 import {
   Building,
   Mail,
   Phone,
   Globe,
   MapPin,
-  User,
-  Lock,
   Bell,
-  Palette,
-  HardDrive,
-  Shield,
   Settings2,
   Save,
   AlertTriangle
 } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import {
+  fetchCompanySettings,
+  updateCompanySettings,
+  fetchUserNotificationPreferences,
+  updateNotificationPreferences,
+  fetchUserSystemPreferences,
+  updateSystemPreferences,
+  type CompanySettings,
+  type NotificationPreferences,
+  type SystemPreferences
+} from "@/services/SettingsService";
 
 const Settings = () => {
   const { toast } = useToast();
+  const { userProfile } = useAuth();
 
-  // Company profile settings
-  const [companySettings, setCompanySettings] = useState({
-    name: "Paritel Solutions",
-    email: "contact@paritel.fr",
-    phone: "01 64 11 41 50",
-    website: "www.paritel.fr",
-    address: "12 rue Henri Becquerel, 77500 Chelles",
-    logo: "/path/to/logo.png",
-    description: "Paritel est un opérateur télécom B2B, spécialiste de la convergence des technologies de communication pour les entreprises."
+  // State for settings
+  const [companySettings, setCompanySettings] = useState<CompanySettings>({
+    id: '',
+    name: '',
+    email: '',
+    phone: '',
+    website: '',
+    address: '',
+    description: '',
+    logo_url: ''
   });
 
-  // Notification settings
-  const [notificationSettings, setNotificationSettings] = useState({
-    emailNotifications: true,
-    offerCreated: true,
-    offerAccepted: true,
-    offerRejected: true,
-    newComment: true,
-    dailyDigest: false,
-    weeklyReport: true
+  const [notificationSettings, setNotificationSettings] = useState<NotificationPreferences>({
+    id: '',
+    user_id: '',
+    email_notifications: true,
+    offer_created: true,
+    offer_accepted: true,
+    offer_rejected: true,
+    new_comment: true,
+    daily_digest: false,
+    weekly_report: true
   });
 
-  // System settings
-  const [systemSettings, setSystemSettings] = useState({
-    language: "fr",
-    darkMode: false,
-    autoSave: true,
-    autoLogout: 30,
-    dataRetention: 365
+  const [systemSettings, setSystemSettings] = useState<SystemPreferences>({
+    id: '',
+    user_id: '',
+    language: 'fr',
+    dark_mode: false,
+    auto_save: true,
+    auto_logout: 30,
+    data_retention: 365
   });
 
-  // Security settings
-  const [securitySettings, setSecuritySettings] = useState({
-    twoFactorAuth: false,
-    passwordExpiry: 90,
-    sessionTimeout: 60,
-    loginAttempts: 5,
-    ipRestriction: false
-  });
+  // Fetch settings on component mount
+  useEffect(() => {
+    const loadSettings = async () => {
+      if (userProfile?.id) {
+        const [company, notifications, system] = await Promise.all([
+          fetchCompanySettings(),
+          fetchUserNotificationPreferences(userProfile.id),
+          fetchUserSystemPreferences(userProfile.id)
+        ]);
+
+        if (company) setCompanySettings(company);
+        if (notifications) setNotificationSettings(notifications);
+        if (system) setSystemSettings(system);
+      }
+    };
+
+    loadSettings();
+  }, [userProfile?.id]);
 
   // Handle company profile updates
   const handleCompanyChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setCompanySettings({
-      ...companySettings,
+    setCompanySettings(prev => ({
+      ...prev,
       [name]: value
-    });
+    }));
   };
 
   // Handle notification toggle changes
-  const handleNotificationToggle = (setting: keyof typeof notificationSettings) => {
-    setNotificationSettings({
-      ...notificationSettings,
-      [setting]: !notificationSettings[setting]
-    });
+  const handleNotificationToggle = (setting: keyof Omit<NotificationPreferences, 'id' | 'user_id'>) => {
+    setNotificationSettings(prev => ({
+      ...prev,
+      [setting]: !prev[setting]
+    }));
   };
 
   // Handle system settings changes
   const handleSystemChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setSystemSettings({
-      ...systemSettings,
+    setSystemSettings(prev => ({
+      ...prev,
       [name]: value
-    });
+    }));
   };
 
   // Handle system toggle changes
-  const handleSystemToggle = (setting: keyof typeof systemSettings) => {
-    if (typeof systemSettings[setting] === 'boolean') {
-      setSystemSettings({
-        ...systemSettings,
-        [setting]: !systemSettings[setting]
-      });
-    }
-  };
-
-  // Handle security settings changes
-  const handleSecurityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setSecuritySettings({
-      ...securitySettings,
-      [name]: value
-    });
-  };
-
-  // Handle security toggle changes
-  const handleSecurityToggle = (setting: keyof typeof securitySettings) => {
-    if (typeof securitySettings[setting] === 'boolean') {
-      setSecuritySettings({
-        ...securitySettings,
-        [setting]: !securitySettings[setting]
-      });
-    }
+  const handleSystemToggle = (setting: keyof Omit<SystemPreferences, 'id' | 'user_id' | 'language' | 'auto_logout' | 'data_retention'>) => {
+    setSystemSettings(prev => ({
+      ...prev,
+      [setting]: !prev[setting]
+    }));
   };
 
   // Handle settings save
-  const saveSettings = (section: string) => {
-    // In a real app, this would make an API call to save settings
-    
-    toast({
-      title: "Paramètres enregistrés",
-      description: `Les paramètres de ${section} ont été mis à jour avec succès.`,
-    });
+  const saveSettings = async (section: string) => {
+    if (!userProfile?.id) return;
+
+    try {
+      let success = false;
+
+      switch (section) {
+        case "company":
+          const updatedCompany = await updateCompanySettings(companySettings);
+          success = !!updatedCompany;
+          break;
+        case "notifications":
+          const updatedNotifications = await updateNotificationPreferences(userProfile.id, notificationSettings);
+          success = !!updatedNotifications;
+          break;
+        case "system":
+          const updatedSystem = await updateSystemPreferences(userProfile.id, systemSettings);
+          success = !!updatedSystem;
+          break;
+      }
+
+      if (success) {
+        toast({
+          title: "Paramètres enregistrés",
+          description: `Les paramètres de ${section} ont été mis à jour avec succès.`,
+        });
+      } else {
+        throw new Error("Échec de la mise à jour");
+      }
+    } catch (error) {
+      console.error(`Error saving ${section} settings:`, error);
+      toast({
+        title: "Erreur",
+        description: `Une erreur est survenue lors de la mise à jour des paramètres de ${section}.`,
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -286,8 +315,8 @@ const Settings = () => {
                     <p className="text-muted-foreground text-sm">Recevoir des notifications par email</p>
                   </div>
                   <Switch 
-                    checked={notificationSettings.emailNotifications}
-                    onCheckedChange={() => handleNotificationToggle('emailNotifications')}
+                    checked={notificationSettings.email_notifications}
+                    onCheckedChange={() => handleNotificationToggle('email_notifications')}
                   />
                 </div>
                 
@@ -303,9 +332,9 @@ const Settings = () => {
                         <p className="text-muted-foreground text-xs">Notification quand une offre est créée</p>
                       </div>
                       <Switch 
-                        checked={notificationSettings.offerCreated}
-                        onCheckedChange={() => handleNotificationToggle('offerCreated')}
-                        disabled={!notificationSettings.emailNotifications}
+                        checked={notificationSettings.offer_created}
+                        onCheckedChange={() => handleNotificationToggle('offer_created')}
+                        disabled={!notificationSettings.email_notifications}
                       />
                     </div>
                     
@@ -315,9 +344,9 @@ const Settings = () => {
                         <p className="text-muted-foreground text-xs">Notification quand une offre est acceptée</p>
                       </div>
                       <Switch 
-                        checked={notificationSettings.offerAccepted}
-                        onCheckedChange={() => handleNotificationToggle('offerAccepted')}
-                        disabled={!notificationSettings.emailNotifications}
+                        checked={notificationSettings.offer_accepted}
+                        onCheckedChange={() => handleNotificationToggle('offer_accepted')}
+                        disabled={!notificationSettings.email_notifications}
                       />
                     </div>
                     
@@ -327,9 +356,9 @@ const Settings = () => {
                         <p className="text-muted-foreground text-xs">Notification quand une offre est refusée</p>
                       </div>
                       <Switch 
-                        checked={notificationSettings.offerRejected}
-                        onCheckedChange={() => handleNotificationToggle('offerRejected')}
-                        disabled={!notificationSettings.emailNotifications}
+                        checked={notificationSettings.offer_rejected}
+                        onCheckedChange={() => handleNotificationToggle('offer_rejected')}
+                        disabled={!notificationSettings.email_notifications}
                       />
                     </div>
                     
@@ -339,9 +368,9 @@ const Settings = () => {
                         <p className="text-muted-foreground text-xs">Notification quand un commentaire est ajouté</p>
                       </div>
                       <Switch 
-                        checked={notificationSettings.newComment}
-                        onCheckedChange={() => handleNotificationToggle('newComment')}
-                        disabled={!notificationSettings.emailNotifications}
+                        checked={notificationSettings.new_comment}
+                        onCheckedChange={() => handleNotificationToggle('new_comment')}
+                        disabled={!notificationSettings.email_notifications}
                       />
                     </div>
                   </div>
@@ -359,9 +388,9 @@ const Settings = () => {
                         <p className="text-muted-foreground text-xs">Recevoir un résumé quotidien des activités</p>
                       </div>
                       <Switch 
-                        checked={notificationSettings.dailyDigest}
-                        onCheckedChange={() => handleNotificationToggle('dailyDigest')}
-                        disabled={!notificationSettings.emailNotifications}
+                        checked={notificationSettings.daily_digest}
+                        onCheckedChange={() => handleNotificationToggle('daily_digest')}
+                        disabled={!notificationSettings.email_notifications}
                       />
                     </div>
                     
@@ -371,9 +400,9 @@ const Settings = () => {
                         <p className="text-muted-foreground text-xs">Recevoir un rapport hebdomadaire des performances</p>
                       </div>
                       <Switch 
-                        checked={notificationSettings.weeklyReport}
-                        onCheckedChange={() => handleNotificationToggle('weeklyReport')}
-                        disabled={!notificationSettings.emailNotifications}
+                        checked={notificationSettings.weekly_report}
+                        onCheckedChange={() => handleNotificationToggle('weekly_report')}
+                        disabled={!notificationSettings.email_notifications}
                       />
                     </div>
                   </div>
@@ -404,8 +433,8 @@ const Settings = () => {
                       <p className="text-muted-foreground text-sm">Activer le thème sombre pour l'interface</p>
                     </div>
                     <Switch 
-                      checked={systemSettings.darkMode}
-                      onCheckedChange={() => handleSystemToggle('darkMode')}
+                      checked={systemSettings.dark_mode}
+                      onCheckedChange={() => handleSystemToggle('dark_mode')}
                     />
                   </div>
                   
@@ -415,8 +444,8 @@ const Settings = () => {
                       <p className="text-muted-foreground text-sm">Sauvegarder automatiquement les brouillons d'offres</p>
                     </div>
                     <Switch 
-                      checked={systemSettings.autoSave}
-                      onCheckedChange={() => handleSystemToggle('autoSave')}
+                      checked={systemSettings.auto_save}
+                      onCheckedChange={() => handleSystemToggle('auto_save')}
                     />
                   </div>
                 </div>
@@ -446,8 +475,8 @@ const Settings = () => {
                       <CustomLabel>Déconnexion auto (minutes)</CustomLabel>
                       <Input 
                         type="number" 
-                        name="autoLogout"
-                        value={systemSettings.autoLogout}
+                        name="auto_logout"
+                        value={systemSettings.auto_logout}
                         onChange={handleSystemChange}
                         min={5}
                         max={120}
@@ -459,8 +488,8 @@ const Settings = () => {
                     <CustomLabel>Conservation des données (jours)</CustomLabel>
                     <Input 
                       type="number" 
-                      name="dataRetention"
-                      value={systemSettings.dataRetention}
+                      name="data_retention"
+                      value={systemSettings.data_retention}
                       onChange={handleSystemChange}
                       min={30}
                     />
@@ -494,8 +523,8 @@ const Settings = () => {
                     <p className="text-muted-foreground text-sm">Renforce la sécurité de votre compte</p>
                   </div>
                   <Switch 
-                    checked={securitySettings.twoFactorAuth}
-                    onCheckedChange={() => handleSecurityToggle('twoFactorAuth')}
+                    checked={securitySettings.two_factor_auth}
+                    onCheckedChange={() => handleSecurityToggle('two_factor_auth')}
                   />
                 </div>
                 
@@ -509,8 +538,8 @@ const Settings = () => {
                       <CustomLabel>Expiration du mot de passe (jours)</CustomLabel>
                       <Input 
                         type="number" 
-                        name="passwordExpiry"
-                        value={securitySettings.passwordExpiry}
+                        name="password_expiry"
+                        value={securitySettings.password_expiry}
                         onChange={handleSecurityChange}
                         min={0}
                         max={365}
@@ -524,8 +553,8 @@ const Settings = () => {
                       <CustomLabel>Tentatives de connexion maximum</CustomLabel>
                       <Input 
                         type="number" 
-                        name="loginAttempts"
-                        value={securitySettings.loginAttempts}
+                        name="login_attempts"
+                        value={securitySettings.login_attempts}
                         onChange={handleSecurityChange}
                         min={3}
                         max={10}
@@ -538,8 +567,8 @@ const Settings = () => {
                   <CustomLabel>Délai d'expiration de session (minutes)</CustomLabel>
                   <Input 
                     type="number" 
-                    name="sessionTimeout"
-                    value={securitySettings.sessionTimeout}
+                    name="session_timeout"
+                    value={securitySettings.session_timeout}
                     onChange={handleSecurityChange}
                     min={15}
                     max={480}
@@ -552,8 +581,8 @@ const Settings = () => {
                     <p className="text-muted-foreground text-sm">Limite l'accès à partir d'adresses IP spécifiques</p>
                   </div>
                   <Switch 
-                    checked={securitySettings.ipRestriction}
-                    onCheckedChange={() => handleSecurityToggle('ipRestriction')}
+                    checked={securitySettings.ip_restriction}
+                    onCheckedChange={() => handleSecurityToggle('ip_restriction')}
                   />
                 </div>
                 
