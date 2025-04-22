@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 
 export type UserStatus = 'active' | 'inactive' | 'pending';
@@ -7,6 +8,7 @@ export type UserData = {
   full_name: string;
   email: string;
   role: string;
+  status?: UserStatus;
   department?: string;
   position?: string;
   phone?: string;

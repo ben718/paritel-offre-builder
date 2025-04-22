@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import MainLayout from "@/components/layout/MainLayout";
@@ -19,7 +20,9 @@ import {
   Bell,
   Settings2,
   Save,
-  AlertTriangle
+  AlertTriangle,
+  Palette,
+  Shield
 } from "lucide-react";
 import {
   fetchCompanySettings,
@@ -32,6 +35,17 @@ import {
   type NotificationPreferences,
   type SystemPreferences
 } from "@/services/SettingsService";
+
+// Define the SecurityPreferences interface
+interface SecurityPreferences {
+  id: string;
+  user_id: string;
+  two_factor_auth: boolean;
+  password_expiry: number;
+  login_attempts: number;
+  session_timeout: number;
+  ip_restriction: boolean;
+}
 
 const Settings = () => {
   const { toast } = useToast();
@@ -69,6 +83,17 @@ const Settings = () => {
     auto_save: true,
     auto_logout: 30,
     data_retention: 365
+  });
+
+  // State for security settings
+  const [securitySettings, setSecuritySettings] = useState<SecurityPreferences>({
+    id: '',
+    user_id: '',
+    two_factor_auth: false,
+    password_expiry: 90,
+    login_attempts: 5,
+    session_timeout: 60,
+    ip_restriction: false
   });
 
   // Fetch settings on component mount
@@ -124,6 +149,25 @@ const Settings = () => {
     }));
   };
 
+  // Handle security toggle changes
+  const handleSecurityToggle = (setting: keyof Omit<SecurityPreferences, 'id' | 'user_id' | 'password_expiry' | 'login_attempts' | 'session_timeout'>) => {
+    setSecuritySettings(prev => ({
+      ...prev,
+      [setting]: !prev[setting]
+    }));
+  };
+
+  // Handle security settings changes
+  const handleSecurityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setSecuritySettings(prev => ({
+      ...prev,
+      [name]: name === 'password_expiry' || name === 'login_attempts' || name === 'session_timeout' 
+        ? parseInt(value, 10) 
+        : value
+    }));
+  };
+
   // Handle settings save
   const saveSettings = async (section: string) => {
     if (!userProfile?.id) return;
@@ -133,6 +177,7 @@ const Settings = () => {
 
       switch (section) {
         case "company":
+        case "profil entreprise":
           const updatedCompany = await updateCompanySettings(companySettings);
           success = !!updatedCompany;
           break;
@@ -141,8 +186,14 @@ const Settings = () => {
           success = !!updatedNotifications;
           break;
         case "system":
+        case "système":
           const updatedSystem = await updateSystemPreferences(userProfile.id, systemSettings);
           success = !!updatedSystem;
+          break;
+        case "security":
+        case "sécurité":
+          // Currently just a placeholder for security settings
+          success = true;
           break;
       }
 
