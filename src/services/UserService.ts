@@ -1,5 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 
+export type UserStatus = 'active' | 'inactive' | 'pending';
+
 export type UserData = {
   id: string;
   full_name: string;
@@ -11,8 +13,8 @@ export type UserData = {
   last_login?: string;
   created_at?: string;
   updated_at?: string;
-  status?: 'active' | 'inactive' | 'pending';
-}
+  status?: UserStatus;
+};
 
 // Récupérer tous les utilisateurs
 export const fetchUsers = async (): Promise<UserData[]> => {
@@ -20,16 +22,12 @@ export const fetchUsers = async (): Promise<UserData[]> => {
     const { data, error } = await supabase
       .from('app_users')
       .select('*')
-      .order('full_name');
+      .order('full_name', { ascending: true });
 
-    if (error) {
-      console.error('Error fetching users:', error);
-      return [];
-    }
-
-    return data || [];
+    if (error) throw error;
+    return data ?? [];
   } catch (error) {
-    console.error('Error in fetchUsers:', error);
+    console.error('Error fetching users:', error);
     return [];
   }
 };
@@ -43,11 +41,7 @@ export const fetchUserById = async (userId: string): Promise<UserData | null> =>
       .eq('id', userId)
       .single();
 
-    if (error) {
-      console.error('Error fetching user:', error);
-      return null;
-    }
-
+    if (error) throw error;
     return data;
   } catch (error) {
     console.error('Error in fetchUserById:', error);
@@ -55,28 +49,23 @@ export const fetchUserById = async (userId: string): Promise<UserData | null> =>
   }
 };
 
-// Créer un nouvel utilisateur - Assurons-nous que l'ID est fourni
-export const createUser = async (userData: Omit<UserData, 'created_at' | 'updated_at'> & { id: string }): Promise<UserData | null> => {
+// Créer un nouvel utilisateur
+export const createUser = async (
+  userData: Omit<UserData, 'created_at' | 'updated_at'> & { id: string }
+): Promise<UserData | null> => {
   try {
-    // Préparons les données à insérer avec cast explicite pour éviter les problèmes de type
     const userDataToInsert = {
       ...userData,
-      // Assurons-nous que le statut est défini
       status: userData.status || 'pending'
     };
-    
-    // Insérer les données de l'utilisateur avec le champ ID requis
+
     const { data, error } = await supabase
       .from('app_users')
-      .insert(userDataToInsert)
+      .insert([userDataToInsert])
       .select()
       .single();
 
-    if (error) {
-      console.error('Error creating user:', error);
-      return null;
-    }
-
+    if (error) throw error;
     return data;
   } catch (error) {
     console.error('Error in createUser:', error);
@@ -85,26 +74,19 @@ export const createUser = async (userData: Omit<UserData, 'created_at' | 'update
 };
 
 // Mettre à jour un utilisateur existant
-export const updateUser = async (userId: string, userData: Partial<Omit<UserData, 'id' | 'created_at' | 'updated_at'>>): Promise<UserData | null> => {
+export const updateUser = async (
+  userId: string,
+  userData: Partial<UserData>
+): Promise<UserData | null> => {
   try {
-    // Cast explicite pour s'assurer que tous les champs sont acceptés
-    const userDataToUpdate = {
-      ...userData
-    };
-    
-    // Insérer les données mises à jour
     const { data, error } = await supabase
       .from('app_users')
-      .update(userDataToUpdate)
+      .update(userData)
       .eq('id', userId)
       .select()
       .single();
 
-    if (error) {
-      console.error('Error updating user:', error);
-      return null;
-    }
-
+    if (error) throw error;
     return data;
   } catch (error) {
     console.error('Error in updateUser:', error);
@@ -115,17 +97,12 @@ export const updateUser = async (userId: string, userData: Partial<Omit<UserData
 // Supprimer un utilisateur
 export const deleteUser = async (userId: string): Promise<boolean> => {
   try {
-    // Dans un système de production, on voudra peut-être désactiver l'utilisateur plutôt que le supprimer
     const { error } = await supabase
       .from('app_users')
       .delete()
       .eq('id', userId);
 
-    if (error) {
-      console.error('Error deleting user:', error);
-      return false;
-    }
-
+    if (error) throw error;
     return true;
   } catch (error) {
     console.error('Error in deleteUser:', error);
@@ -133,20 +110,18 @@ export const deleteUser = async (userId: string): Promise<boolean> => {
   }
 };
 
-// Mettre à jour le statut d'un utilisateur (actif, inactif, en attente)
-export const updateUserStatus = async (userId: string, status: 'active' | 'inactive' | 'pending'): Promise<boolean> => {
+// Mettre à jour le statut d'un utilisateur
+export const updateUserStatus = async (
+  userId: string,
+  status: UserStatus
+): Promise<boolean> => {
   try {
-    // Update user with status field
     const { error } = await supabase
       .from('app_users')
       .update({ status })
       .eq('id', userId);
 
-    if (error) {
-      console.error('Error updating user status:', error);
-      return false;
-    }
-
+    if (error) throw error;
     return true;
   } catch (error) {
     console.error('Error in updateUserStatus:', error);
