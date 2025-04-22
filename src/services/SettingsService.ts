@@ -34,6 +34,16 @@ export interface SystemPreferences {
   data_retention: number;
 }
 
+export interface SecurityPreferences {
+  id: string;
+  user_id: string;
+  two_factor_auth: boolean;
+  password_expiry: number;
+  login_attempts: number;
+  session_timeout: number;
+  ip_restriction: boolean;
+}
+
 // Récupérer les paramètres de l'entreprise
 export const fetchCompanySettings = async (): Promise<CompanySettings | null> => {
   try {
@@ -135,7 +145,16 @@ export const fetchUserNotificationPreferences = async (userId: string): Promise<
       // Create default preferences if none exist
       const { data: newData, error: insertError } = await supabase
         .from('user_notification_preferences')
-        .insert([{ user_id: userId }])
+        .insert([{ 
+          user_id: userId,
+          email_notifications: true,
+          offer_created: true,
+          offer_accepted: true,
+          offer_rejected: true,
+          new_comment: true,
+          daily_digest: false,
+          weekly_report: true
+        }])
         .select()
         .single();
 
@@ -156,6 +175,39 @@ export const updateNotificationPreferences = async (
   preferences: Partial<NotificationPreferences>
 ): Promise<NotificationPreferences | null> => {
   try {
+    // Check if preferences exist first
+    const { data: existingData, error: checkError } = await supabase
+      .from('user_notification_preferences')
+      .select('id')
+      .eq('user_id', userId)
+      .single();
+      
+    if (checkError && checkError.code === 'PGRST116') {
+      // No preferences exist, create a new entry
+      const newPreferences = {
+        user_id: userId,
+        email_notifications: preferences.email_notifications ?? true,
+        offer_created: preferences.offer_created ?? true,
+        offer_accepted: preferences.offer_accepted ?? true,
+        offer_rejected: preferences.offer_rejected ?? true,
+        new_comment: preferences.new_comment ?? true,
+        daily_digest: preferences.daily_digest ?? false,
+        weekly_report: preferences.weekly_report ?? true
+      };
+      
+      const { data: newData, error: insertError } = await supabase
+        .from('user_notification_preferences')
+        .insert([newPreferences])
+        .select()
+        .single();
+        
+      if (insertError) throw insertError;
+      return newData;
+    } else if (checkError) {
+      throw checkError;
+    }
+    
+    // Preferences exist, update them
     const { data, error } = await supabase
       .from('user_notification_preferences')
       .update(preferences)
@@ -186,7 +238,14 @@ export const fetchUserSystemPreferences = async (userId: string): Promise<System
       // Create default preferences if none exist
       const { data: newData, error: insertError } = await supabase
         .from('user_system_preferences')
-        .insert([{ user_id: userId }])
+        .insert([{ 
+          user_id: userId,
+          language: 'fr',
+          dark_mode: false,
+          auto_save: true,
+          auto_logout: 30,
+          data_retention: 365
+        }])
         .select()
         .single();
 
@@ -207,6 +266,37 @@ export const updateSystemPreferences = async (
   preferences: Partial<SystemPreferences>
 ): Promise<SystemPreferences | null> => {
   try {
+    // Check if preferences exist first
+    const { data: existingData, error: checkError } = await supabase
+      .from('user_system_preferences')
+      .select('id')
+      .eq('user_id', userId)
+      .single();
+      
+    if (checkError && checkError.code === 'PGRST116') {
+      // No preferences exist, create a new entry
+      const newPreferences = {
+        user_id: userId,
+        language: preferences.language ?? 'fr',
+        dark_mode: preferences.dark_mode ?? false,
+        auto_save: preferences.auto_save ?? true,
+        auto_logout: preferences.auto_logout ?? 30,
+        data_retention: preferences.data_retention ?? 365
+      };
+      
+      const { data: newData, error: insertError } = await supabase
+        .from('user_system_preferences')
+        .insert([newPreferences])
+        .select()
+        .single();
+        
+      if (insertError) throw insertError;
+      return newData;
+    } else if (checkError) {
+      throw checkError;
+    }
+    
+    // Preferences exist, update them
     const { data, error } = await supabase
       .from('user_system_preferences')
       .update(preferences)
@@ -220,4 +310,37 @@ export const updateSystemPreferences = async (
     console.error('Error updating system preferences:', error);
     return null;
   }
+};
+
+// Récupérer les préférences de sécurité de l'utilisateur (fonctionnalité fictive pour le moment)
+export const fetchUserSecurityPreferences = async (userId: string): Promise<SecurityPreferences> => {
+  // Retourner des préférences de sécurité par défaut
+  return {
+    id: '0',
+    user_id: userId,
+    two_factor_auth: false,
+    password_expiry: 90,
+    login_attempts: 5,
+    session_timeout: 60,
+    ip_restriction: false
+  };
+};
+
+// Mettre à jour les préférences de sécurité (fonctionnalité fictive pour le moment)
+export const updateSecurityPreferences = async (
+  userId: string,
+  preferences: Partial<SecurityPreferences>
+): Promise<SecurityPreferences> => {
+  console.log('Security preferences update requested:', preferences);
+  
+  // Simuler une mise à jour et retourner les préférences mises à jour
+  return {
+    id: '0',
+    user_id: userId,
+    two_factor_auth: preferences.two_factor_auth ?? false,
+    password_expiry: preferences.password_expiry ?? 90,
+    login_attempts: preferences.login_attempts ?? 5,
+    session_timeout: preferences.session_timeout ?? 60,
+    ip_restriction: preferences.ip_restriction ?? false
+  };
 };

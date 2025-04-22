@@ -21,8 +21,8 @@ import {
   Settings2,
   Save,
   AlertTriangle,
-  Palette,
-  Shield
+  Palette as PaletteIcon,
+  Shield as ShieldIcon
 } from "lucide-react";
 import {
   fetchCompanySettings,
@@ -31,21 +31,13 @@ import {
   updateNotificationPreferences,
   fetchUserSystemPreferences,
   updateSystemPreferences,
+  fetchUserSecurityPreferences,
+  updateSecurityPreferences,
   type CompanySettings,
   type NotificationPreferences,
-  type SystemPreferences
+  type SystemPreferences,
+  type SecurityPreferences
 } from "@/services/SettingsService";
-
-// Define the SecurityPreferences interface
-interface SecurityPreferences {
-  id: string;
-  user_id: string;
-  two_factor_auth: boolean;
-  password_expiry: number;
-  login_attempts: number;
-  session_timeout: number;
-  ip_restriction: boolean;
-}
 
 const Settings = () => {
   const { toast } = useToast();
@@ -100,15 +92,17 @@ const Settings = () => {
   useEffect(() => {
     const loadSettings = async () => {
       if (userProfile?.id) {
-        const [company, notifications, system] = await Promise.all([
+        const [company, notifications, system, security] = await Promise.all([
           fetchCompanySettings(),
           fetchUserNotificationPreferences(userProfile.id),
-          fetchUserSystemPreferences(userProfile.id)
+          fetchUserSystemPreferences(userProfile.id),
+          fetchUserSecurityPreferences(userProfile.id)
         ]);
 
         if (company) setCompanySettings(company);
         if (notifications) setNotificationSettings(notifications);
         if (system) setSystemSettings(system);
+        if (security) setSecuritySettings(security);
       }
     };
 
@@ -170,7 +164,14 @@ const Settings = () => {
 
   // Handle settings save
   const saveSettings = async (section: string) => {
-    if (!userProfile?.id) return;
+    if (!userProfile?.id && section !== "company" && section !== "profil entreprise") {
+      toast({
+        title: "Erreur",
+        description: "Vous devez être connecté pour modifier ces paramètres.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     try {
       let success = false;
@@ -180,20 +181,36 @@ const Settings = () => {
         case "profil entreprise":
           const updatedCompany = await updateCompanySettings(companySettings);
           success = !!updatedCompany;
+          if (updatedCompany) {
+            setCompanySettings(updatedCompany);
+          }
           break;
         case "notifications":
-          const updatedNotifications = await updateNotificationPreferences(userProfile.id, notificationSettings);
-          success = !!updatedNotifications;
+          if (userProfile?.id) {
+            const updatedNotifications = await updateNotificationPreferences(userProfile.id, notificationSettings);
+            success = !!updatedNotifications;
+            if (updatedNotifications) {
+              setNotificationSettings(updatedNotifications);
+            }
+          }
           break;
         case "system":
         case "système":
-          const updatedSystem = await updateSystemPreferences(userProfile.id, systemSettings);
-          success = !!updatedSystem;
+          if (userProfile?.id) {
+            const updatedSystem = await updateSystemPreferences(userProfile.id, systemSettings);
+            success = !!updatedSystem;
+            if (updatedSystem) {
+              setSystemSettings(updatedSystem);
+            }
+          }
           break;
         case "security":
         case "sécurité":
-          // Currently just a placeholder for security settings
-          success = true;
+          if (userProfile?.id) {
+            const updatedSecurity = await updateSecurityPreferences(userProfile.id, securitySettings);
+            success = true;
+            setSecuritySettings(updatedSecurity);
+          }
           break;
       }
 
@@ -238,12 +255,12 @@ const Settings = () => {
               <span className="inline sm:hidden text-xs ml-1">Notif.</span>
             </TabsTrigger>
             <TabsTrigger value="appearance" className="flex items-center justify-center px-1 sm:px-3">
-              <Palette className="h-4 w-4 sm:mr-2" />
+              <PaletteIcon className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">Système</span>
               <span className="inline sm:hidden text-xs ml-1">Syst.</span>
             </TabsTrigger>
             <TabsTrigger value="security" className="flex items-center justify-center px-1 sm:px-3">
-              <Shield className="h-4 w-4 sm:mr-2" />
+              <ShieldIcon className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">Sécurité</span>
               <span className="inline sm:hidden text-xs ml-1">Sécu.</span>
             </TabsTrigger>
