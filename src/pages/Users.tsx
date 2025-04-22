@@ -58,10 +58,10 @@ type UserRole = "admin" | "manager" | "user";
 type UserStatus = "active" | "inactive" | "pending";
 
 // Use the imported UserData type but extend it with our local requirements
-interface UserData extends ImportedUserData {
+interface UserData extends Omit<ImportedUserData, 'role' | 'status' | 'phone'> {
+  role: UserRole;
   status: UserStatus;
   phone: string; // Make it required in our local interface
-  role: UserRole; // Override to use our specific enum type
 }
 
 // Component implementation
@@ -83,13 +83,20 @@ const Users = () => {
   });
   
   // Form state for new/edit user
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    full_name: string;
+    email: string;
+    phone: string;
+    role: UserRole;
+    department: string;
+    status: UserStatus;
+  }>({
     full_name: "",
     email: "",
     phone: "",
-    role: "user" as UserRole,
+    role: "user",
     department: "Commercial",
-    status: "active" as UserStatus
+    status: "active"
   });
   
   // Create user mutation
