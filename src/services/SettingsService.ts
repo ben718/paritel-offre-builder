@@ -1,6 +1,5 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/context/AuthContext';
 
 export interface CompanySettings {
   id: string;
@@ -43,7 +42,30 @@ export const fetchCompanySettings = async (): Promise<CompanySettings | null> =>
       .select('*')
       .single();
 
-    if (error) throw error;
+    if (error && error.code !== 'PGRST116') throw error;
+    
+    // If no settings exist, create a default entry
+    if (!data || error?.code === 'PGRST116') {
+      const defaultSettings = {
+        name: 'Mon Entreprise',
+        email: 'contact@monentreprise.com',
+        phone: '',
+        website: '',
+        address: '',
+        description: '',
+        logo_url: ''
+      };
+      
+      const { data: newData, error: insertError } = await supabase
+        .from('company_settings')
+        .insert([defaultSettings])
+        .select()
+        .single();
+        
+      if (insertError) throw insertError;
+      return newData;
+    }
+
     return data;
   } catch (error) {
     console.error('Error fetching company settings:', error);
@@ -54,9 +76,39 @@ export const fetchCompanySettings = async (): Promise<CompanySettings | null> =>
 // Mettre à jour les paramètres de l'entreprise
 export const updateCompanySettings = async (settings: Partial<CompanySettings>): Promise<CompanySettings | null> => {
   try {
+    // Check if settings exist first
+    const { data: existingData, error: checkError } = await supabase
+      .from('company_settings')
+      .select('id')
+      .single();
+      
+    if (checkError && checkError.code === 'PGRST116') {
+      // No settings exist, create a new entry
+      const { data: newData, error: insertError } = await supabase
+        .from('company_settings')
+        .insert([{
+          name: settings.name || 'Mon Entreprise',
+          email: settings.email || 'contact@monentreprise.com',
+          phone: settings.phone || '',
+          website: settings.website || '',
+          address: settings.address || '',
+          description: settings.description || '',
+          logo_url: settings.logo_url || ''
+        }])
+        .select()
+        .single();
+        
+      if (insertError) throw insertError;
+      return newData;
+    } else if (checkError) {
+      throw checkError;
+    }
+    
+    // Settings exist, update them
     const { data, error } = await supabase
       .from('company_settings')
       .update(settings)
+      .eq('id', existingData.id)
       .select()
       .single();
 

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
@@ -18,11 +17,9 @@ import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/use-toast";
 import { Separator } from "@/components/ui/separator";
 
-// Step 1: Customer Selection Component
 const CustomerSelection = ({ onSelectCustomer, onNext }) => {
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   
-  // Mock customer data - will be replaced with a real API call
   const customers = [
     { id: "cust-001", name: "Entreprise ABC", industry: "Technologie" },
     { id: "cust-002", name: "Société XYZ", industry: "Finance" },
@@ -85,7 +82,6 @@ const CustomerSelection = ({ onSelectCustomer, onNext }) => {
   );
 };
 
-// Step 2: Product Selection Component
 const ProductSelection = ({ onSelectProducts, onBack, onNext }) => {
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [quantities, setQuantities] = useState({});
@@ -100,7 +96,7 @@ const ProductSelection = ({ onSelectProducts, onBack, onNext }) => {
       setSelectedProducts(prev => [...prev, product]);
       setQuantities(prev => ({
         ...prev,
-        [String(product.id)]: 1 // Ensure we convert ID to string for consistency
+        [String(product.id)]: 1
       }));
     } else {
       setSelectedProducts(prev => prev.filter(p => String(p.id) !== String(product.id)));
@@ -115,15 +111,14 @@ const ProductSelection = ({ onSelectProducts, onBack, onNext }) => {
   const handleQuantityChange = (productId, quantity) => {
     setQuantities(prev => ({
       ...prev,
-      [String(productId)]: parseInt(quantity) // Ensure we convert ID to string for consistency
+      [String(productId)]: parseInt(quantity)
     }));
   };
   
   const handleContinue = () => {
-    // Prepare products with quantities
     const productsWithQuantities = selectedProducts.map(product => ({
       ...product,
-      quantity: quantities[String(product.id)] || 1 // Ensure we convert ID to string for consistency
+      quantity: quantities[String(product.id)] || 1
     }));
     
     if (onSelectProducts) {
@@ -208,7 +203,6 @@ const ProductSelection = ({ onSelectProducts, onBack, onNext }) => {
   );
 };
 
-// Step 3: Offer Details Component
 const OfferDetails = ({ customer, products, onBack, onCreateOffer }) => {
   const [offerName, setOfferName] = useState("");
   const [offerNotes, setOfferNotes] = useState("");
@@ -235,31 +229,28 @@ const OfferDetails = ({ customer, products, onBack, onCreateOffer }) => {
       return;
     }
     
-    // Prepare offer data
     const offerData = {
       customer_id: customer.id,
       customer_name: customer.name,
       customer_industry: customer.industry,
-      contact_name: "Contact Name", // Replace with actual contact name if available
-      total_amount: products.reduce((sum, product) => sum + (product.quantity * 100), 0), // Replace 100 with actual product price
+      contact_name: "Contact Name",
+      total_amount: products.reduce((sum, product) => sum + (product.quantity * 100), 0),
       valid_until: validUntil,
       notes: offerNotes,
-      created_by: "user-001", // Replace with actual user ID
+      created_by: "user-001",
       status: "draft" as OfferStatus
     };
     
     try {
-      // Create offer
       const newOffer = await createOffer(offerData);
       
       if (newOffer) {
-        // Add products to offer
         for (const product of products) {
           await addProductToOffer({
             offer_id: newOffer.id,
             product_id: product.id,
             quantity: product.quantity,
-            unit_price: 100 // Replace 100 with actual product price
+            unit_price: 100
           });
         }
         
