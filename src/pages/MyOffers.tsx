@@ -80,6 +80,7 @@ const formatDate = (dateString: string | undefined) => {
 };
 
 const MyOffers = () => {
+  
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -181,6 +182,7 @@ const MyOffers = () => {
   return (
     <MainLayout>
       <div className="space-y-6">
+        
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Mes Offres</h1>
@@ -193,6 +195,7 @@ const MyOffers = () => {
         </div>
 
         <Tabs defaultValue="all" className="space-y-4">
+          
           <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4">
             <TabsList>
               <TabsTrigger value="all">
@@ -224,6 +227,7 @@ const MyOffers = () => {
             </div>
           </div>
           
+          
           <TabsContent value="all">
             {isLoading ? (
               <div className="flex justify-center p-8">
@@ -253,6 +257,7 @@ const MyOffers = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filteredOffers.map((offer) => (
                   <Card key={offer.id} className="overflow-hidden">
+                    
                     <CardHeader className="pb-3">
                       <div className="flex items-center justify-between">
                         <Badge className={statusColors[offer.status]}>
@@ -441,6 +446,7 @@ const MyOffers = () => {
                   .filter(o => o.status === 'in_progress' || o.status === 'sent')
                   .map((offer) => (
                     <Card key={offer.id} className="overflow-hidden">
+                      
                       <CardHeader className="pb-3">
                         <div className="flex items-center justify-between">
                           <Badge className={statusColors[offer.status]}>
@@ -591,16 +597,16 @@ const MyOffers = () => {
                               size="sm"
                               className="w-full"
                               onClick={() => handleViewOffer(offer.id)}
-                            >
-                              <Eye className="mr-1 h-4 w-4" />
-                              Voir le détail
-                            </Button>
-                          )}
-                        </div>
-                      </CardFooter>
-                    </Card>
-                  ))
-                )}
+                          >
+                            <Eye className="mr-1 h-4 w-4" />
+                            Voir le détail
+                          </Button>
+                        )}
+                      </div>
+                    </CardFooter>
+                  </Card>
+                ))
+              )}
             </div>
           </TabsContent>
           
@@ -629,6 +635,7 @@ const MyOffers = () => {
                   .filter(o => o.status === 'accepted')
                   .map((offer) => (
                     <Card key={offer.id} className="overflow-hidden">
+                      
                       <CardHeader className="pb-3">
                         <div className="flex items-center justify-between">
                           <Badge className={statusColors[offer.status]}>
@@ -787,7 +794,8 @@ const MyOffers = () => {
                       </div>
                     </CardFooter>
                   </Card>
-                ))}
+                ))
+              )}
             </div>
           </TabsContent>
         </Tabs>
