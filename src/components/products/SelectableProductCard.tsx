@@ -11,13 +11,17 @@ type SelectableProductCardProps = {
   selected: boolean;
   onSelect: () => void;
   disabled?: boolean;
+  quantity?: number;
+  onQuantityChange?: (quantity: number) => void;
 };
 
 export const SelectableProductCard = ({
   product,
   selected,
   onSelect,
-  disabled = false
+  disabled = false,
+  quantity = 1,
+  onQuantityChange
 }: SelectableProductCardProps) => {
   const {
     name,
@@ -91,7 +95,19 @@ export const SelectableProductCard = ({
           )}
         </div>
         
-        {/* Pricing section removed */}
+        {onQuantityChange && (
+          <div className="mb-2 sm:mb-3">
+            <label className="text-xs sm:text-sm text-gray-700 mb-1 block">Quantité:</label>
+            <input
+              type="number"
+              min="1"
+              value={quantity}
+              onChange={(e) => onQuantityChange(parseInt(e.target.value) || 1)}
+              className="w-full border border-gray-300 rounded px-2 py-1 text-xs sm:text-sm"
+              disabled={disabled || !selected}
+            />
+          </div>
+        )}
         
         <div className="flex justify-end mt-auto pt-2 sm:pt-3">
           <Button 

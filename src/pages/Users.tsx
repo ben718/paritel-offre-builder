@@ -50,23 +50,18 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
-import { fetchUsers, updateUserStatus, createUser, updateUser, deleteUser as apiDeleteUser } from "@/services/UserService";
+import { fetchUsers, updateUserStatus, createUser, updateUser, deleteUser as apiDeleteUser, UserData as ImportedUserData } from "@/services/UserService";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 // Types definition
 type UserRole = "admin" | "manager" | "user";
 type UserStatus = "active" | "inactive" | "pending";
 
-interface UserData {
-  id: string;
-  full_name: string;
-  email: string;
-  phone: string;
-  role: UserRole;
+// Use the imported UserData type but extend it with our local requirements
+interface UserData extends ImportedUserData {
   status: UserStatus;
-  department: string;
-  created_at: string;
-  last_login?: string;
+  phone: string; // Make it required in our local interface
+  role: UserRole; // Override to use our specific enum type
 }
 
 // Component implementation
@@ -76,7 +71,7 @@ const Users = () => {
   const [filterRole, setFilterRole] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
+  const [selectedUser, setSelectedUser] = useState<ImportedUserData | null>(null);
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
   const [isEditUserOpen, setIsEditUserOpen] = useState(false);
   const queryClient = useQueryClient();
@@ -234,15 +229,15 @@ const Users = () => {
   };
   
   // Handle edit user button click
-  const handleEditUser = (user: UserData) => {
+  const handleEditUser = (user: ImportedUserData) => {
     setSelectedUser(user);
     setFormData({
       full_name: user.full_name,
       email: user.email,
       phone: user.phone || "",
-      role: user.role as UserRole,
+      role: (user.role as UserRole) || "user",
       department: user.department || "Commercial",
-      status: user.status as UserStatus
+      status: (user.status as UserStatus) || "active"
     });
     setIsEditUserOpen(true);
   };

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
@@ -12,7 +13,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { SelectableProductCard } from "@/components/products/SelectableProductCard";
 import { fetchProducts } from "@/services/ProductService";
-import { createOffer, addProductToOffer } from "@/services/OfferService";
+import { createOffer, addProductToOffer, OfferStatus } from "@/services/OfferService";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/use-toast";
 import { Separator } from "@/components/ui/separator";
@@ -94,8 +95,8 @@ const ProductSelection = ({ onSelectProducts, onBack, onNext }) => {
     queryFn: fetchProducts
   });
   
-  const handleProductSelection = (product, isSelected) => {
-    if (isSelected) {
+  const handleProductSelection = (product, selected) => {
+    if (selected) {
       setSelectedProducts(prev => [...prev, product]);
       setQuantities(prev => ({
         ...prev,
@@ -146,9 +147,9 @@ const ProductSelection = ({ onSelectProducts, onBack, onNext }) => {
             {products.map((product) => (
               <SelectableProductCard
                 key={product.id}
-                {...product}
-                isSelected={selectedProducts.some(p => String(p.id) === String(product.id))}
-                onSelectionChange={(selected) => handleProductSelection(product, selected)}
+                product={product}
+                selected={selectedProducts.some(p => String(p.id) === String(product.id))}
+                onSelect={() => handleProductSelection(product, !selectedProducts.some(p => String(p.id) === String(product.id)))}
                 quantity={quantities[String(product.id)] || 1}
                 onQuantityChange={(qty) => handleQuantityChange(product.id, qty)}
               />
@@ -244,7 +245,7 @@ const OfferDetails = ({ customer, products, onBack, onCreateOffer }) => {
       valid_until: validUntil,
       notes: offerNotes,
       created_by: "user-001", // Replace with actual user ID
-      status: "draft"
+      status: "draft" as OfferStatus
     };
     
     try {
