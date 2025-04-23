@@ -20,10 +20,10 @@ export const CategoryFilters = ({
 
   return (
     <div className="w-full bg-[#f5f8fb] rounded-lg mb-6">
-      <ScrollArea className="w-full" orientation="horizontal">
-        <div className="flex px-4 py-2 min-w-full">
+      <ScrollArea className="w-full">
+        <div className="flex flex-nowrap px-4 py-2 gap-2 min-w-full overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300">
           <button
-            className={`px-3 py-1.5 rounded-md text-sm font-medium whitespace-nowrap ${
+            className={`px-4 py-2 rounded-md text-sm font-medium whitespace-nowrap transition-colors ${
               !selectedCategory
                 ? "bg-white text-black shadow-sm"
                 : "bg-transparent text-[#73809b] hover:bg-gray-100"
@@ -38,12 +38,13 @@ export const CategoryFilters = ({
             categories.map((category) => (
               <button
                 key={category.id}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium whitespace-nowrap ${
+                className={`px-4 py-2 rounded-md text-sm font-medium whitespace-nowrap transition-colors ${
                   selectedCategory === category.id
                     ? "bg-white text-black shadow-sm"
                     : "bg-transparent text-[#73809b] hover:bg-gray-100"
-                } mx-1`}
+                }`}
                 onClick={() => onCategoryChange(category.id)}
+                style={{ flex: "0 0 auto" }}
               >
                 {category.display_name}
               </button>
