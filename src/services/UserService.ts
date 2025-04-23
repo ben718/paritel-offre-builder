@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 export type UserStatus = 'active' | 'inactive' | 'pending';
@@ -79,10 +78,14 @@ export const updateUser = async (
       .from('app_users')
       .update(userData)
       .eq('id', userId)
-      .select()
+      .select('*')
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error updating user:', error);
+      return null;
+    }
+
     return data;
   } catch (error) {
     console.error('Error in updateUser:', error);

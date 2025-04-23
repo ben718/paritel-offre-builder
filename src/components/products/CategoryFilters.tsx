@@ -2,6 +2,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchCategories } from "@/services/CategoryService";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useEffect, useState } from "react";
 
 export interface CategoryFiltersProps {
   selectedCategory: string | null;
