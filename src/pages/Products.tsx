@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
@@ -37,7 +36,6 @@ const Products = () => {
   const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const { toast } = useToast();
@@ -114,7 +112,6 @@ const Products = () => {
   const resetFilters = () => {
     setSearchTerm("");
     setSelectedCategory(null);
-    setSelectedSubcategory(null);
   };
   
   const filteredProducts = products.filter(product => {
@@ -128,11 +125,7 @@ const Products = () => {
       selectedCategory === null || 
       product.category?.includes(selectedCategory);
     
-    const matchesSubcategory = 
-      selectedSubcategory === null || 
-      product.subcategory?.includes(selectedSubcategory);
-    
-    return matchesSearch && matchesCategory && matchesSubcategory;
+    return matchesSearch && matchesCategory;
   });
   
   const handleAddProduct = (formData: Partial<any>, imageFile?: File | null) => {
@@ -182,15 +175,8 @@ const Products = () => {
           </Button>
         </div>
 
-        <Tabs defaultValue="all">
+        <div className="flex flex-col gap-4">
           <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4">
-            <TabsList>
-              <TabsTrigger value="all">Tous les produits</TabsTrigger>
-              <TabsTrigger value="telephonie">Téléphonie</TabsTrigger>
-              <TabsTrigger value="reseau">Réseau</TabsTrigger>
-              <TabsTrigger value="securite">Sécurité</TabsTrigger>
-            </TabsList>
-            
             <div className="flex gap-2 w-full md:w-auto">
               <div className="relative flex-1 md:flex-initial">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
@@ -213,109 +199,41 @@ const Products = () => {
             </div>
           </div>
           
-          <div className="flex flex-col md:flex-row gap-4 mt-4">
-            <div className="w-full md:w-1/4">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="w-full">
               <CategoryFilters 
                 selectedCategory={selectedCategory}
-                selectedSubcategory={selectedSubcategory}
                 onCategoryChange={setSelectedCategory}
-                onSubcategoryChange={setSelectedSubcategory}
               />
             </div>
-
-            <TabsContent value="all" className="mt-0 w-full md:w-3/4">
-              {isLoading ? (
-                <div className="flex justify-center p-8">
-                  <div className="animate-spin h-8 w-8 border-2 border-paritel-primary border-t-transparent rounded-full"></div>
-                </div>
-              ) : error ? (
-                <div className="text-red-500">Error: {(error as Error).message}</div>
-              ) : filteredProducts.length === 0 ? (
-                <div className="bg-gray-50 rounded-lg p-8 text-center">
-                  <p className="text-gray-500">Aucun produit ne correspond à vos critères</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {filteredProducts.map(product => (
-                    <ProductCard
-                      key={product.id}
-                      {...product}
-                      onViewDetails={() => handleViewProductDetails(String(product.id))}
-                      onEdit={() => handleEditProduct(String(product.id))}
-                      onDelete={() => handleDeleteProduct(String(product.id))}
-                    />
-                  ))}
-                </div>
-              )}
-            </TabsContent>
-            
-            <TabsContent value="telephonie" className="mt-0 w-full md:w-3/4">
-              {isLoading ? (
-                <div className="flex justify-center p-8">
-                  <div className="animate-spin h-8 w-8 border-2 border-paritel-primary border-t-transparent rounded-full"></div>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {filteredProducts
-                    .filter(product => product.category === "Téléphonie d'entreprise")
-                    .map(product => (
-                      <ProductCard
-                        key={product.id}
-                        {...product}
-                        onViewDetails={() => handleViewProductDetails(String(product.id))}
-                        onEdit={() => handleEditProduct(String(product.id))}
-                        onDelete={() => handleDeleteProduct(String(product.id))}
-                      />
-                  ))}
-                </div>
-              )}
-            </TabsContent>
-            
-            <TabsContent value="reseau" className="mt-0 w-full md:w-3/4">
-              {isLoading ? (
-                <div className="flex justify-center p-8">
-                  <div className="animate-spin h-8 w-8 border-2 border-paritel-primary border-t-transparent rounded-full"></div>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {filteredProducts
-                    .filter(product => product.category === "Réseau")
-                    .map(product => (
-                      <ProductCard
-                        key={product.id}
-                        {...product}
-                        onViewDetails={() => handleViewProductDetails(String(product.id))}
-                        onEdit={() => handleEditProduct(String(product.id))}
-                        onDelete={() => handleDeleteProduct(String(product.id))}
-                      />
-                  ))}
-                </div>
-              )}
-            </TabsContent>
-            
-            <TabsContent value="securite" className="mt-0 w-full md:w-3/4">
-              {isLoading ? (
-                <div className="flex justify-center p-8">
-                  <div className="animate-spin h-8 w-8 border-2 border-paritel-primary border-t-transparent rounded-full"></div>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {filteredProducts
-                    .filter(product => product.category === "Sécurité")
-                    .map(product => (
-                      <ProductCard
-                        key={product.id}
-                        {...product}
-                        onViewDetails={() => handleViewProductDetails(String(product.id))}
-                        onEdit={() => handleEditProduct(String(product.id))}
-                        onDelete={() => handleDeleteProduct(String(product.id))}
-                      />
-                  ))}
-                </div>
-              )}
-            </TabsContent>
           </div>
-        </Tabs>
+
+          <div className="w-full">
+            {isLoading ? (
+              <div className="flex justify-center p-8">
+                <div className="animate-spin h-8 w-8 border-2 border-paritel-primary border-t-transparent rounded-full"></div>
+              </div>
+            ) : error ? (
+              <div className="text-red-500">Error: {(error as Error).message}</div>
+            ) : filteredProducts.length === 0 ? (
+              <div className="bg-gray-50 rounded-lg p-8 text-center">
+                <p className="text-gray-500">Aucun produit ne correspond à vos critères</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredProducts.map(product => (
+                  <ProductCard
+                    key={product.id}
+                    {...product}
+                    onViewDetails={() => handleViewProductDetails(String(product.id))}
+                    onEdit={() => handleEditProduct(String(product.id))}
+                    onDelete={() => handleDeleteProduct(String(product.id))}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
         
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogContent className={`${isMobile ? 'max-w-full p-4' : 'sm:max-w-[600px]'}`}>
