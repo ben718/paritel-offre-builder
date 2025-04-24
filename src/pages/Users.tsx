@@ -1,16 +1,9 @@
 
-/**
- * Page de gestion des utilisateurs
- * @module pages/Users
- */
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { UserForm } from '@/components/users/UserForm';
 import { UsersTable } from '@/components/users/UsersTable';
-import { useUserStore } from '@/store/useUserStore';
-import { UserData } from '@/services/UserService';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
 import { 
   Dialog,
   DialogContent,
@@ -29,23 +22,20 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { UserPlus, Users as UsersIcon } from 'lucide-react';
+import { UserData } from '@/services/UserService';
+import { useUsers } from '@/hooks/useUsers'; // Nouveau hook
 
 /**
  * Page de gestion des utilisateurs avec créations, modification et suppression
  * @returns {JSX.Element} Page de gestion des utilisateurs
  */
 const Users = () => {
-  const { fetchAllUsers, removeUser } = useUserStore();
-  const { toast } = useToast();
+  // Utiliser notre nouveau hook optimisé
+  const { users, isLoading, deleteUser } = useUsers();
   const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
   const [isAddingUser, setIsAddingUser] = useState(false);
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
   
-  // Charger les utilisateurs au chargement de la page
-  useEffect(() => {
-    fetchAllUsers();
-  }, [fetchAllUsers]);
-
   // Gérer l'édition d'un utilisateur
   const handleEditUser = (user: UserData) => {
     setSelectedUser(user);
@@ -60,19 +50,10 @@ const Users = () => {
   const handleDeleteUser = async () => {
     if (userToDelete) {
       try {
-        await removeUser(userToDelete);
-        toast({
-          title: 'Succès',
-          description: 'Utilisateur supprimé avec succès',
-          variant: 'default', // Changed from "success" to "default"
-        });
+        await deleteUser(userToDelete);
         setUserToDelete(null);
       } catch (error) {
-        toast({
-          title: 'Erreur',
-          description: 'Impossible de supprimer l\'utilisateur',
-          variant: 'destructive',
-        });
+        // Errors are handled in the hook
       }
     }
   };
@@ -101,7 +82,7 @@ const Users = () => {
               <UsersIcon className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm font-medium">Total des utilisateurs</span>
             </div>
-            <div className="mt-3 text-2xl font-bold">{useUserStore().users.length}</div>
+            <div className="mt-3 text-2xl font-bold">{users.length}</div>
           </div>
           {/* Autres cartes de statistiques pourraient être ajoutées ici */}
         </div>

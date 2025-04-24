@@ -1,140 +1,65 @@
 
-import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import { Toaster } from '@/components/ui/toaster';
-import { useAuth } from '@/context/AuthContext';
-import Index from "@/pages/Index";
-import Login from "@/pages/Login";
-import Dashboard from "@/pages/Dashboard";
-import Products from "@/pages/Products";
-import Partners from "@/pages/Partners";
-import Solutions from "@/pages/Solutions";
-import CreateOffer from "@/pages/CreateOffer";
-import MyOffers from "@/pages/MyOffers";
-import Reporting from "@/pages/Reporting";
-import AdvancedReporting from "@/pages/AdvancedReporting";
-import Profile from "@/pages/Profile";
-import Settings from "@/pages/Settings";
-import CodeEditor from "@/pages/CodeEditor";
-import SiteBuilder from "@/pages/SiteBuilder";
-import Administration from "@/pages/Administration";
-import Users from "@/pages/Users";
-import Unauthorized from "@/pages/Unauthorized";
-import NotFound from "@/pages/NotFound";
-import ProductComparison from "@/pages/ProductComparison";
-import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import React, { Suspense, lazy } from 'react';
+import { Routes, Route } from 'react-router-dom';
+import './App.css';
+import { Toaster } from '@/components/ui/sonner';
+import ProtectedRoute from './components/auth/ProtectedRoute';
+import Loading from './components/ui/loading';
+
+// Lazy loaded pages
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Users = lazy(() => import('./pages/Users'));
+const Products = lazy(() => import('./pages/Products'));
+const Partners = lazy(() => import('./pages/Partners'));
+const CreateOffer = lazy(() => import('./pages/CreateOffer'));
+const MyOffers = lazy(() => import('./pages/MyOffers'));
+const Reporting = lazy(() => import('./pages/Reporting'));
+const AdvancedReporting = lazy(() => import('./pages/AdvancedReporting'));
+const Solutions = lazy(() => import('./pages/Solutions'));
+const Profile = lazy(() => import('./pages/Profile'));
+const Settings = lazy(() => import('./pages/Settings'));
+const Administration = lazy(() => import('./pages/Administration'));
+const Login = lazy(() => import('./pages/Login'));
+const NotFound = lazy(() => import('./pages/NotFound'));
+const Unauthorized = lazy(() => import('./pages/Unauthorized'));
+const Index = lazy(() => import('./pages/Index'));
+const ProductComparison = lazy(() => import('./pages/ProductComparison'));
+const SiteBuilder = lazy(() => import('./pages/SiteBuilder'));
+const CodeEditor = lazy(() => import('./pages/CodeEditor'));
 
 function App() {
-  const { isAuthenticated } = useAuth();
-
   return (
-    <div className="App">
-      <Routes>
-        {/* Redirection de la page d'accueil vers le dashboard si l'utilisateur est connecté */}
-        <Route path="/" element={
-          isAuthenticated ? <Navigate to="/dashboard" replace /> : <Index />
-        } />
-        
-        <Route path="/login" element={
-          isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />
-        } />
-        
-        <Route path="/dashboard" element={
-          <ProtectedRoute allowedRoles={['user', 'admin', 'superadmin']}>
-            <Dashboard />
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/products" element={
-          <ProtectedRoute allowedRoles={['user', 'admin', 'superadmin']}>
-            <Products />
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/product-comparison" element={
-          <ProtectedRoute allowedRoles={['user', 'admin', 'superadmin']}>
-            <ProductComparison />
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/partners" element={
-          <ProtectedRoute allowedRoles={['user', 'admin', 'superadmin']}>
-            <Partners />
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/solutions" element={
-          <ProtectedRoute allowedRoles={['user', 'admin', 'superadmin']}>
-            <Solutions />
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/create-offer" element={
-          <ProtectedRoute allowedRoles={['user', 'admin', 'superadmin']}>
-            <CreateOffer />
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/my-offers" element={
-          <ProtectedRoute allowedRoles={['user', 'admin', 'superadmin']}>
-            <MyOffers />
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/reporting" element={
-          <ProtectedRoute allowedRoles={['user', 'admin', 'superadmin']}>
-            <Reporting />
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/advanced-reporting" element={
-          <ProtectedRoute allowedRoles={['user', 'admin', 'superadmin']}>
-            <AdvancedReporting />
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/profile" element={
-          <ProtectedRoute allowedRoles={['user', 'admin', 'superadmin']}>
-            <Profile />
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/settings" element={
-          <ProtectedRoute allowedRoles={['user', 'admin', 'superadmin']}>
-            <Settings />
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/code-editor" element={
-          <ProtectedRoute allowedRoles={['user', 'admin', 'superadmin']}>
-            <CodeEditor />
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/site-builder" element={
-          <ProtectedRoute allowedRoles={['user', 'admin', 'superadmin']}>
-            <SiteBuilder />
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/admin" element={
-          <ProtectedRoute allowedRoles={['admin', 'superadmin']}>
-            <Administration />
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/users" element={
-          <ProtectedRoute allowedRoles={['admin', 'superadmin']}>
-            <Users />
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/unauthorized" element={<Unauthorized />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-      
+    <>
+      <Suspense fallback={<Loading />}>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/login" element={<Login />} />
+          
+          {/* Protected routes */}
+          <Route element={<ProtectedRoute />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/users" element={<Users />} />
+            <Route path="/products" element={<Products />} />
+            <Route path="/partners" element={<Partners />} />
+            <Route path="/create-offer" element={<CreateOffer />} />
+            <Route path="/my-offers" element={<MyOffers />} />
+            <Route path="/reporting" element={<Reporting />} />
+            <Route path="/advanced-reporting" element={<AdvancedReporting />} />
+            <Route path="/solutions" element={<Solutions />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/administration" element={<Administration />} />
+            <Route path="/product-comparison" element={<ProductComparison />} />
+            <Route path="/site-builder" element={<SiteBuilder />} />
+            <Route path="/code-editor" element={<CodeEditor />} />
+          </Route>
+          
+          <Route path="/unauthorized" element={<Unauthorized />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
       <Toaster />
-    </div>
+    </>
   );
 }
 

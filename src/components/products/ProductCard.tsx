@@ -1,188 +1,128 @@
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
-import { Eye, Edit, Trash2 } from "lucide-react";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import OptimizedImage from '@/components/ui/optimized-image';
 
-export type ProductCardProps = {
-  id: string; // Changé en string pour être cohérent
+export interface ProductCardProps {
+  id: string;
   name: string;
   description: string;
   category: string;
   subcategory?: string;
+  image?: string;
   partner?: string;
-  tags: string[];
-  image: string;
+  tags?: string[];
   specs?: string[];
   rating?: number;
-};
+  price?: number;
+  discountPrice?: number;
+  onSelect?: (product: ProductCardProps) => void;
+  onAddToOffer?: (product: ProductCardProps) => void;
+}
 
-type ProductCardComponentProps = ProductCardProps & {
-  onEdit?: (id: string) => void; // Changé en string
-  onDelete?: (id: string) => void; // Changé en string
-  onViewDetails?: (id: string) => void; // Changé en string
-  isSelected?: boolean;
-  onSelectionChange?: (id: string, isSelected: boolean) => void; // Changé en string
-};
-
-export const ProductCard = ({
+const ProductCard = ({
   id,
   name,
   description,
   category,
   subcategory,
+  image = '/placeholder.svg',
   partner,
   tags,
-  image,
-  specs,
-  rating,
-  onEdit,
-  onDelete,
-  onViewDetails,
-  isSelected,
-  onSelectionChange
-}: ProductCardComponentProps) => {
-  const handleSelectChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (onSelectionChange) {
-      onSelectionChange(id, e.target.checked);
-    }
+  onSelect,
+  onAddToOffer,
+  price,
+  discountPrice,
+}: ProductCardProps) => {
+  const truncateDescription = (text: string, maxLength: number = 100) => {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
   };
-
+  
   return (
-    <Card className="overflow-hidden h-full flex flex-col relative">
-      {onSelectionChange && (
-        <div className="absolute top-2 right-2 z-10">
-          <input 
-            type="checkbox"
-            className="h-5 w-5 rounded border-gray-300 text-paritel-primary focus:ring-paritel-primary"
-            checked={isSelected}
-            onChange={handleSelectChange}
-          />
-        </div>
-      )}
-      <div className="relative h-40 sm:h-48 bg-paritel-lightgray">
-        <div className="absolute top-2 left-2 flex flex-wrap max-w-[80%] gap-1">
-          <Badge className="bg-paritel-primary text-white text-xs">{category}</Badge>
-          {subcategory && (
-            <Badge className="bg-paritel-secondary text-white text-xs">{subcategory}</Badge>
-          )}
-        </div>
-        {partner && (
-          <div className="absolute bottom-2 right-2">
-            <Badge variant="outline" className="bg-white/80 border-paritel-primary text-xs">
-              {partner}
-            </Badge>
-          </div>
-        )}
-        <img
+    <Card className="h-full flex flex-col overflow-hidden hover:shadow-md transition-shadow duration-300">
+      <div className="relative bg-gray-100 aspect-video flex items-center justify-center p-4">
+        <OptimizedImage
           src={image}
           alt={name}
-          className="w-full h-full object-contain"
+          className="max-h-32 object-contain"
+          width={200}
+          height={150}
+          loadingComponent={
+            <div className="w-full h-32 bg-gray-200 animate-pulse rounded flex items-center justify-center">
+              <span className="text-gray-400 text-sm">Chargement...</span>
+            </div>
+          }
+          errorComponent={
+            <div className="w-full h-32 bg-gray-100 flex items-center justify-center">
+              <span className="text-gray-400 text-sm">Image non disponible</span>
+            </div>
+          }
         />
-      </div>
-      <CardContent className="p-3 sm:p-4 flex-1 flex flex-col">
-        <h3 className="font-medium text-base sm:text-lg mb-1 line-clamp-1">{name}</h3>
-        <p className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3 line-clamp-2">{description}</p>
         
-        {specs && specs.length > 0 && (
-          <ul className="text-xs sm:text-sm text-gray-700 mb-2 sm:mb-3 list-disc pl-4 sm:pl-5">
-            {specs.slice(0, 2).map((spec, i) => (
-              <li key={i} className="line-clamp-1">{spec}</li>
-            ))}
-            {specs.length > 2 && (
-              <li className="text-xs text-paritel-primary">
-                +{specs.length - 2} autres spécifications
-              </li>
-            )}
-          </ul>
+        {partner && (
+          <Badge 
+            variant="outline" 
+            className="absolute top-3 right-3 bg-white/80 border-none text-xs"
+          >
+            {partner}
+          </Badge>
         )}
-        
-        <div className="flex flex-wrap gap-1 mb-2 sm:mb-3">
-          {tags.slice(0, 3).map((tag, i) => (
-            <Badge key={i} variant="secondary" className="text-xs">
-              {tag}
-            </Badge>
-          ))}
-          {tags.length > 3 && (
-            <Badge variant="secondary" className="text-xs">
-              +{tags.length - 3}
-            </Badge>
+      </div>
+      <CardContent className="flex flex-col flex-grow p-4">
+        <div className="flex-grow">
+          <div className="flex flex-wrap gap-1 mb-2">
+            <Badge className="bg-paritel-primary text-xs">{category}</Badge>
+            {subcategory && (
+              <Badge className="bg-gray-200 text-gray-700 text-xs">{subcategory}</Badge>
+            )}
+          </div>
+          <h3 className="font-medium text-base line-clamp-1">{name}</h3>
+          <p className="text-muted-foreground text-sm mt-1 line-clamp-2">
+            {truncateDescription(description)}
+          </p>
+          
+          {/* Affichage du prix si disponible */}
+          {price !== undefined && (
+            <div className="mt-3">
+              {discountPrice !== undefined ? (
+                <div className="flex items-baseline gap-2">
+                  <span className="text-lg font-bold">{discountPrice}€</span>
+                  <span className="text-sm text-muted-foreground line-through">{price}€</span>
+                </div>
+              ) : (
+                <span className="text-lg font-bold">{price}€</span>
+              )}
+            </div>
           )}
         </div>
         
-        <div className="flex justify-between mt-auto pt-2 sm:pt-3">
-          {onEdit && onDelete ? (
-            <div className="flex space-x-1 sm:space-x-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => onEdit(id)}
-                className="px-2 sm:px-3 h-8 text-xs sm:text-sm"
-              >
-                <Edit className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-1" />
-                <span className="hidden sm:inline">Modifier</span>
-              </Button>
-              
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="text-red-600 border-red-200 hover:bg-red-50 px-2 sm:px-3 h-8 text-xs sm:text-sm"
-                  >
-                    <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-1" />
-                    <span className="hidden sm:inline">Supprimer</span>
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent className="max-w-[90vw] sm:max-w-lg">
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Êtes-vous sûr de vouloir supprimer ce produit ?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Cette action est irréversible. Le produit '{name}' sera définitivement supprimé.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Annuler</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => onDelete(id)} className="bg-red-600">
-                      Supprimer
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </div>
-          ) : (
+        <div className="mt-4 pt-3 border-t flex justify-between gap-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="flex-1"
+            onClick={() => onSelect?.({ id, name, description, category, subcategory, image, partner, tags })}
+          >
+            Détails
+          </Button>
+          
+          {onAddToOffer && (
             <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={onViewDetails ? () => onViewDetails(id) : undefined}
-              className="px-2 sm:px-3 h-8 text-xs sm:text-sm"
+              variant="default" 
+              size="sm"
+              className="flex-1 bg-paritel-primary hover:bg-paritel-primary/90"
+              onClick={() => onAddToOffer?.({ id, name, description, category, subcategory, image, partner, tags })}
             >
-              <Eye className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-1" />
-              <span className="hidden sm:inline">Détails</span>
+              Ajouter
             </Button>
           )}
-          <Button 
-            variant="default" 
-            size="sm" 
-            className="bg-paritel-primary px-2 sm:px-3 h-8 text-xs sm:text-sm"
-            onClick={onViewDetails ? () => onViewDetails(id) : undefined}
-          >
-            <span className="inline sm:hidden">Voir</span>
-            <span className="hidden sm:inline">Détails</span>
-          </Button>
         </div>
       </CardContent>
     </Card>
   );
 };
+
+export default ProductCard;
