@@ -1,5 +1,6 @@
 
 import { Loader } from "lucide-react";
+import getText from "@/utils/i18n";
 
 interface LoadingSpinnerProps {
   size?: "sm" | "md" | "lg";
@@ -17,7 +18,7 @@ const LoadingSpinner = ({ size = "md", className = "" }: LoadingSpinnerProps) =>
     <div 
       role="status" 
       className={`flex justify-center items-center ${className}`}
-      aria-label="Chargement en cours"
+      aria-label={getText("ui.loadingSpinner.ariaLabel", "Chargement en cours")}
     >
       <Loader 
         className={`animate-spin ${sizeClasses[size]} text-paritel-primary`} 

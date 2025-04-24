@@ -1,6 +1,7 @@
 
 import { AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import getText from "@/utils/i18n";
 
 interface EmptyStateProps {
   title: string;
@@ -12,7 +13,12 @@ interface EmptyStateProps {
   icon?: React.ReactNode;
 }
 
-const EmptyState = ({ title, message, action, icon }: EmptyStateProps) => {
+const EmptyState = ({ 
+  title = getText("ui.emptyState.title"), 
+  message = getText("ui.emptyState.message"),
+  action,
+  icon
+}: EmptyStateProps) => {
   return (
     <div 
       className="flex flex-col items-center justify-center p-8 text-center space-y-4"

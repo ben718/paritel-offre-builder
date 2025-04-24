@@ -1,6 +1,7 @@
 
 import { XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import getText from "@/utils/i18n";
 
 interface ErrorStateProps {
   title?: string;
@@ -9,7 +10,7 @@ interface ErrorStateProps {
 }
 
 const ErrorState = ({ 
-  title = "Une erreur est survenue", 
+  title = getText("ui.errorState.title"), 
   message, 
   onRetry 
 }: ErrorStateProps) => {
@@ -34,7 +35,7 @@ const ErrorState = ({
           variant="outline"
           className="mt-4"
         >
-          Réessayer
+          {getText("ui.errorState.retry", "Réessayer")}
         </Button>
       )}
     </div>

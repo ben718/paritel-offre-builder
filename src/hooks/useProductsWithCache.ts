@@ -31,8 +31,7 @@ export function useProductsWithCache() {
     { 
       staleTime: 60000, 
       cacheTime: CACHE_TIME,
-      retry: 2,
-      retryDelay: 1000
+      refetchOnReconnect: true
     }
   );
   
