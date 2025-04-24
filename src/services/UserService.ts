@@ -1,8 +1,18 @@
 
+/**
+ * Service de gestion des utilisateurs
+ * @module services/UserService
+ */
 import { supabase } from '@/integrations/supabase/client';
 
+/**
+ * Types de statut possibles pour un utilisateur
+ */
 export type UserStatus = 'active' | 'inactive' | 'pending';
 
+/**
+ * Structure de données d'un utilisateur
+ */
 export type UserData = {
   id: string;
   full_name: string;
@@ -17,7 +27,10 @@ export type UserData = {
   updated_at?: string;
 };
 
-// Récupérer tous les utilisateurs
+/**
+ * Récupère tous les utilisateurs
+ * @returns {Promise<UserData[]>} Liste des utilisateurs
+ */
 export const fetchUsers = async (): Promise<UserData[]> => {
   try {
     const { data, error } = await supabase
@@ -33,7 +46,11 @@ export const fetchUsers = async (): Promise<UserData[]> => {
   }
 };
 
-// Récupérer un utilisateur par ID
+/**
+ * Récupère un utilisateur par son ID
+ * @param {string} userId - ID de l'utilisateur à récupérer
+ * @returns {Promise<UserData | null>} Données de l'utilisateur ou null si non trouvé
+ */
 export const fetchUserById = async (userId: string): Promise<UserData | null> => {
   try {
     const { data, error } = await supabase
@@ -50,7 +67,11 @@ export const fetchUserById = async (userId: string): Promise<UserData | null> =>
   }
 };
 
-// Créer un nouvel utilisateur
+/**
+ * Crée un nouvel utilisateur
+ * @param {Omit<UserData, 'created_at' | 'updated_at'> & { id: string }} userData - Données du nouvel utilisateur
+ * @returns {Promise<UserData | null>} Utilisateur créé ou null en cas d'erreur
+ */
 export const createUser = async (
   userData: Omit<UserData, 'created_at' | 'updated_at'> & { id: string }
 ): Promise<UserData | null> => {
@@ -69,7 +90,12 @@ export const createUser = async (
   }
 };
 
-// Mettre à jour un utilisateur existant
+/**
+ * Met à jour un utilisateur existant
+ * @param {string} userId - ID de l'utilisateur à mettre à jour
+ * @param {Partial<UserData>} userData - Données à mettre à jour
+ * @returns {Promise<UserData | null>} Utilisateur mis à jour ou null en cas d'erreur
+ */
 export const updateUser = async (
   userId: string,
   userData: Partial<UserData>
@@ -106,7 +132,11 @@ export const updateUser = async (
   }
 };
 
-// Supprimer un utilisateur
+/**
+ * Supprime un utilisateur
+ * @param {string} userId - ID de l'utilisateur à supprimer
+ * @returns {Promise<boolean>} true si succès, false sinon
+ */
 export const deleteUser = async (userId: string): Promise<boolean> => {
   try {
     const { error } = await supabase
@@ -122,7 +152,12 @@ export const deleteUser = async (userId: string): Promise<boolean> => {
   }
 };
 
-// Mettre à jour le statut d'un utilisateur
+/**
+ * Met à jour le statut d'un utilisateur
+ * @param {string} userId - ID de l'utilisateur
+ * @param {UserStatus} status - Nouveau statut
+ * @returns {Promise<boolean>} true si succès, false sinon
+ */
 export const updateUserStatus = async (
   userId: string,
   status: UserStatus
