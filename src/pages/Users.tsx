@@ -64,7 +64,7 @@ const Users = () => {
         toast({
           title: 'Succès',
           description: 'Utilisateur supprimé avec succès',
-          variant: 'success',
+          variant: 'default', // Changed from "success" to "default"
         });
         setUserToDelete(null);
       } catch (error) {

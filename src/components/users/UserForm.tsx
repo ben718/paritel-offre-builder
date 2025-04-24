@@ -108,7 +108,7 @@ export function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
       toast({
         title: "Validation",
         description: "Veuillez corriger les erreurs du formulaire",
-        variant: "warning"
+        variant: "default" // Changed from "warning" to "default"
       });
       return;
     }
@@ -120,7 +120,7 @@ export function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
         toast({
           title: "Succès",
           description: "Utilisateur mis à jour avec succès",
-          variant: "success"
+          variant: "default" // Changed from "success" to "default"
         });
       } else {
         // Mode création
@@ -133,7 +133,7 @@ export function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
         toast({
           title: "Succès",
           description: "Utilisateur créé avec succès",
-          variant: "success"
+          variant: "default" // Changed from "success" to "default"
         });
         resetForm();
       }
@@ -152,7 +152,8 @@ export function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
         <CardTitle>{user ? 'Modifier un utilisateur' : 'Créer un utilisateur'}</CardTitle>
       </CardHeader>
       <CardContent>
-        <Form>
+        {/* Fixed the Form component by not using it as a wrapper, since it expects useForm from react-hook-form */}
+        <div>
           <form id="user-form" onSubmit={handleSubmit} className="space-y-6">
             <FormField
               name="full_name"
@@ -305,7 +306,7 @@ export function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
               />
             </div>
           </form>
-        </Form>
+        </div>
       </CardContent>
       <CardFooter className="flex justify-end space-x-2">
         {onCancel && (
