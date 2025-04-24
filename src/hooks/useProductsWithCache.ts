@@ -19,7 +19,7 @@ export function useProductsWithCache() {
     isLoading,
     isError,
     refetch,
-    isFirstLoad
+    error
   } = useQueryWithCache(
     ['products', filter.category, filter.search, filter.page.toString(), filter.limit.toString()],
     () => fetchProducts({ 
@@ -28,7 +28,12 @@ export function useProductsWithCache() {
       page: filter.page,
       limit: filter.limit
     }),
-    { staleTime: 60000, cacheTime: CACHE_TIME }
+    { 
+      staleTime: 60000, 
+      cacheTime: CACHE_TIME,
+      retry: 2,
+      retryDelay: 1000
+    }
   );
   
   // Function to get a single product by ID
@@ -41,7 +46,6 @@ export function useProductsWithCache() {
     setFilter(prev => ({
       ...prev,
       ...newFilters,
-      // Reset page to 1 if filters have changed
       page: (newFilters.category !== undefined && newFilters.category !== prev.category) || 
             (newFilters.search !== undefined && newFilters.search !== prev.search) ? 1 : prev.page
     }));
@@ -65,7 +69,7 @@ export function useProductsWithCache() {
     filter,
     isLoading,
     isError,
-    isFirstLoad,
+    error,
     refetchProducts: refetch,
     applyFilters,
     nextPage,
