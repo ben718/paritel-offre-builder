@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 
 export type UserStatus = 'active' | 'inactive' | 'pending';
@@ -74,9 +75,21 @@ export const updateUser = async (
   userData: Partial<UserData>
 ): Promise<UserData | null> => {
   try {
+    // S'assurer que nous n'envoyons que les champs valides à Supabase
+    const validFields: Partial<UserData> = {};
+    
+    // Copier uniquement les champs qui existent dans UserData
+    if ('full_name' in userData) validFields.full_name = userData.full_name;
+    if ('email' in userData) validFields.email = userData.email;
+    if ('role' in userData) validFields.role = userData.role;
+    if ('status' in userData) validFields.status = userData.status;
+    if ('department' in userData) validFields.department = userData.department;
+    if ('position' in userData) validFields.position = userData.position;
+    if ('phone' in userData) validFields.phone = userData.phone;
+    
     const { data, error } = await supabase
       .from('app_users')
-      .update(userData)
+      .update(validFields)
       .eq('id', userId)
       .select('*')
       .single();
@@ -115,13 +128,8 @@ export const updateUserStatus = async (
   status: UserStatus
 ): Promise<boolean> => {
   try {
-    const { error } = await supabase
-      .from('app_users')
-      .update({ status })
-      .eq('id', userId);
-
-    if (error) throw error;
-    return true;
+    const result = await updateUser(userId, { status });
+    return result !== null;
   } catch (error) {
     console.error('Error in updateUserStatus:', error);
     return false;
