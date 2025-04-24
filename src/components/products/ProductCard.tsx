@@ -20,6 +20,9 @@ export interface ProductCardProps {
   discountPrice?: number;
   onSelect?: (product: ProductCardProps) => void;
   onAddToOffer?: (product: ProductCardProps) => void;
+  onViewDetails?: () => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
 }
 
 const ProductCard = ({
@@ -33,6 +36,9 @@ const ProductCard = ({
   tags,
   onSelect,
   onAddToOffer,
+  onViewDetails,
+  onEdit,
+  onDelete,
   price,
   discountPrice,
 }: ProductCardProps) => {
@@ -100,21 +106,54 @@ const ProductCard = ({
         </div>
         
         <div className="mt-4 pt-3 border-t flex justify-between gap-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="flex-1"
-            onClick={() => onSelect?.({ id, name, description, category, subcategory, image, partner, tags })}
-          >
-            Détails
-          </Button>
+          {onViewDetails ? (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex-1"
+              onClick={onViewDetails}
+            >
+              Détails
+            </Button>
+          ) : onSelect && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex-1"
+              onClick={() => onSelect({ id, name, description, category, subcategory, image, partner, tags })}
+            >
+              Détails
+            </Button>
+          )}
+          
+          {onEdit && (
+            <Button 
+              variant="outline"
+              size="sm"
+              className="flex-1"
+              onClick={onEdit}
+            >
+              Modifier
+            </Button>
+          )}
+          
+          {onDelete && (
+            <Button
+              variant="destructive"
+              size="sm"
+              className="flex-1"
+              onClick={onDelete}
+            >
+              Supprimer
+            </Button>
+          )}
           
           {onAddToOffer && (
             <Button 
               variant="default" 
               size="sm"
               className="flex-1 bg-paritel-primary hover:bg-paritel-primary/90"
-              onClick={() => onAddToOffer?.({ id, name, description, category, subcategory, image, partner, tags })}
+              onClick={() => onAddToOffer({ id, name, description, category, subcategory, image, partner, tags })}
             >
               Ajouter
             </Button>

@@ -1,7 +1,7 @@
 
 import { useState, useCallback } from 'react';
 import { useQueryWithCache } from './useQueryWithCache';
-import { fetchProducts as getProducts } from '@/services/ProductService';
+import { fetchProducts } from '@/services/ProductService';
 
 const CACHE_TIME = 10 * 60 * 1000; // 10 minutes
 
@@ -22,7 +22,7 @@ export function useProductsWithCache() {
     isFirstLoad
   } = useQueryWithCache(
     ['products', filter.category, filter.search, filter.page.toString(), filter.limit.toString()],
-    () => getProducts({ 
+    () => fetchProducts({ 
       category: filter.category,
       search: filter.search,
       page: filter.page,
@@ -31,17 +31,9 @@ export function useProductsWithCache() {
     { staleTime: 60000, cacheTime: CACHE_TIME }
   );
   
-  // Function to get a single product (simplified since getProductById doesn't exist)
+  // Function to get a single product by ID
   const getProduct = useCallback((productId: string) => {
-    return useQueryWithCache(
-      ['product', productId],
-      () => {
-        // Fetch the product from the products array for now
-        const foundProduct = products.find(p => String(p.id) === productId);
-        return Promise.resolve(foundProduct || null);
-      },
-      { staleTime: 5 * 60 * 1000, cacheTime: CACHE_TIME }
-    );
+    return products.find(p => String(p.id) === productId) || null;
   }, [products]);
   
   // Apply filters
