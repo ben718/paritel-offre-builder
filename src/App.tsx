@@ -36,23 +36,21 @@ function App() {
           <Route path="/login" element={<Login />} />
           
           {/* Protected routes */}
-          <Route element={<ProtectedRoute />}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/users" element={<Users />} />
-            <Route path="/products" element={<Products />} />
-            <Route path="/partners" element={<Partners />} />
-            <Route path="/create-offer" element={<CreateOffer />} />
-            <Route path="/my-offers" element={<MyOffers />} />
-            <Route path="/reporting" element={<Reporting />} />
-            <Route path="/advanced-reporting" element={<AdvancedReporting />} />
-            <Route path="/solutions" element={<Solutions />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/administration" element={<Administration />} />
-            <Route path="/product-comparison" element={<ProductComparison />} />
-            <Route path="/site-builder" element={<SiteBuilder />} />
-            <Route path="/code-editor" element={<CodeEditor />} />
-          </Route>
+          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/users" element={<ProtectedRoute><Users /></ProtectedRoute>} />
+          <Route path="/products" element={<ProtectedRoute><Products /></ProtectedRoute>} />
+          <Route path="/partners" element={<ProtectedRoute><Partners /></ProtectedRoute>} />
+          <Route path="/create-offer" element={<ProtectedRoute><CreateOffer /></ProtectedRoute>} />
+          <Route path="/my-offers" element={<ProtectedRoute><MyOffers /></ProtectedRoute>} />
+          <Route path="/reporting" element={<ProtectedRoute><Reporting /></ProtectedRoute>} />
+          <Route path="/advanced-reporting" element={<ProtectedRoute><AdvancedReporting /></ProtectedRoute>} />
+          <Route path="/solutions" element={<ProtectedRoute><Solutions /></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+          <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+          <Route path="/administration" element={<ProtectedRoute><Administration /></ProtectedRoute>} />
+          <Route path="/product-comparison" element={<ProtectedRoute><ProductComparison /></ProtectedRoute>} />
+          <Route path="/site-builder" element={<ProtectedRoute><SiteBuilder /></ProtectedRoute>} />
+          <Route path="/code-editor" element={<ProtectedRoute><CodeEditor /></ProtectedRoute>} />
           
           <Route path="/unauthorized" element={<Unauthorized />} />
           <Route path="*" element={<NotFound />} />
