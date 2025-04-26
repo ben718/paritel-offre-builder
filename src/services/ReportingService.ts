@@ -129,3 +129,63 @@ export const fetchReportingCategories = async (): Promise<string[]> => {
     return [];
   }
 };
+
+// Sauvegarder les préférences de reporting
+export const saveReportingPreferences = async (preferences: { period: string, productType: string }): Promise<boolean> => {
+  try {
+    const { data: userData } = await supabase.auth.getUser();
+    
+    if (!userData.user) {
+      console.error('User not authenticated');
+      return false;
+    }
+    
+    // Vérifier si une préférence existe déjà pour cet utilisateur
+    const { data: existingPreferences, error: fetchError } = await supabase
+      .from('user_reporting_preferences')
+      .select('*')
+      .eq('user_id', userData.user.id)
+      .maybeSingle();
+      
+    if (fetchError && fetchError.code !== 'PGRST116') {
+      console.error('Error fetching user preferences:', fetchError);
+      return false;
+    }
+    
+    // Si les préférences existent, mettre à jour
+    if (existingPreferences) {
+      const { error: updateError } = await supabase
+        .from('user_reporting_preferences')
+        .update({
+          period: preferences.period,
+          product_type: preferences.productType,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', existingPreferences.id);
+        
+      if (updateError) {
+        console.error('Error updating reporting preferences:', updateError);
+        return false;
+      }
+    } else {
+      // Sinon, créer un nouvel enregistrement
+      const { error: insertError } = await supabase
+        .from('user_reporting_preferences')
+        .insert({
+          user_id: userData.user.id,
+          period: preferences.period,
+          product_type: preferences.productType
+        });
+        
+      if (insertError) {
+        console.error('Error inserting reporting preferences:', insertError);
+        return false;
+      }
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error in saveReportingPreferences:', error);
+    return false;
+  }
+};

@@ -30,10 +30,11 @@ import {
   Filter,
   BarChart3,
   PieChart as PieChartIcon,
-  FileText
+  FileText,
+  Save
 } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { fetchReportingData, fetchReportingCategories } from "@/services/ReportingService";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { fetchReportingData, fetchReportingCategories, saveReportingPreferences } from "@/services/ReportingService";
 import { getRecentOffers } from "@/services/OfferService";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -93,6 +94,33 @@ const Reporting = () => {
       }
     }
   });
+
+  // Mutation pour sauvegarder les préférences
+  const saveMutation = useMutation({
+    mutationFn: (preferences: { period: string, productType: string }) => {
+      return saveReportingPreferences(preferences);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Paramètres sauvegardés",
+        description: "Vos préférences de reporting ont été enregistrées avec succès",
+        duration: 3000,
+      });
+    },
+    onError: (error) => {
+      console.error("Erreur lors de la sauvegarde des préférences:", error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de sauvegarder les paramètres",
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Fonction pour sauvegarder les paramètres
+  const handleSaveSettings = () => {
+    saveMutation.mutate({ period, productType });
+  };
 
   // Préparation des données pour les graphiques
   const monthlySalesData = reportingData.length > 0 
@@ -313,7 +341,7 @@ const Reporting = () => {
           <CardHeader>
             <CardTitle>Offres Récentes</CardTitle>
             <CardDescription>
-              Les 5 dernières offres créées et leur statut
+              Les {recentOffers.length} dernières offres créées et leur statut
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -363,7 +391,7 @@ const Reporting = () => {
           </CardContent>
         </Card>
 
-        {/* Chart */}
+        {/* Chart with Save Settings Button */}
         <Card>
           <CardHeader className="pb-2">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
@@ -378,6 +406,20 @@ const Reporting = () => {
                     <SelectItem value="quarter">Trimestriel</SelectItem>
                   </SelectContent>
                 </Select>
+                <Button 
+                  variant="outline" 
+                  size="icon"
+                  onClick={handleSaveSettings}
+                  className="ml-2"
+                  disabled={saveMutation.isPending}
+                >
+                  {saveMutation.isPending ? (
+                    <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <Save className="h-4 w-4" />
+                  )}
+                  <span className="sr-only">Sauvegarder les paramètres</span>
+                </Button>
               </div>
             </div>
             <CardDescription>
