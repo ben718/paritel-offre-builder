@@ -11,7 +11,7 @@ const Header = () => {
   const isMobile = useIsMobile();
 
   return (
-    <header className="h-16 border-b border-gray-200 px-4 flex items-center justify-between bg-white">
+    <header className="h-16 border-b border-gray-200 px-4 flex items-center justify-between bg-white w-full">
       <div className="flex items-center">
         {isMobile && <MobileNav />}
         <div className={`${isMobile ? 'w-[calc(100vw-120px)] max-w-[200px]' : 'w-full max-w-md'}`}>

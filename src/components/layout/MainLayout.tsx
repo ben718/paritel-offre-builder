@@ -17,7 +17,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       <div className="flex-1 flex flex-col overflow-hidden w-full">
         <Header />
         <main className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6 w-full">
-          <div className="w-full h-full">
+          <div className="w-full max-w-[2000px] mx-auto">
             {children}
           </div>
         </main>
