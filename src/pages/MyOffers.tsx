@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+
+import React, { useState } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { 
@@ -30,8 +31,7 @@ import {
   Download,
   Trash2,
   Eye,
-  PencilLine,
-  Filter
+  PencilLine
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -80,7 +80,6 @@ const formatDate = (dateString: string | undefined) => {
 };
 
 const MyOffers = () => {
-  
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -182,7 +181,6 @@ const MyOffers = () => {
   return (
     <MainLayout>
       <div className="space-y-6">
-        
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Mes Offres</h1>
@@ -195,7 +193,6 @@ const MyOffers = () => {
         </div>
 
         <Tabs defaultValue="all" className="space-y-4">
-          
           <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4">
             <TabsList>
               <TabsTrigger value="all">
@@ -256,7 +253,6 @@ const MyOffers = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filteredOffers.map((offer) => (
                   <Card key={offer.id} className="overflow-hidden">
-                    
                     <CardHeader className="pb-3">
                       <div className="flex items-center justify-between">
                         <Badge className={statusColors[offer.status]}>
@@ -445,7 +441,6 @@ const MyOffers = () => {
                   .filter(o => o.status === 'in_progress' || o.status === 'sent')
                   .map((offer) => (
                     <Card key={offer.id} className="overflow-hidden">
-                      
                       <CardHeader className="pb-3">
                         <div className="flex items-center justify-between">
                           <Badge className={statusColors[offer.status]}>
@@ -634,7 +629,6 @@ const MyOffers = () => {
                   .filter(o => o.status === 'accepted')
                   .map((offer) => (
                     <Card key={offer.id} className="overflow-hidden">
-                      
                       <CardHeader className="pb-3">
                         <div className="flex items-center justify-between">
                           <Badge className={statusColors[offer.status]}>
@@ -752,8 +746,9 @@ const MyOffers = () => {
                                 onClick={() => handleDownloadOffer(offer.id)}
                               >
                                 <Download className="mr-1 h-4 w-4" />
-                              Télécharger
-                            </Button>
+                                Télécharger
+                              </Button>
+                            </>
                           )}
                           
                           {offer.status === 'in_progress' && (
