@@ -5,8 +5,16 @@ import RecentOffers from "@/components/dashboard/RecentOffers";
 import QuickAccess from "@/components/dashboard/QuickAccess";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileSpreadsheet, Package } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { fetchProducts } from "@/services/ProductService";
 
 const Dashboard = () => {
+  // Récupérer le nombre de produits depuis l'API
+  const { data: products = [] } = useQuery({
+    queryKey: ['dashboard-products'],
+    queryFn: fetchProducts
+  });
+
   return (
     <MainLayout>
       <div className="space-y-6">
@@ -26,7 +34,7 @@ const Dashboard = () => {
           />
           <StatCard
             title="Catalogue produits"
-            value="156 produits"
+            value={`${products.length} produits`}
             description="Explorez notre catalogue complet"
             icon={<Package className="h-4 w-4 text-paritel-accent" />}
           />
