@@ -22,12 +22,7 @@ export function useProductsWithCache() {
     error
   } = useQueryWithCache(
     ['products', filter.category, filter.search, filter.page.toString(), filter.limit.toString()],
-    () => fetchProducts({ 
-      category: filter.category,
-      search: filter.search,
-      page: filter.page,
-      limit: filter.limit
-    }),
+    () => fetchProducts(),
     { 
       staleTime: 60000, 
       cacheTime: CACHE_TIME,
