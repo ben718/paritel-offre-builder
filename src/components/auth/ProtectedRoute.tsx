@@ -12,7 +12,7 @@ const ProtectedRoute = ({ children, allowedRoles = [] }: ProtectedRouteProps) =>
   const location = useLocation();
   const { isAuthenticated, isReady, userProfile, session } = useAuth();
   
-  // Show loading indicator while auth state is being determined
+  // Montrer l'indicateur de chargement pendant que l'état d'authentification est déterminé
   if (!isReady) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -24,9 +24,13 @@ const ProtectedRoute = ({ children, allowedRoles = [] }: ProtectedRouteProps) =>
     );
   }
 
-  // If not authenticated, redirect to login with current location
+  // Si l'utilisateur n'est pas authentifié, rediriger vers la page de connexion
   if (!isAuthenticated || !session) {
-    console.log('Redirection vers la page de connexion - Utilisateur non authentifié', { from: location.pathname });
+    console.log('Redirection vers la page de connexion - Utilisateur non authentifié', { 
+      isAuthenticated, 
+      sessionExists: !!session,
+      from: location.pathname 
+    });
     return <Navigate to="/login" state={{ from: location.pathname }} replace />;
   }
 
@@ -74,7 +78,7 @@ const ProtectedRoute = ({ children, allowedRoles = [] }: ProtectedRouteProps) =>
     return <Navigate to="/unauthorized" replace />;
   }
 
-  // User is authenticated and has the required roles, render the protected content
+  // L'utilisateur est authentifié et possède les rôles requis
   console.log('Accès autorisé pour l\'utilisateur avec les rôles:', userRoles);
   return <>{children}</>;
 };

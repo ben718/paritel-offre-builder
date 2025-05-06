@@ -1,4 +1,5 @@
 
+import { useEffect } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import { StatCard } from "@/components/dashboard/StatCard";
 import RecentOffers from "@/components/dashboard/RecentOffers";
@@ -7,13 +8,29 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileSpreadsheet, Package } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchProducts } from "@/services/ProductService";
+import { useToast } from "@/hooks/use-toast";
 
 const Dashboard = () => {
+  const { toast } = useToast();
+  
   // Récupérer le nombre de produits depuis l'API
-  const { data: products = [] } = useQuery({
+  const { data: products = [], isError, error } = useQuery({
     queryKey: ['dashboard-products'],
-    queryFn: fetchProducts
+    queryFn: fetchProducts,
+    onError: (err) => {
+      console.error("Erreur lors de la récupération des produits:", err);
+      toast({
+        title: "Erreur de chargement",
+        description: "Impossible de charger les produits. Veuillez réessayer.",
+        variant: "destructive",
+      });
+    }
   });
+
+  // Log pour débogage
+  useEffect(() => {
+    console.log("Dashboard rendu, produits chargés:", products.length);
+  }, [products]);
 
   return (
     <MainLayout>

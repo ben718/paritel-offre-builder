@@ -42,21 +42,37 @@ const Login = () => {
 
   const { login, user, isAuthenticated, isReady } = useAuth();
 
-  // Redirect if already authenticated
+  // Amélioration de la gestion de redirection: log et effet plus clair
   useEffect(() => {
-    if (isAuthenticated && user) {
+    if (isReady && isAuthenticated && user) {
       console.log("Utilisateur déjà authentifié, redirection vers:", from);
-      navigate(from);
+      
+      // Ajouter un court délai pour permettre à l'état de s'initialiser correctement
+      const redirectTimer = setTimeout(() => {
+        navigate(from);
+      }, 100);
+      
+      return () => clearTimeout(redirectTimer);
     }
-  }, [isAuthenticated, user, navigate, from]);
+  }, [isAuthenticated, isReady, user, navigate, from]);
 
-  // Handle login form submission
+  // Handle login form submission avec meilleure gestion des erreurs
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
       console.log("Tentative de connexion avec:", loginData.email);
+
+      if (!loginData.email || !loginData.password) {
+        toast({
+          title: "Champs obligatoires",
+          description: "L'email et le mot de passe sont requis.",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
 
       // Call login function from AuthContext
       const success = await login(loginData.email, loginData.password);
@@ -67,8 +83,11 @@ const Login = () => {
           description: "Bienvenue dans l'application Paritel AO & Catalogue",
         });
 
-        // Redirect to intended destination or dashboard
-        navigate(from);
+        console.log("Redirection après connexion réussie vers:", from);
+        // Redirection avec un court délai
+        setTimeout(() => {
+          navigate(from);
+        }, 100);
       } else {
         toast({
           title: "Échec de la connexion",
@@ -77,7 +96,7 @@ const Login = () => {
         });
       }
     } catch (error: any) {
-      console.error("Login error:", error);
+      console.error("Login error details:", error);
 
       // Display detailed error message from Supabase or other source
       toast({
@@ -90,7 +109,7 @@ const Login = () => {
     }
   };
 
-  // Handle register form submission
+  // Handle register form submission with improved error handling
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -135,6 +154,12 @@ const Login = () => {
 
         // Switch to login tab
         setActiveTab("login");
+        
+        // Pre-fill email for convenience
+        setLoginData(prev => ({
+          ...prev,
+          email: registerData.email
+        }));
       }
     } catch (error: any) {
       console.error("Registration error:", error);
@@ -208,6 +233,7 @@ const Login = () => {
                         value={loginData.email}
                         onChange={handleLoginChange}
                         required
+                        autoComplete="email"
                       />
                     </div>
                   </div>
@@ -230,6 +256,7 @@ const Login = () => {
                         value={loginData.password}
                         onChange={handleLoginChange}
                         required
+                        autoComplete="current-password"
                       />
                       <button
                         type="button"
@@ -245,8 +272,27 @@ const Login = () => {
                     </div>
                   </div>
 
-                  <Button type="submit" className="w-full bg-paritel-primary hover:bg-paritel-primary/90" disabled={isSubmitting}>
-                    {isSubmitting ? <>Connexion en cours...</> : <>Se connecter</>}
+                  <Button 
+                    type="submit" 
+                    className="w-full bg-paritel-primary hover:bg-paritel-primary/90" 
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <span className="animate-spin mr-2">
+                          <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                          </svg>
+                        </span>
+                        Connexion en cours...
+                      </>
+                    ) : (
+                      <>
+                        <LogIn className="mr-2 h-4 w-4" />
+                        Se connecter
+                      </>
+                    )}
                   </Button>
                 </form>
               </TabsContent>
@@ -256,49 +302,69 @@ const Login = () => {
                 <form onSubmit={handleRegister} className="space-y-4 pt-4">
                   <div className="space-y-2">
                     <CustomLabel htmlFor="name">Nom</CustomLabel>
-                    <Input
-                      id="name"
-                      name="name"
-                      value={registerData.name}
-                      onChange={handleRegisterChange}
-                      required
-                    />
+                    <div className="relative">
+                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                      <Input
+                        id="name"
+                        name="name"
+                        value={registerData.name}
+                        onChange={handleRegisterChange}
+                        className="pl-9"
+                        required
+                        autoComplete="name"
+                      />
+                    </div>
                   </div>
 
                   <div className="space-y-2">
                     <CustomLabel htmlFor="email">Email</CustomLabel>
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      value={registerData.email}
-                      onChange={handleRegisterChange}
-                      required
-                    />
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                      <Input
+                        id="email"
+                        name="email"
+                        type="email"
+                        value={registerData.email}
+                        onChange={handleRegisterChange}
+                        className="pl-9"
+                        required
+                        autoComplete="email"
+                      />
+                    </div>
                   </div>
 
                   <div className="space-y-2">
                     <CustomLabel htmlFor="password">Mot de passe</CustomLabel>
-                    <Input
-                      id="password"
-                      name="password"
-                      type="password"
-                      value={registerData.password}
-                      onChange={handleRegisterChange}
-                      required
-                    />
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                      <Input
+                        id="password"
+                        name="password"
+                        type="password"
+                        value={registerData.password}
+                        onChange={handleRegisterChange}
+                        className="pl-9"
+                        required
+                        autoComplete="new-password"
+                      />
+                    </div>
                   </div>
 
                   <div className="space-y-2">
                     <CustomLabel htmlFor="confirmPassword">Confirmer le mot de passe</CustomLabel>
-                    <Input
-                      id="confirmPassword"
-                      name="confirmPassword"
-                      type="password"
-                      value={registerData.confirmPassword}
-                      onChange={handleRegisterChange}
-                      required
-                    />
+                    <div className="relative">
+                      <ShieldCheck className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                      <Input
+                        id="confirmPassword"
+                        name="confirmPassword"
+                        type="password"
+                        value={registerData.confirmPassword}
+                        onChange={handleRegisterChange}
+                        className="pl-9"
+                        required
+                        autoComplete="new-password"
+                      />
+                    </div>
                   </div>
 
                   <div className="flex items-center">
@@ -308,14 +374,34 @@ const Login = () => {
                       name="agreeTerms"
                       checked={registerData.agreeTerms}
                       onChange={handleRegisterChange}
+                      className="rounded border-gray-300 text-paritel-primary focus:ring-paritel-primary"
                     />
-                    <label htmlFor="agreeTerms" className="ml-2 text-sm">
+                    <label htmlFor="agreeTerms" className="ml-2 text-sm text-gray-600">
                       J'accepte les termes et conditions
                     </label>
                   </div>
 
-                  <Button type="submit" className="w-full bg-paritel-primary hover:bg-paritel-primary/90" disabled={isSubmitting}>
-                    {isSubmitting ? <>Inscription en cours...</> : <>S'inscrire</>}
+                  <Button 
+                    type="submit" 
+                    className="w-full bg-paritel-primary hover:bg-paritel-primary/90" 
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <span className="animate-spin mr-2">
+                          <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                          </svg>
+                        </span>
+                        Inscription en cours...
+                      </>
+                    ) : (
+                      <>
+                        <User className="mr-2 h-4 w-4" />
+                        S'inscrire
+                      </>
+                    )}
                   </Button>
                 </form>
               </TabsContent>
@@ -323,13 +409,13 @@ const Login = () => {
           </CardContent>
 
           <CardFooter className="flex justify-center border-t p-4">
-            <p className="text-xs">
-              Vous avez déjà un compte?{" "}
+            <p className="text-xs text-gray-600">
+              {activeTab === "login" ? "Vous n'avez pas de compte? " : "Vous avez déjà un compte? "}
               <span
-                className="text-paritel-primary cursor-pointer"
-                onClick={() => setActiveTab("login")}
+                className="text-paritel-primary cursor-pointer font-medium hover:underline"
+                onClick={() => setActiveTab(activeTab === "login" ? "register" : "login")}
               >
-                Se connecter
+                {activeTab === "login" ? "S'inscrire" : "Se connecter"}
               </span>
             </p>
           </CardFooter>
