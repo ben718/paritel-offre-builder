@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -15,9 +15,13 @@ import { supabase } from "@/integrations/supabase/client";
 const Login = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState("login");
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Get the path the user was trying to access before being redirected to login
+  const from = location.state?.from || "/dashboard";
 
   // Login form state
   const [loginData, setLoginData] = useState({
@@ -36,14 +40,15 @@ const Login = () => {
     agreeTerms: false,
   });
 
-  const { login, user, isAuthenticated, isLoading } = useAuth();
+  const { login, user, isAuthenticated, isReady } = useAuth();
 
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated && user) {
-      navigate("/dashboard");
+      console.log("Utilisateur déjà authentifié, redirection vers:", from);
+      navigate(from);
     }
-  }, [isAuthenticated, user, navigate]);
+  }, [isAuthenticated, user, navigate, from]);
 
   // Handle login form submission
   const handleLogin = async (e: React.FormEvent) => {
@@ -51,7 +56,7 @@ const Login = () => {
     setIsSubmitting(true);
 
     try {
-      console.log("Attempting login with:", loginData.email);
+      console.log("Tentative de connexion avec:", loginData.email);
 
       // Call login function from AuthContext
       const success = await login(loginData.email, loginData.password);
@@ -62,8 +67,8 @@ const Login = () => {
           description: "Bienvenue dans l'application Paritel AO & Catalogue",
         });
 
-        // Redirect to dashboard
-        navigate("/dashboard");
+        // Redirect to intended destination or dashboard
+        navigate(from);
       } else {
         toast({
           title: "Échec de la connexion",

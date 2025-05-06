@@ -196,12 +196,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     // Set up auth state change listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth state changed:', event, session?.user?.id);
       setSession(session);
       setUser(session?.user ?? null);
       
-      // Don't call fetchUserProfile directly inside the callback to avoid potential deadlocks
+      // Résoudre le problème de deadlock potentiel en utilisant setTimeout
       if (session?.user) {
         setTimeout(() => {
           fetchUserProfile(session.user);
@@ -215,20 +215,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     // Check for existing session on mount
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const initializeAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
       console.log('Initial session check:', session?.user?.id);
       setSession(session);
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        fetchUserProfile(session.user);
+        await fetchUserProfile(session.user);
       } else {
         setUserProfile(null);
         setIsProfileLoading(false);
       }
       
       setIsLoading(false);
-    });
+    };
+
+    initializeAuth();
 
     return () => {
       subscription.unsubscribe();
@@ -259,7 +262,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Login error:', error);
       toast({
         title: 'Erreur de connexion',
@@ -302,6 +305,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const userRoles = userProfile.roles;
     console.log('Vérification d\'accès:', { userRoles, allowedRoles });
     
+    // Si admin ou superadmin, toujours autoriser l'accès
+    if (userRoles.some(role => role.toLowerCase() === 'admin' || role.toLowerCase() === 'superadmin')) {
+      return true;
+    }
+    
     // Check if user has any of the allowed roles
     return userRoles.some(role => allowedRoles.includes(role));
   };
@@ -319,7 +327,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         session,
         login,
         logout,
-        isAuthenticated: !!user,
+        isAuthenticated: !!user && !!session,
         isAdmin,
         isSuperAdmin,
         isLoading,

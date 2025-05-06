@@ -10,7 +10,7 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute = ({ children, allowedRoles = [] }: ProtectedRouteProps) => {
   const location = useLocation();
-  const { isAuthenticated, isReady, userProfile } = useAuth();
+  const { isAuthenticated, isReady, userProfile, session } = useAuth();
   
   // Show loading indicator while auth state is being determined
   if (!isReady) {
@@ -25,7 +25,7 @@ const ProtectedRoute = ({ children, allowedRoles = [] }: ProtectedRouteProps) =>
   }
 
   // If not authenticated, redirect to login with current location
-  if (!isAuthenticated) {
+  if (!isAuthenticated || !session) {
     console.log('Redirection vers la page de connexion - Utilisateur non authentifié', { from: location.pathname });
     return <Navigate to="/login" state={{ from: location.pathname }} replace />;
   }
@@ -42,10 +42,10 @@ const ProtectedRoute = ({ children, allowedRoles = [] }: ProtectedRouteProps) =>
   const userRoles = userProfile?.roles || [];
   console.log('Vérification des rôles:', { userRoles, allowedRoles });
   
-  // Correction importante : vérification simplifiée des rôles
+  // Vérification simplifiée et robuste des rôles
   let hasAccess = false;
   
-  // Si l'utilisateur a un rôle admin, toujours autoriser l'accès
+  // Si l'utilisateur a un rôle admin ou superadmin, toujours autoriser l'accès
   if (userRoles.some(role => role.toLowerCase() === 'admin' || role.toLowerCase() === 'superadmin')) {
     console.log('Accès autorisé: utilisateur admin');
     hasAccess = true;
@@ -56,13 +56,13 @@ const ProtectedRoute = ({ children, allowedRoles = [] }: ProtectedRouteProps) =>
         userRole.toLowerCase() === allowedRole.toLowerCase()
       )
     );
-  }
-  
-  // Detailed role matching log
-  if (hasAccess) {
-    console.log('Accès autorisé: rôle correspondant trouvé');
-  } else {
-    console.log('Accès refusé: aucun rôle correspondant trouvé');
+    
+    // Log détaillé de la correspondance des rôles
+    if (hasAccess) {
+      console.log('Accès autorisé: rôle correspondant trouvé');
+    } else {
+      console.log('Accès refusé: aucun rôle correspondant trouvé');
+    }
   }
   
   if (!hasAccess) {

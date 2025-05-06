@@ -12,6 +12,11 @@ export type ReportingData = {
   created_by?: string;
 }
 
+export type ReportingPreference = {
+  period: string;
+  productType: string;
+}
+
 // Récupérer les données de reporting
 export const fetchReportingData = async (category?: string): Promise<ReportingData[]> => {
   try {
@@ -108,7 +113,7 @@ export const deleteReportingData = async (id: string): Promise<boolean> => {
   }
 };
 
-// Récupérer les catégories de reporting
+// Récupérer les catégories de reporting depuis la base de données
 export const fetchReportingCategories = async (): Promise<string[]> => {
   try {
     const { data, error } = await supabase
@@ -130,8 +135,40 @@ export const fetchReportingCategories = async (): Promise<string[]> => {
   }
 };
 
+// Récupérer les préférences de reporting d'un utilisateur
+export const fetchReportingPreferences = async (): Promise<ReportingPreference | null> => {
+  try {
+    const { data: userData } = await supabase.auth.getUser();
+    
+    if (!userData.user) {
+      console.error('User not authenticated');
+      return null;
+    }
+    
+    // Essayer de récupérer depuis localStorage (solution temporaire)
+    const storedPrefs = localStorage.getItem('reporting_preferences');
+    if (storedPrefs) {
+      const prefs = JSON.parse(storedPrefs);
+      if (prefs.userId === userData.user.id) {
+        return {
+          period: prefs.period,
+          productType: prefs.productType
+        };
+      }
+    }
+    
+    return {
+      period: 'month', // Valeur par défaut
+      productType: 'all' // Valeur par défaut
+    };
+  } catch (error) {
+    console.error('Error in fetchReportingPreferences:', error);
+    return null;
+  }
+};
+
 // Sauvegarder les préférences de reporting
-export const saveReportingPreferences = async (preferences: { period: string, productType: string }): Promise<boolean> => {
+export const saveReportingPreferences = async (preferences: ReportingPreference): Promise<boolean> => {
   try {
     const { data: userData } = await supabase.auth.getUser();
     

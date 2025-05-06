@@ -3,6 +3,8 @@ import { ReactNode } from "react";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useAuth } from "@/context/AuthContext";
+import { Navigate } from "react-router-dom";
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -10,6 +12,13 @@ interface MainLayoutProps {
 
 const MainLayout = ({ children }: MainLayoutProps) => {
   const isMobile = useIsMobile();
+  const { isAuthenticated, isReady } = useAuth();
+
+  // Vérifier l'authentification avant d'afficher le layout
+  if (isReady && !isAuthenticated) {
+    console.log("Utilisateur non authentifié, redirection vers la page de connexion");
+    return <Navigate to="/login" replace />;
+  }
 
   return (
     <div className="flex h-screen w-full bg-gray-50 overflow-hidden">
