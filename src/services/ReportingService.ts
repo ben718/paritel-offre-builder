@@ -140,48 +140,14 @@ export const saveReportingPreferences = async (preferences: { period: string, pr
       return false;
     }
     
-    // Vérifier si une préférence existe déjà pour cet utilisateur
-    const { data: existingPreferences, error: fetchError } = await supabase
-      .from('user_reporting_preferences')
-      .select('*')
-      .eq('user_id', userData.user.id)
-      .maybeSingle();
-      
-    if (fetchError && fetchError.code !== 'PGRST116') {
-      console.error('Error fetching user preferences:', fetchError);
-      return false;
-    }
-    
-    // Si les préférences existent, mettre à jour
-    if (existingPreferences) {
-      const { error: updateError } = await supabase
-        .from('user_reporting_preferences')
-        .update({
-          period: preferences.period,
-          product_type: preferences.productType,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', existingPreferences.id);
-        
-      if (updateError) {
-        console.error('Error updating reporting preferences:', updateError);
-        return false;
-      }
-    } else {
-      // Sinon, créer un nouvel enregistrement
-      const { error: insertError } = await supabase
-        .from('user_reporting_preferences')
-        .insert({
-          user_id: userData.user.id,
-          period: preferences.period,
-          product_type: preferences.productType
-        });
-        
-      if (insertError) {
-        console.error('Error inserting reporting preferences:', insertError);
-        return false;
-      }
-    }
+    // Sauvegarde les préférences en utilisant localStorage temporairement
+    // puisque la table user_reporting_preferences n'existe pas dans le schéma
+    localStorage.setItem('reporting_preferences', JSON.stringify({
+      userId: userData.user.id,
+      period: preferences.period,
+      productType: preferences.productType,
+      updated_at: new Date().toISOString()
+    }));
     
     return true;
   } catch (error) {

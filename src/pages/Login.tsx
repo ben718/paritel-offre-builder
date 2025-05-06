@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -70,7 +71,7 @@ const Login = () => {
           variant: "destructive",
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Login error:", error);
 
       // Display detailed error message from Supabase or other source
@@ -130,7 +131,7 @@ const Login = () => {
         // Switch to login tab
         setActiveTab("login");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Registration error:", error);
       toast({
         title: "Erreur d'inscription",
@@ -161,14 +162,14 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 w-full">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-paritel-primary mb-2">Paritel AO & Catalogue</h1>
           <p className="text-gray-600">Plateforme de gestion des offres et du catalogue produits</p>
         </div>
 
-        <Card>
+        <Card className="w-full">
           <CardHeader className="space-y-1 pb-4">
             <CardTitle className="text-2xl font-bold text-center">
               {activeTab === "login" ? "Connexion" : "Inscription"}
