@@ -17,13 +17,16 @@ const Dashboard = () => {
   const { data: products = [], isError, error } = useQuery({
     queryKey: ['dashboard-products'],
     queryFn: fetchProducts,
-    onError: (err) => {
-      console.error("Erreur lors de la récupération des produits:", err);
-      toast({
-        title: "Erreur de chargement",
-        description: "Impossible de charger les produits. Veuillez réessayer.",
-        variant: "destructive",
-      });
+    // Updated error handling approach for React Query v5+
+    meta: {
+      onError: (err: Error) => {
+        console.error("Erreur lors de la récupération des produits:", err);
+        toast({
+          title: "Erreur de chargement",
+          description: "Impossible de charger les produits. Veuillez réessayer.",
+          variant: "destructive",
+        });
+      }
     }
   });
 
