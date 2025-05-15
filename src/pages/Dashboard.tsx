@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { FileText, Search, PlusCircle, ShieldCheck, BookOpen, BarChart2, Loader2 } from 'lucide-react';
 import { fetchRecentOffers, fetchTechnicalAlerts, fetchKeyIndicators, Offer, TechnicalAlert } from '@/services/DashboardService';
+import { useNavigate } from "react-router-dom";
 
 interface KeyIndicators {
   delaiReponseMoyen: string;
@@ -13,6 +14,7 @@ interface KeyIndicators {
 
 const DashboardPage: React.FC = () => {
   const { userProfile, checkRouteAccess } = useAuth();
+  const navigate = useNavigate();
   const [recentOffers, setRecentOffers] = useState<Offer[]>([]);
   const [technicalAlerts, setTechnicalAlerts] = useState<TechnicalAlert[]>([]);
   const [keyIndicators, setKeyIndicators] = useState<KeyIndicators | null>(null);
@@ -63,23 +65,23 @@ const DashboardPage: React.FC = () => {
           <CardTitle>Accès Rapides</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-          <Button variant="outline" className="flex flex-col h-24 items-center justify-center space-y-1 text-center">
+          <Button variant="outline" className="flex flex-col h-24 items-center justify-center space-y-1 text-center" onClick={() => navigate("/catalogue/produits")}>
             <Search className="h-6 w-6 mb-1" />
             <span>Rechercher Produit/Service</span>
           </Button>
-          <Button variant="outline" className="flex flex-col h-24 items-center justify-center space-y-1 text-center">
+          <Button variant="outline" className="flex flex-col h-24 items-center justify-center space-y-1 text-center" onClick={() => navigate("/create-offer")}>
             <PlusCircle className="h-6 w-6 mb-1" />
             <span>Créer Dossier AO</span>
           </Button>
-          <Button variant="outline" className="flex flex-col h-24 items-center justify-center space-y-1 text-center">
+          <Button variant="outline" className="flex flex-col h-24 items-center justify-center space-y-1 text-center" onClick={() => navigate("/generate-memoire-technique")}>
             <FileText className="h-6 w-6 mb-1" />
             <span>Générer Mémoire Technique</span>
           </Button>
-          <Button variant="outline" className="flex flex-col h-24 items-center justify-center space-y-1 text-center">
+          <Button variant="outline" className="flex flex-col h-24 items-center justify-center space-y-1 text-center" onClick={() => navigate("/slas")}>
             <ShieldCheck className="h-6 w-6 mb-1" />
             <span>Voir SLA par Service</span>
           </Button>
-          <Button variant="outline" className="flex flex-col h-24 items-center justify-center space-y-1 text-center">
+          <Button variant="outline" className="flex flex-col h-24 items-center justify-center space-y-1 text-center" onClick={() => navigate("/modele-contrat")}>
             <BookOpen className="h-6 w-6 mb-1" />
             <span>Modèle de Contrat</span>
           </Button>
@@ -87,11 +89,11 @@ const DashboardPage: React.FC = () => {
       </Card>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {/* Section Nouveaux Appels d’Offres - Visible par Commercial AO, Avant-vente, Admin */} 
+        {/* Section Nouveaux Appels d'Offres - Visible par Commercial AO, Avant-vente, Admin */} 
         {checkRouteAccess(['Commercial AO', 'Avant-vente', 'Admin']) && (
           <Card>
             <CardHeader>
-              <CardTitle>Nouveaux Appels d’Offres</CardTitle>
+              <CardTitle>Nouveaux Appels d'Offres</CardTitle>
               <CardDescription>Les dernières opportunités à ne pas manquer.</CardDescription>
             </CardHeader>
             <CardContent>
@@ -105,7 +107,7 @@ const DashboardPage: React.FC = () => {
                   ))}
                 </ul>
               ) : (
-                <p className="text-sm text-gray-500">Aucun nouvel appel d’offre pour le moment.</p>
+                <p className="text-sm text-gray-500">Aucun nouvel appel d'offre pour le moment.</p>
               )}
             </CardContent>
           </Card>

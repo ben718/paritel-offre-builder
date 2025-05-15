@@ -1,10 +1,10 @@
-
 import React, { Suspense, lazy } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import './App.css';
 import { Toaster } from '@/components/ui/sonner';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import Loading from './components/ui/loading';
+import GenerateDocumentPage from './pages/GenerateDocumentPage';
 
 // Lazy loaded pages
 const Dashboard = lazy(() => import('./pages/Dashboard'));
@@ -51,6 +51,7 @@ function App() {
           <Route path="/product-comparison" element={<ProtectedRoute><ProductComparison /></ProtectedRoute>} />
           <Route path="/site-builder" element={<ProtectedRoute><SiteBuilder /></ProtectedRoute>} />
           <Route path="/code-editor" element={<ProtectedRoute><CodeEditor /></ProtectedRoute>} />
+          <Route path="/generate-memoire-technique" element={<ProtectedRoute><GenerateDocumentPage /></ProtectedRoute>} />
           
           <Route path="/unauthorized" element={<Unauthorized />} />
           <Route path="*" element={<NotFound />} />
