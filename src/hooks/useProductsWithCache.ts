@@ -1,7 +1,7 @@
 
 import { useState, useCallback } from 'react';
 import { useQueryWithCache } from './useQueryWithCache';
-import { fetchProducts } from '@/services/ProductService';
+import { getProducts } from '@/services/ProductService';
 
 const CACHE_TIME = 10 * 60 * 1000; // 10 minutes
 
@@ -22,7 +22,14 @@ export function useProductsWithCache() {
     error
   } = useQueryWithCache(
     ['products', filter.category, filter.search, filter.page.toString(), filter.limit.toString()],
-    () => fetchProducts(),
+    () => getProducts(
+      {
+        category_id: filter.category || undefined,
+        searchTerm: filter.search || undefined
+      },
+      filter.page,
+      filter.limit
+    ).then(result => result.products),
     { 
       staleTime: 60000, 
       cacheTime: CACHE_TIME,

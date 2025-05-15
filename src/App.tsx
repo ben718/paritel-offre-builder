@@ -9,7 +9,7 @@ import Loading from './components/ui/loading';
 // Lazy loaded pages
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Users = lazy(() => import('./pages/Users'));
-const Products = lazy(() => import('./pages/Products'));
+const ProduitsPage = lazy(() => import('./pages/ProduitsPage'));
 const Partners = lazy(() => import('./pages/Partners'));
 const CreateOffer = lazy(() => import('./pages/CreateOffer'));
 const MyOffers = lazy(() => import('./pages/MyOffers'));
@@ -38,7 +38,7 @@ function App() {
           {/* Protected routes */}
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/users" element={<ProtectedRoute><Users /></ProtectedRoute>} />
-          <Route path="/products" element={<ProtectedRoute><Products /></ProtectedRoute>} />
+          <Route path="/catalogue/produits" element={<ProtectedRoute><ProduitsPage /></ProtectedRoute>} />
           <Route path="/partners" element={<ProtectedRoute><Partners /></ProtectedRoute>} />
           <Route path="/create-offer" element={<ProtectedRoute><CreateOffer /></ProtectedRoute>} />
           <Route path="/my-offers" element={<ProtectedRoute><MyOffers /></ProtectedRoute>} />

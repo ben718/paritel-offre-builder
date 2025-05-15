@@ -49,7 +49,7 @@ import {
   DialogHeader, 
   DialogTitle 
 } from "@/components/ui/dialog";
-import { getAllOffers, updateOfferStatus, deleteOffer, OfferData, OfferStatus } from "@/services/OfferService";
+import { getOffers, updateOffer, deleteOffer, Offer as OfferData, OfferStatusValue } from "@/services/OfferService"; // Renamed OfferStatus to OfferStatusValue to avoid conflict
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 const statusLabels = {
@@ -89,7 +89,7 @@ const MyOffers = () => {
   
   const { data: offers = [], isLoading } = useQuery({
     queryKey: ['offers'],
-    queryFn: getAllOffers
+    queryFn: () => getOffers(undefined, 1, 100).then(data => data.offers) // Adapt to fetch all offers for now, or implement pagination
   });
   
   const deleteMutation = useMutation({

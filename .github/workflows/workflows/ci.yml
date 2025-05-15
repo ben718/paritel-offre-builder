@@ -1,0 +1,36 @@
+# Workflow CI/CD de Base pour Paritel Intranet
+
+name: CI Paritel
+
+on:
+  push:
+    branches: [ "main", "develop" ] # Adaptez les branches cibles
+  pull_request:
+    branches: [ "main", "develop" ] # Adaptez les branches cibles
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      - name: Installation de Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest # Ou une version spécifique si nécessaire
+
+      - name: Installation des dépendances
+        run: bun install --frozen-lockfile
+
+      - name: Linting du code
+        run: bun run lint # Assurez-vous que ce script existe dans package.json
+
+      - name: Build du projet
+        run: bun run build # Assurez-vous que ce script existe dans package.json
+
+      # Décommentez et adaptez si vous avez des tests à exécuter
+      # - name: Exécution des tests
+      #   run: bun test # Assurez-vous que ce script existe dans package.json
+

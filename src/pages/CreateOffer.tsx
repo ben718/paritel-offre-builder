@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { SelectableProductCard } from "@/components/products/SelectableProductCard";
-import { fetchProducts } from "@/services/ProductService";
+import { getProducts } from "@/services/ProductService";
 import { createOffer, addProductToOffer, OfferStatus } from "@/services/OfferService";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/use-toast";
@@ -88,7 +88,7 @@ const ProductSelection = ({ onSelectProducts, onBack, onNext }) => {
   
   const { data: products = [], isLoading } = useQuery({
     queryKey: ['products'],
-    queryFn: fetchProducts
+    queryFn: () => getProducts(undefined, 1, 100) // Récupère jusqu'à 100 produits pour la sélection
   });
   
   const handleProductSelection = (product, selected) => {

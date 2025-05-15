@@ -12,6 +12,8 @@ import { Eye, EyeOff, Lock, LogIn, Mail, ShieldCheck, User } from "lucide-react"
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
+import { LoginButtonAzure } from "@/components/auth/LoginButtonAzure";
+
 const Login = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -294,6 +296,19 @@ const Login = () => {
                       </>
                     )}
                   </Button>
+
+                  <div className="relative my-4">
+                    <div className="absolute inset-0 flex items-center">
+                      <span className="w-full border-t"></span>
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-background px-2 text-muted-foreground">
+                        Ou continuer avec
+                      </span>
+                    </div>
+                  </div>
+
+                  <LoginButtonAzure />
                 </form>
               </TabsContent>
 
