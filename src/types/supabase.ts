@@ -120,31 +120,60 @@ export interface Database {
       profiles: {
         Row: {
           id: string
-          updated_at: string
-          username: string | null
+          username: string
           full_name: string | null
           avatar_url: string | null
           role_id: string | null
-          preferences: Json | null
+          created_at: string
+          updated_at: string
         }
         Insert: {
           id: string
-          updated_at?: string
-          username?: string | null
+          username: string
           full_name?: string | null
           avatar_url?: string | null
           role_id?: string | null
-          preferences?: Json | null
+          created_at?: string
+          updated_at?: string
         }
         Update: {
           id?: string
-          updated_at?: string
-          username?: string | null
+          username?: string
           full_name?: string | null
           avatar_url?: string | null
           role_id?: string | null
-          preferences?: Json | null
+          created_at?: string
+          updated_at?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_role_id_fkey"
+            columns: ["role_id"]
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      roles: {
+        Row: {
+          id: string
+          name: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
     }
     Views: {

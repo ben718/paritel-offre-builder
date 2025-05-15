@@ -1,16 +1,15 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react'; 
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
 import { useToast } from '@/hooks/use-toast';
+import { Database } from '@/types/supabase';
+
+type Profile = Database['public']['Tables']['profiles']['Row'];
+type Role = Database['public']['Tables']['roles']['Row'];
 
 // ---- Interfaces ----
-interface UserProfile {
-  id: string;
-  email: string;
-  full_name: string;
-  avatar_url: string;
+interface UserProfile extends Profile {
   roles: string[];  // Liste des rôles
 }
 
@@ -55,7 +54,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Fetch basic profile data
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('id, email, full_name, avatar_url')
+        .select('id, username, full_name, avatar_url, role_id')
         .eq('id', user.id)
         .single();
 
@@ -69,10 +68,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             .from('profiles')
             .insert({
               id: user.id,
-              email: user.email,
-              full_name: user.user_metadata?.full_name || ''
+              username: user.email || '',
+              full_name: user.user_metadata?.full_name || '',
+              avatar_url: '',
+              role_id: (await supabase.from('roles').select('id').eq('name', 'Commercial AO').single()).data?.id
             })
-            .select('id, email, full_name, avatar_url')
+            .select()
             .single();
             
           if (createError) {
@@ -123,9 +124,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Fetch user roles
       const { data: rolesData, error: rolesError } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id);
+        .from('roles')
+        .select('name')
+        .eq('id', profile.role_id);
 
       if (rolesError) {
         console.error('Erreur lors de la récupération des rôles:', rolesError);
@@ -139,9 +140,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUserProfile({ 
           ...(profile || { 
             id: user.id, 
-            email: user.email || '', 
+            username: user.email || '', 
             full_name: user.user_metadata?.full_name || '',
-            avatar_url: '' 
+            avatar_url: '',
+            role_id: ''
           }), 
           roles: [] 
         });
@@ -151,33 +153,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // If no roles found, create a default user role
       if (!rolesData || rolesData.length === 0) {
-        await supabase
-          .from('user_roles')
-          .insert({
-            user_id: user.id,
-            role: 'user'
+        const { data: defaultRole } = await supabase
+          .from('roles')
+          .select('id')
+          .eq('name', 'Commercial AO')
+          .single();
+
+        if (defaultRole) {
+          await supabase
+            .from('profiles')
+            .update({ role_id: defaultRole.id })
+            .eq('id', user.id);
+            
+          setUserProfile({ 
+            ...(profile || { 
+              id: user.id, 
+              username: user.email || '', 
+              full_name: user.user_metadata?.full_name || '',
+              avatar_url: '',
+              role_id: defaultRole.id
+            }), 
+            roles: ['Commercial AO'] 
           });
-          
-        setUserProfile({ 
-          ...(profile || { 
-            id: user.id, 
-            email: user.email || '', 
-            full_name: user.user_metadata?.full_name || '',
-            avatar_url: '' 
-          }), 
-          roles: ['user'] 
-        });
+        }
       } else {
         // Extract roles from the response
-        const roles = rolesData.map(r => r.role);
+        const roles = rolesData.map(r => r.name);
         console.log('Roles de l\'utilisateur:', roles);
         
         setUserProfile({ 
           ...(profile || { 
             id: user.id, 
-            email: user.email || '', 
+            username: user.email || '', 
             full_name: user.user_metadata?.full_name || '',
-            avatar_url: '' 
+            avatar_url: '',
+            role_id: ''
           }), 
           roles 
         });
