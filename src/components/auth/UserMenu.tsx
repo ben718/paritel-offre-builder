@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -55,7 +54,7 @@ const UserMenu = () => {
         .join('')
         .toUpperCase()
         .substring(0, 2)
-    : userProfile.email[0]?.toUpperCase();
+    : userProfile.username[0]?.toUpperCase();
 
   return (
     <DropdownMenu>
@@ -70,10 +69,10 @@ const UserMenu = () => {
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">
-              {userProfile.full_name || userProfile.email}
+              {userProfile.full_name || userProfile.username}
             </p>
             <p className="text-xs leading-none text-muted-foreground">
-              {userProfile.email}
+              {userProfile.username}
             </p>
           </div>
         </DropdownMenuLabel>

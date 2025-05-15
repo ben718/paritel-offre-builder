@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -48,7 +47,7 @@ const Unauthorized = () => {
           <div className="mt-2 p-3 bg-gray-100 rounded-md">
             <p className="text-sm font-medium">Profil actuel:</p>
             <p className="text-sm">Nom: {userProfile.full_name || "Non défini"}</p>
-            <p className="text-sm">Email: {userProfile.email}</p>
+            <p className="text-sm">Nom d'utilisateur: {userProfile.username}</p>
             <p className="text-sm">Rôles: {userProfile.roles?.join(", ") || "Aucun rôle défini"}</p>
             <p className="text-sm">ID utilisateur: {userProfile.id}</p>
           </div>
