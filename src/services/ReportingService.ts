@@ -1,6 +1,36 @@
 import { supabase } from "@/integrations/supabase/client";
+import { Database } from "@/types/supabase";
 
 // --- Types pour les Statistiques et Rapports ---
+
+// Types pour les données de reporting
+interface ReportingData {
+  report_date: string;
+  status?: string;
+  market_name?: string;
+  category: string;
+  name?: string;
+  category_id?: string;
+}
+
+type Offer = Database['public']['Tables']['offers']['Row'];
+type Product = Database['public']['Tables']['products']['Row'];
+type Category = Database['public']['Tables']['categories']['Row'];
+
+interface ProductData {
+  created_at: string;
+  name: string;
+  category_id: string;
+  categories?: {
+    name: string;
+  };
+}
+
+interface OfferData {
+  created_at: string;
+  status: string;
+  market_name: string;
+}
 
 export interface OfferStats {
   total_offers: number;
@@ -115,4 +145,95 @@ export const getGlobalDashboardStatistics = async (): Promise<GlobalDashboardSta
 
 // Plus de fonctions peuvent être ajoutées pour des rapports spécifiques
 // export const generateOfferActivityReport = async (dateRange: {from: string, to: string}) => { ... }
+
+// Fonction pour récupérer les données de reporting
+export const fetchReportingData = async (type: string): Promise<ReportingData[]> => {
+  try {
+    switch (type) {
+      case 'sales':
+        // Récupérer les statistiques des offres par période
+        const { data: offersData, error: offersError } = await supabase
+          .from('offers')
+          .select('created_at, status, market_name')
+          .order('created_at', { ascending: false });
+        
+        if (offersError) throw offersError;
+        if (!offersData) return [];
+        
+        // Transformer les données pour le reporting
+        return offersData.map(offer => ({
+          report_date: offer.created_at,
+          status: offer.status,
+          market_name: offer.market_name,
+          category: 'offers'
+        }));
+
+      case 'products':
+        // Récupérer les statistiques des produits
+        const { data: productsData, error: productsError } = await supabase
+          .from('products')
+          .select('created_at, name, category_id, categories(name)')
+          .order('created_at', { ascending: false });
+        
+        if (productsError) throw productsError;
+        if (!productsData) return [];
+        
+        return productsData.map(product => ({
+          report_date: product.created_at,
+          name: product.name,
+          category: product.categories?.name || 'Non catégorisé',
+          category_id: product.category_id
+        }));
+
+      default:
+        throw new Error('Type de reporting non supporté');
+    }
+  } catch (error) {
+    console.error('Erreur lors de la récupération des données de reporting:', error);
+    throw error;
+  }
+};
+
+// Fonction pour récupérer les catégories de reporting
+export const fetchReportingCategories = async (): Promise<string[]> => {
+  try {
+    // Récupérer les catégories de produits
+    const { data: categories, error } = await supabase
+      .from('categories')
+      .select('name')
+      .order('name');
+    
+    if (error) throw error;
+    if (!categories) return [];
+    
+    return categories.map(cat => cat.name);
+  } catch (error) {
+    console.error('Erreur lors de la récupération des catégories:', error);
+    throw error;
+  }
+};
+
+// Fonction pour sauvegarder les préférences de reporting
+export const saveReportingPreferences = async (preferences: { period: string, productType: string }) => {
+  try {
+    // Sauvegarder les préférences dans la table profiles
+    const { data: user, error: userError } = await supabase.auth.getUser();
+    if (userError) throw userError;
+    if (!user.user) throw new Error('Utilisateur non authentifié');
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        preferences: preferences
+      })
+      .eq('id', user.user.id);
+
+    if (error) throw error;
+
+    return { success: true };
+  } catch (error) {
+    console.error('Erreur lors de la sauvegarde des préférences:', error);
+    throw error;
+  }
+};
 
