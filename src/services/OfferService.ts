@@ -289,6 +289,25 @@ export const deleteOfferDocument = async (documentId: string, filePath: string):
   }
 };
 
+/**
+ * Récupère les 5 offres les plus récentes.
+ * @param limit Nombre d'offres à retourner (par défaut 5)
+ * @returns Liste des offres récentes
+ */
+export const getRecentOffers = async (limit: number = 5): Promise<Offer[]> => {
+  const { data, error } = await supabase
+    .from("offers")
+    .select("id, created_at, market_name, organization, status")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    console.error("Erreur lors de la récupération des offres récentes:", error);
+    throw error;
+  }
+  return data as Offer[];
+};
+
 // Ajouter d'autres fonctions si nécessaire (ex: mise à jour de document, gestion des versions, etc.)
 
 
